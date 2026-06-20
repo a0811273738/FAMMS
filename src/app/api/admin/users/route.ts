@@ -62,15 +62,15 @@ export async function POST(req: NextRequest) {
   })
   if (authError) return NextResponse.json({ error: authError.message }, { status: 500 })
 
-  // Trigger auto-creates profile, so we UPDATE instead of INSERT
-  const { data: updatedProfile, error: profileError } = await adminClient
+  const { data: newProfile, error: profileError } = await adminClient
     .from('profiles')
-    .update({
+    .upsert({
+      id: newUser.user.id,
+      email,
       full_name,
       role,
       department_id: department_id || null,
-    })
-    .eq('id', newUser.user.id)
+    }, { onConflict: 'id' })
     .select()
     .single()
 
@@ -79,5 +79,5 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: profileError.message }, { status: 500 })
   }
 
-  return NextResponse.json(updatedProfile)
+  return NextResponse.json(newProfile)
 }
