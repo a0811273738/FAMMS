@@ -31,7 +31,7 @@ export default function ResearchClient() {
       if (!res.ok) throw new Error(data.error)
       setResult(data)
     } catch (err: any) {
-      toast.error(err.message ?? 'Research failed')
+      toast.error(err.message ?? 'Pencarian gagal')
     } finally {
       setSearching(false)
     }
@@ -50,7 +50,7 @@ export default function ResearchClient() {
   async function handleCompare() {
     if (!result) return
     const products = result.products.filter(p => selected.has(p.id))
-    if (products.length < 2) { toast.error('Select at least 2 products to compare'); return }
+    if (products.length < 2) { toast.error('Pilih minimal 2 produk untuk dibandingkan'); return }
     setComparing(true)
     setComparison(null)
     try {
@@ -64,7 +64,7 @@ export default function ResearchClient() {
       setComparison(data)
       setTimeout(() => comparisonRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
     } catch (err: any) {
-      toast.error(err.message ?? 'Comparison failed')
+      toast.error(err.message ?? 'Perbandingan gagal')
     } finally {
       setComparing(false)
     }
@@ -75,17 +75,17 @@ export default function ResearchClient() {
   return (
     <div className="max-w-4xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-xl font-bold text-gray-900">Product Research Center</h1>
-        <p className="text-sm text-gray-500 mt-0.5">AI-powered product discovery and comparison for smarter procurement</p>
+        <h1 className="text-xl font-bold text-gray-900">Pusat Riset Produk</h1>
+        <p className="text-sm text-gray-500 mt-0.5">Temukan dan bandingkan produk dengan bantuan AI untuk pengadaan yang lebih cerdas</p>
       </div>
 
-      {/* Search */}
+      {/* Pencarian */}
       <form onSubmit={handleSearch} className="flex gap-3 mb-8">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             type="text"
-            placeholder='e.g. "industrial label printer", "office ergonomic chair"'
+            placeholder='Contoh: "printer label industri", "kursi ergonomis kantor"'
             value={query}
             onChange={e => setQuery(e.target.value)}
             disabled={searching}
@@ -98,7 +98,7 @@ export default function ResearchClient() {
           className="flex items-center gap-2 px-5 py-3 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-colors"
         >
           {searching ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
-          {searching ? 'Researching...' : 'Research'}
+          {searching ? 'Mencari...' : 'Cari'}
         </button>
       </form>
 
@@ -117,13 +117,13 @@ export default function ResearchClient() {
         </div>
       )}
 
-      {/* Results */}
+      {/* Hasil Pencarian */}
       {result && !searching && (
         <>
           <div className="flex items-center justify-between mb-4">
             <p className="text-sm text-gray-500">
-              {result.products.length} products found for &ldquo;{result.query}&rdquo;
-              {selected.size > 0 && <span className="ml-2 text-blue-600 font-medium">· {selected.size} selected</span>}
+              {result.products.length} produk ditemukan untuk &ldquo;{result.query}&rdquo;
+              {selected.size > 0 && <span className="ml-2 text-blue-600 font-medium">· {selected.size} dipilih</span>}
             </p>
             {selected.size >= 2 && (
               <button
@@ -132,7 +132,7 @@ export default function ResearchClient() {
                 className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 disabled:opacity-60 transition-colors"
               >
                 {comparing ? <RefreshCw className="w-4 h-4 animate-spin" /> : <GitCompare className="w-4 h-4" />}
-                {comparing ? 'Comparing...' : `Compare ${selected.size} Products`}
+                {comparing ? 'Membandingkan...' : `Bandingkan ${selected.size} Produk`}
               </button>
             )}
           </div>
@@ -157,6 +157,8 @@ export default function ResearchClient() {
                       {isSelected ? <CheckSquare className="w-5 h-5 text-blue-600" /> : <Square className="w-5 h-5 text-gray-300" />}
                     </div>
                   </div>
+
+                  {/* Spesifikasi */}
                   <ul className="space-y-1 mb-3">
                     {product.keySpecs.map((spec, i) => (
                       <li key={i} className="flex items-start gap-1.5 text-xs text-gray-600">
@@ -164,29 +166,36 @@ export default function ResearchClient() {
                       </li>
                     ))}
                   </ul>
+
+                  {/* Estimasi Harga */}
                   <div className="bg-gray-50 rounded-xl px-3 py-2 mb-3">
-                    <p className="text-xs text-gray-500">Est. Price Range</p>
+                    <p className="text-xs text-gray-500">Estimasi Harga</p>
                     <p className="text-sm font-bold text-gray-900">{product.estimatedPriceRange}</p>
                   </div>
+
+                  {/* Supplier */}
                   <div className="flex flex-wrap gap-1 mb-3">
                     {product.suggestedSuppliers.map((s, i) => (
                       <span key={i} className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{s}</span>
                     ))}
                   </div>
+
+                  {/* Tautan Marketplace */}
                   <div className="flex gap-2 mb-3" onClick={e => e.stopPropagation()}>
                     {product.shopeeSearchUrl && (
                       <a href={product.shopeeSearchUrl} target="_blank" rel="noopener noreferrer"
                         className="flex items-center gap-1 text-xs bg-orange-50 text-orange-600 border border-orange-200 px-2.5 py-1 rounded-lg hover:bg-orange-100 transition-colors font-medium">
-                        <ExternalLink className="w-3 h-3" />Shopee
+                        <ExternalLink className="w-3 h-3" />Cari di Shopee
                       </a>
                     )}
                     {product.tokopediaSearchUrl && (
                       <a href={product.tokopediaSearchUrl} target="_blank" rel="noopener noreferrer"
                         className="flex items-center gap-1 text-xs bg-green-50 text-green-700 border border-green-200 px-2.5 py-1 rounded-lg hover:bg-green-100 transition-colors font-medium">
-                        <ExternalLink className="w-3 h-3" />Tokopedia
+                        <ExternalLink className="w-3 h-3" />Cari di Tokopedia
                       </a>
                     )}
                   </div>
+
                   <p className="text-xs text-gray-500 leading-relaxed">{product.notes}</p>
                 </div>
               )
@@ -195,12 +204,12 @@ export default function ResearchClient() {
         </>
       )}
 
-      {/* Comparison */}
+      {/* Perbandingan */}
       {comparison && (
         <div ref={comparisonRef} className="bg-white border border-gray-200 rounded-2xl overflow-hidden mb-8">
           <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
             <div>
-              <h2 className="text-base font-bold text-gray-900">Comparison Analysis</h2>
+              <h2 className="text-base font-bold text-gray-900">Analisis Perbandingan</h2>
               <p className="text-xs text-gray-500 mt-0.5">{selectedProducts.map(p => p.name).join(' vs ')}</p>
             </div>
             <button onClick={() => setComparison(null)} className="text-gray-400 hover:text-gray-600">
@@ -214,7 +223,7 @@ export default function ResearchClient() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100">
-                  <th className="text-left text-xs text-gray-500 font-medium px-5 py-3 w-36">Criterion</th>
+                  <th className="text-left text-xs text-gray-500 font-medium px-5 py-3 w-36">Kriteria</th>
                   {selectedProducts.map(p => (
                     <th key={p.id} className="text-left text-xs font-semibold text-gray-900 px-4 py-3">{p.name}</th>
                   ))}
@@ -233,17 +242,17 @@ export default function ResearchClient() {
             </table>
           </div>
           <div className="px-5 py-4 border-t border-gray-100">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Recommendation</p>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Rekomendasi</p>
             <p className="text-sm text-gray-900">{comparison.recommendation}</p>
           </div>
         </div>
       )}
 
-      {/* Empty state */}
+      {/* Kosong */}
       {!searching && !result && (
         <div className="text-center py-20 text-gray-400">
           <Search className="w-10 h-10 mx-auto mb-3 opacity-30" />
-          <p className="text-sm">Enter a product or requirement to start researching</p>
+          <p className="text-sm">Masukkan nama produk atau kebutuhan untuk mulai mencari</p>
         </div>
       )}
     </div>

@@ -21,7 +21,7 @@ const NAV_LINKS = [
   { href: '/requests/new', label: 'New Request', icon: Plus },
   { href: '/history', label: 'History', icon: Clock },
   { href: '/materials', label: 'Prices', icon: BarChart2 },
-  { href: '/research', label: 'Research', icon: FlaskConical },
+  { href: '/research', label: 'Riset Produk', icon: FlaskConical },
 ]
 
 export default function Navbar({ profile }: NavbarProps) {

@@ -26,29 +26,30 @@ export interface ComparisonResult {
 }
 
 export async function researchProducts(query: string): Promise<ResearchResult> {
+  const encoded = encodeURIComponent(query)
   const completion = await getOpenAI().chat.completions.create({
     model: 'gpt-4o-mini',
     messages: [{
       role: 'user',
-      content: `You are a procurement specialist. A user is researching "${query}" for industrial/business purchasing in Indonesia.
+      content: `Kamu adalah spesialis pengadaan barang. Pengguna sedang mencari "${query}" untuk keperluan bisnis/industri di Indonesia.
 
-Generate 4–6 distinct product options. Each should represent a different tier (entry-level, mid-range, premium) or approach.
-Use Indonesian language for category names and notes. Include real Shopee and Tokopedia search URLs for each product using the product name as the search keyword.
+Buat 4–6 opsi produk yang berbeda. Setiap produk mewakili tingkat yang berbeda (entry-level, menengah, premium) atau pendekatan yang berbeda.
+Semua teks harus dalam Bahasa Indonesia. Gunakan URL pencarian Shopee dan Tokopedia yang benar untuk setiap produk.
 
-Respond ONLY with valid JSON:
+Jawab HANYA dengan JSON yang valid:
 {
   "query": "${query}",
   "products": [
     {
       "id": "product-0",
-      "name": "Specific Product Name",
-      "category": "Kategori",
+      "name": "Nama Produk Spesifik",
+      "category": "Kategori Produk",
       "keySpecs": ["spesifikasi 1", "spesifikasi 2", "spesifikasi 3", "spesifikasi 4"],
-      "estimatedPriceRange": "IDR X.XXX.XXX – Y.YYY.YYY",
-      "suggestedSuppliers": ["Supplier A", "Supplier B"],
-      "shopeeSearchUrl": "https://shopee.co.id/search?keyword=PRODUCT+NAME+URL+ENCODED",
-      "tokopediaSearchUrl": "https://www.tokopedia.com/search?st=product&q=PRODUCT+NAME+URL+ENCODED",
-      "notes": "Satu hingga dua kalimat catatan pembelian dalam Bahasa Indonesia."
+      "estimatedPriceRange": "Rp X.XXX.XXX – Rp Y.YYY.YYY",
+      "suggestedSuppliers": ["Nama Supplier A", "Nama Supplier B"],
+      "shopeeSearchUrl": "https://shopee.co.id/search?keyword=${encoded}",
+      "tokopediaSearchUrl": "https://www.tokopedia.com/search?st=product&q=${encoded}",
+      "notes": "Satu hingga dua kalimat catatan pembelian yang relevan."
     }
   ]
 }`,
@@ -61,28 +62,32 @@ Respond ONLY with valid JSON:
 
 export async function compareProducts(products: ResearchProduct[]): Promise<ComparisonResult> {
   const productList = products.map((p, i) =>
-    `${i + 1}. ${p.name}: ${p.keySpecs.join(', ')} | Price: ${p.estimatedPriceRange}`
+    `${i + 1}. ${p.name}: ${p.keySpecs.join(', ')} | Harga: ${p.estimatedPriceRange} | Supplier: ${p.suggestedSuppliers.join(', ')}`
   ).join('\n')
 
   const completion = await getOpenAI().chat.completions.create({
     model: 'gpt-4o-mini',
     messages: [{
       role: 'user',
-      content: `You are a procurement analyst. Compare these ${products.length} products for a business purchasing decision:
+      content: `Kamu adalah analis pengadaan. Bandingkan ${products.length} produk ini untuk keputusan pembelian bisnis di Indonesia:
 
 ${productList}
 
-Respond ONLY with valid JSON:
+Fokus perbandingan pada SPESIFIKASI TEKNIS dan HARGA saja. Jangan tulis kelebihan umum atau kegunaan — langsung ke angka dan detail teknis.
+Semua teks harus dalam Bahasa Indonesia.
+
+Jawab HANYA dengan JSON yang valid:
 {
-  "summary": "2-3 sentence executive summary",
+  "summary": "Ringkasan eksekutif 2-3 kalimat dalam Bahasa Indonesia, fokus pada perbedaan harga dan spesifikasi utama",
   "tableRows": [
-    { "criterion": "Price Range", "values": ["value for product 1", "value for product 2"] },
-    { "criterion": "Key Strength", "values": [...] },
-    { "criterion": "Best For", "values": [...] },
-    { "criterion": "Main Trade-off", "values": [...] },
-    { "criterion": "Supplier Availability", "values": [...] }
+    { "criterion": "Rentang Harga", "values": ["harga produk 1", "harga produk 2"] },
+    { "criterion": "Spesifikasi Utama", "values": ["spek teknis produk 1", "spek teknis produk 2"] },
+    { "criterion": "Dimensi & Berat", "values": ["dimensi produk 1", "dimensi produk 2"] },
+    { "criterion": "Konsumsi Daya", "values": ["daya produk 1", "daya produk 2"] },
+    { "criterion": "Garansi", "values": ["garansi produk 1", "garansi produk 2"] },
+    { "criterion": "Supplier Tersedia", "values": ["supplier produk 1", "supplier produk 2"] }
   ],
-  "recommendation": "Clear purchasing recommendation with brief reasoning"
+  "recommendation": "Rekomendasi pembelian yang jelas berdasarkan perbandingan harga, volume penjualan toko, dan reputasi supplier di Indonesia"
 }`,
     }],
     temperature: 0.3,
