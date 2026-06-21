@@ -12,8 +12,9 @@ export default async function AdminPage() {
 
   const [{ data: departments }, { data: profiles }] = await Promise.all([
     supabase.from('departments').select('id,name').order('name'),
-    supabase.from('profiles').select('id,full_name,email,role,department_id,department:departments(id,name)').order('full_name'),
+    supabase.from('profiles').select('id,full_name,email,role,department_id,avatar_url,department:departments(id,name)').order('full_name'),
   ])
 
-  return <AdminClient departments={departments ?? []} profiles={profiles ?? []} />
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return <AdminClient departments={departments ?? []} profiles={(profiles ?? []) as any} />
 }
