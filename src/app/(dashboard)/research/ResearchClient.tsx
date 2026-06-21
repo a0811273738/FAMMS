@@ -1,11 +1,25 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { Search, RefreshCw, GitCompare, X, CheckSquare, Square, ExternalLink, Sparkles, Tag, Database, Bot } from 'lucide-react'
+import { Search, RefreshCw, GitCompare, X, CheckSquare, Square, ExternalLink, Tag, Database, Bot, Cpu, Globe, Layers } from 'lucide-react'
 import { toast } from 'sonner'
 import type { SearchIntent, ResearchProduct, ResearchResult, ComparisonResult } from '@/lib/ai/gateway'
 
-type LoadingPhase = 'idle' | 'analyzing' | 'searching'
+type LoadingPhase = 'idle' | 'analyzing' | 'scraping_shopee' | 'scraping_tokopedia' | 'extracting' | 'done'
+
+interface PipelineStep {
+  phase: LoadingPhase
+  label: string
+  tool: string
+  icon: React.ElementType
+}
+
+const PIPELINE: PipelineStep[] = [
+  { phase: 'analyzing',           label: 'Menganalisis kebutuhan',       tool: 'OpenAI',       icon: Cpu },
+  { phase: 'scraping_shopee',     label: 'Mencari di Shopee',            tool: 'Jina Reader',  icon: Globe },
+  { phase: 'scraping_tokopedia',  label: 'Mencari di Tokopedia',         tool: 'Jina Reader',  icon: Globe },
+  { phase: 'extracting',          label: 'Mengekstrak data produk',      tool: 'OpenAI',       icon: Layers },
+]
 
 interface MaterialRef {
   item: string
@@ -30,7 +44,7 @@ export default function ResearchClient() {
   const [materialRef, setMaterialRef] = useState<MaterialRef | null>(null)
   const comparisonRef = useRef<HTMLDivElement>(null)
 
-  const isSearching = loadingPhase !== 'idle'
+  const isSearching = loadingPhase !== 'idle' && loadingPhase !== 'done'
 
   async function doSearch(overrideIntent?: SearchIntent) {
     if (!query.trim()) return
@@ -41,18 +55,22 @@ export default function ResearchClient() {
     setMaterialRef(null)
 
     try {
-      if (!overrideIntent) {
-        setLoadingPhase('analyzing')
-      } else {
-        setLoadingPhase('searching')
-      }
+      setLoadingPhase('analyzing')
 
       const res = await fetch('/api/ai/research', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query, intent: overrideIntent ?? null }),
       })
+
+      // Animate remaining steps while waiting for response
+      const stepTimer1 = setTimeout(() => setLoadingPhase('scraping_shopee'), 800)
+      const stepTimer2 = setTimeout(() => setLoadingPhase('scraping_tokopedia'), 1800)
+      const stepTimer3 = setTimeout(() => setLoadingPhase('extracting'), 2800)
+
       const data = await res.json()
+      clearTimeout(stepTimer1); clearTimeout(stepTimer2); clearTimeout(stepTimer3)
+
       if (!res.ok) throw new Error(data.error)
 
       if (data.ambiguous) {
@@ -62,6 +80,7 @@ export default function ResearchClient() {
         return
       }
 
+      setLoadingPhase('done')
       setIntent(data.intent)
       setResult(data)
 
@@ -140,7 +159,7 @@ export default function ResearchClient() {
   return (
     <div className="max-w-4xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-xl font-bold text-gray-900">Pusat Riset Produk</h1>
+        <h1 className="text-xl font-bold text-gray-900">Product Finder</h1>
         <p className="text-sm text-gray-500 mt-0.5">Temukan dan bandingkan produk dengan bantuan AI untuk pengadaan yang lebih cerdas</p>
       </div>
 
@@ -167,17 +186,39 @@ export default function ResearchClient() {
         </button>
       </form>
 
-      {/* Loading phases */}
+      {/* AI Pipeline Steps */}
       {isSearching && (
-        <div className="flex items-center gap-3 mb-6 text-sm text-gray-500">
-          <div className={`flex items-center gap-1.5 ${loadingPhase === 'analyzing' ? 'text-blue-600 font-medium' : 'text-gray-400'}`}>
-            <Sparkles className="w-3.5 h-3.5" />
-            Menganalisis kebutuhan
-          </div>
-          <span className="text-gray-300">→</span>
-          <div className={`flex items-center gap-1.5 ${loadingPhase === 'searching' ? 'text-blue-600 font-medium' : 'text-gray-400'}`}>
-            <Search className="w-3.5 h-3.5" />
-            Mencari produk
+        <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4 mb-6">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Proses Pencarian</p>
+          <div className="space-y-2">
+            {PIPELINE.map((step, i) => {
+              const phaseOrder = PIPELINE.map(s => s.phase)
+              const currentIdx = phaseOrder.indexOf(loadingPhase)
+              const stepIdx = i
+              const isDone = currentIdx > stepIdx
+              const isActive = currentIdx === stepIdx
+              const Icon = step.icon
+              return (
+                <div key={step.phase} className={`flex items-center gap-3 text-sm transition-all ${
+                  isActive ? 'text-blue-700' : isDone ? 'text-gray-400' : 'text-gray-300'
+                }`}>
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${
+                    isActive ? 'bg-blue-100' : isDone ? 'bg-green-100' : 'bg-gray-100'
+                  }`}>
+                    {isActive
+                      ? <RefreshCw className="w-3 h-3 text-blue-600 animate-spin" />
+                      : isDone
+                      ? <span className="text-green-600 text-xs font-bold">✓</span>
+                      : <Icon className="w-3 h-3 text-gray-300" />
+                    }
+                  </div>
+                  <span className={isActive ? 'font-medium' : ''}>{step.label}</span>
+                  <span className={`ml-auto text-xs px-2 py-0.5 rounded-full ${
+                    isActive ? 'bg-blue-100 text-blue-600' : isDone ? 'bg-green-50 text-green-600' : 'bg-gray-100 text-gray-300'
+                  }`}>{step.tool}</span>
+                </div>
+              )
+            })}
           </div>
         </div>
       )}

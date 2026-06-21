@@ -23,9 +23,10 @@ interface Props {
   hasData: boolean
   canSeed: boolean
   recordCount: number
+  sheetsConfigured?: boolean
 }
 
-export default function MaterialsClient({ hasData, canSeed, recordCount }: Props) {
+export default function MaterialsClient({ hasData, canSeed, recordCount, sheetsConfigured }: Props) {
   const [materials, setMaterials] = useState<Material[]>([])
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(false)
@@ -79,26 +80,22 @@ export default function MaterialsClient({ hasData, canSeed, recordCount }: Props
     return (
       <div className="max-w-2xl mx-auto text-center py-16">
         <div className="text-5xl mb-4">📊</div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Price Intelligence</h1>
-        <p className="text-gray-500 mb-6">原物料採購歷史價格追蹤系統。尚未有資料。</p>
-        {canSeed ? (
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">Harga Bahan Baku</h1>
+        <p className="text-gray-500 mb-6">
+          {sheetsConfigured
+            ? 'Google Sheets terhubung. Memuat data...'
+            : 'Belum ada data harga bahan baku.'}
+        </p>
+        {!sheetsConfigured && canSeed && (
           <button
             onClick={seedData}
             disabled={seeding}
             className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 disabled:opacity-60 transition-colors"
           >
             {seeding ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-            {seeding ? '匯入中...' : '匯入 Google Sheet 資料 (204 筆)'}
+            {seeding ? 'Memuat...' : 'Muat Data Contoh'}
           </button>
-        ) : (
-          <p className="text-sm text-gray-400">請聯絡 Purchasing 部門匯入資料</p>
         )}
-        <div className="mt-8 p-4 bg-yellow-50 rounded-xl text-left text-sm text-yellow-800">
-          <p className="font-semibold mb-1">⚠️ 請先在 Supabase 執行 SQL Migration：</p>
-          <p className="font-mono text-xs bg-yellow-100 p-2 rounded mt-1">
-            supabase/schema.sql 中 material_price_history 相關語法
-          </p>
-        </div>
       </div>
     )
   }
