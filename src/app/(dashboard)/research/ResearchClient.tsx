@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { Search, RefreshCw, GitCompare, X, CheckSquare, Square } from 'lucide-react'
+import { useState, useRef } from 'react'
+import { Search, RefreshCw, GitCompare, X, CheckSquare, Square, ExternalLink } from 'lucide-react'
 import { toast } from 'sonner'
 import type { ResearchProduct, ResearchResult, ComparisonResult } from '@/lib/ai/gateway'
 
@@ -12,6 +12,7 @@ export default function ResearchClient() {
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [comparing, setComparing] = useState(false)
   const [comparison, setComparison] = useState<ComparisonResult | null>(null)
+  const comparisonRef = useRef<HTMLDivElement>(null)
 
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault()
@@ -61,6 +62,7 @@ export default function ResearchClient() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
       setComparison(data)
+      setTimeout(() => comparisonRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
     } catch (err: any) {
       toast.error(err.message ?? 'Comparison failed')
     } finally {
@@ -171,6 +173,20 @@ export default function ResearchClient() {
                       <span key={i} className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{s}</span>
                     ))}
                   </div>
+                  <div className="flex gap-2 mb-3" onClick={e => e.stopPropagation()}>
+                    {product.shopeeSearchUrl && (
+                      <a href={product.shopeeSearchUrl} target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-xs bg-orange-50 text-orange-600 border border-orange-200 px-2.5 py-1 rounded-lg hover:bg-orange-100 transition-colors font-medium">
+                        <ExternalLink className="w-3 h-3" />Shopee
+                      </a>
+                    )}
+                    {product.tokopediaSearchUrl && (
+                      <a href={product.tokopediaSearchUrl} target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-xs bg-green-50 text-green-700 border border-green-200 px-2.5 py-1 rounded-lg hover:bg-green-100 transition-colors font-medium">
+                        <ExternalLink className="w-3 h-3" />Tokopedia
+                      </a>
+                    )}
+                  </div>
                   <p className="text-xs text-gray-500 leading-relaxed">{product.notes}</p>
                 </div>
               )
@@ -181,7 +197,7 @@ export default function ResearchClient() {
 
       {/* Comparison */}
       {comparison && (
-        <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden mb-8">
+        <div ref={comparisonRef} className="bg-white border border-gray-200 rounded-2xl overflow-hidden mb-8">
           <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
             <div>
               <h2 className="text-base font-bold text-gray-900">Comparison Analysis</h2>

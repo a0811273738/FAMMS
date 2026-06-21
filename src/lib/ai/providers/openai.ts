@@ -9,6 +9,8 @@ export interface ResearchProduct {
   keySpecs: string[]
   estimatedPriceRange: string
   suggestedSuppliers: string[]
+  shopeeSearchUrl: string
+  tokopediaSearchUrl: string
   notes: string
 }
 
@@ -31,6 +33,7 @@ export async function researchProducts(query: string): Promise<ResearchResult> {
       content: `You are a procurement specialist. A user is researching "${query}" for industrial/business purchasing in Indonesia.
 
 Generate 4–6 distinct product options. Each should represent a different tier (entry-level, mid-range, premium) or approach.
+Use Indonesian language for category names and notes. Include real Shopee and Tokopedia search URLs for each product using the product name as the search keyword.
 
 Respond ONLY with valid JSON:
 {
@@ -39,11 +42,13 @@ Respond ONLY with valid JSON:
     {
       "id": "product-0",
       "name": "Specific Product Name",
-      "category": "Category",
-      "keySpecs": ["spec 1", "spec 2", "spec 3", "spec 4"],
-      "estimatedPriceRange": "IDR X,XXX,XXX – Y,YYY,YYY",
+      "category": "Kategori",
+      "keySpecs": ["spesifikasi 1", "spesifikasi 2", "spesifikasi 3", "spesifikasi 4"],
+      "estimatedPriceRange": "IDR X.XXX.XXX – Y.YYY.YYY",
       "suggestedSuppliers": ["Supplier A", "Supplier B"],
-      "notes": "One to two sentence purchasing note."
+      "shopeeSearchUrl": "https://shopee.co.id/search?keyword=PRODUCT+NAME+URL+ENCODED",
+      "tokopediaSearchUrl": "https://www.tokopedia.com/search?st=product&q=PRODUCT+NAME+URL+ENCODED",
+      "notes": "Satu hingga dua kalimat catatan pembelian dalam Bahasa Indonesia."
     }
   ]
 }`,
