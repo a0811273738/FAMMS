@@ -37,26 +37,32 @@ export default function MaterialsClient({ hasData, canSeed, recordCount, sheetsC
 
   const fetchMaterials = useCallback(async (q = '') => {
     setLoading(true)
-    // Try Google Sheets first, fall back to Supabase
-    let res = await fetch(`/api/materials/sheets?q=${encodeURIComponent(q)}`)
-    if (!res.ok) res = await fetch(`/api/materials?q=${encodeURIComponent(q)}`)
-    const data = await res.json()
-    setLoading(false)
-    if (Array.isArray(data)) {
-      setMaterials(data)
-      setDataLoaded(true)
+    try {
+      let res = await fetch(`/api/materials/sheets?q=${encodeURIComponent(q)}`)
+      let data = await res.json()
+      if (!Array.isArray(data)) {
+        // Sheets failed, try Supabase
+        res = await fetch(`/api/materials?q=${encodeURIComponent(q)}`)
+        data = await res.json()
+      }
+      if (Array.isArray(data)) {
+        setMaterials(data)
+        setDataLoaded(true)
+      }
+    } finally {
+      setLoading(false)
     }
   }, [])
 
   useEffect(() => {
-    if (hasData) fetchMaterials()
-  }, [hasData, fetchMaterials])
+    fetchMaterials()
+  }, [fetchMaterials])
 
   useEffect(() => {
-    if (!dataLoaded && !sheetsConfigured && count === 0) return
+    if (!dataLoaded) return
     const t = setTimeout(() => fetchMaterials(search), 400)
     return () => clearTimeout(t)
-  }, [search, dataLoaded, sheetsConfigured, count, fetchMaterials])
+  }, [search, dataLoaded, fetchMaterials])
 
   async function seedData() {
     setSeeding(true)
