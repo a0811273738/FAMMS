@@ -21,12 +21,14 @@ export interface ResearchProduct {
   shopeeSearchUrl: string
   tokopediaSearchUrl: string
   notes: string
+  dataSource?: 'firecrawl' | 'jina' | 'ai'
 }
 
 export interface ResearchResult {
   query: string
   intent: SearchIntent
   products: ResearchProduct[]
+  scraped: boolean
 }
 
 export interface ComparisonResult {
@@ -113,6 +115,55 @@ Jawab HANYA dengan JSON valid:
   })
   const data = JSON.parse(completion.choices[0].message.content ?? '{}')
   return data.products ?? []
+}
+
+export async function extractProductsFromContent(
+  content: string,
+  query: string,
+  sourceName: string,
+  startId: number = 0,
+): Promise<ResearchProduct[]> {
+  if (!content || content.length < 300) return []
+
+  const completion = await getOpenAI().chat.completions.create({
+    model: 'gpt-4o-mini',
+    messages: [{
+      role: 'user',
+      content: `Ekstrak daftar produk dari konten halaman pencarian ${sourceName} berikut.
+
+Pengguna mencari: "${query}"
+
+Konten halaman:
+${content.slice(0, 6000)}
+
+Ekstrak hingga 5 produk NYATA yang ada di halaman ini.
+HANYA gunakan informasi dari halaman — jangan mengarang data.
+Jika suatu field tidak ditemukan, gunakan "Tidak tersedia".
+Semua teks dalam Bahasa Indonesia.
+
+Jawab HANYA dengan JSON valid:
+{
+  "products": [
+    {
+      "id": "scraped-${startId}",
+      "name": "nama produk dari halaman",
+      "category": "kategori produk",
+      "keySpecs": ["spesifikasi dari halaman"],
+      "estimatedPriceRange": "harga dari halaman",
+      "suggestedSuppliers": ["nama toko dari halaman"],
+      "shopeeSearchUrl": "",
+      "tokopediaSearchUrl": "",
+      "notes": "info tambahan dari halaman"
+    }
+  ]
+}`,
+    }],
+    temperature: 0.1,
+    response_format: { type: 'json_object' },
+  })
+  const data = JSON.parse(completion.choices[0].message.content ?? '{}')
+  const products: ResearchProduct[] = data.products ?? []
+  return products.map((p, i) => ({ ...p, id: `scraped-${startId + i}` }))
 }
 
 export async function compareProducts(products: ResearchProduct[]): Promise<ComparisonResult> {

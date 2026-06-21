@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { Search, RefreshCw, GitCompare, X, CheckSquare, Square, ExternalLink, Sparkles, Tag } from 'lucide-react'
+import { Search, RefreshCw, GitCompare, X, CheckSquare, Square, ExternalLink, Sparkles, Tag, Database, Bot } from 'lucide-react'
 import { toast } from 'sonner'
 import type { SearchIntent, ResearchProduct, ResearchResult, ComparisonResult } from '@/lib/ai/gateway'
 
@@ -228,6 +228,11 @@ export default function ResearchClient() {
           <div className="flex items-center justify-between mb-4">
             <p className="text-sm text-gray-500">
               {result.products.length} produk ditemukan untuk &ldquo;{result.intent.product}&rdquo;
+              {result.scraped && (
+                <span className="ml-2 inline-flex items-center gap-1 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full font-medium">
+                  <Database className="w-3 h-3" />Data Nyata
+                </span>
+              )}
               {selected.size > 0 && <span className="ml-2 text-blue-600 font-medium">· {selected.size} dipilih</span>}
             </p>
             {selected.size >= 2 && (
@@ -255,7 +260,14 @@ export default function ResearchClient() {
                 >
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div className="min-w-0">
-                      <span className="inline-block text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full mb-1">{product.category}</span>
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">{product.category}</span>
+                        {product.dataSource === 'ai' ? (
+                          <span className="flex items-center gap-0.5 text-xs text-gray-400"><Bot className="w-3 h-3" />AI</span>
+                        ) : product.dataSource ? (
+                          <span className="flex items-center gap-0.5 text-xs text-emerald-600"><Database className="w-3 h-3" />Nyata</span>
+                        ) : null}
+                      </div>
                       <h3 className="text-sm font-bold text-gray-900 leading-snug">{product.name}</h3>
                     </div>
                     <div className="shrink-0 mt-0.5">
