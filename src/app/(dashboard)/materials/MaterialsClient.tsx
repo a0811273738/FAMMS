@@ -33,6 +33,7 @@ export default function MaterialsClient({ hasData, canSeed, recordCount, sheetsC
   const [seeding, setSeeding] = useState(false)
   const [selected, setSelected] = useState<Material | null>(null)
   const [count, setCount] = useState(recordCount)
+  const [dataLoaded, setDataLoaded] = useState(false)
 
   const fetchMaterials = useCallback(async (q = '') => {
     setLoading(true)
@@ -41,7 +42,10 @@ export default function MaterialsClient({ hasData, canSeed, recordCount, sheetsC
     if (!res.ok) res = await fetch(`/api/materials?q=${encodeURIComponent(q)}`)
     const data = await res.json()
     setLoading(false)
-    if (Array.isArray(data)) setMaterials(data)
+    if (Array.isArray(data)) {
+      setMaterials(data)
+      setDataLoaded(true)
+    }
   }, [])
 
   useEffect(() => {
@@ -49,9 +53,10 @@ export default function MaterialsClient({ hasData, canSeed, recordCount, sheetsC
   }, [hasData, fetchMaterials])
 
   useEffect(() => {
-    const t = setTimeout(() => { if (count > 0) fetchMaterials(search) }, 400)
+    if (!dataLoaded && !sheetsConfigured && count === 0) return
+    const t = setTimeout(() => fetchMaterials(search), 400)
     return () => clearTimeout(t)
-  }, [search, count, fetchMaterials])
+  }, [search, dataLoaded, sheetsConfigured, count, fetchMaterials])
 
   async function seedData() {
     setSeeding(true)
