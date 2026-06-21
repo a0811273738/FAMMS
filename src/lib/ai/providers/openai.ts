@@ -1,6 +1,6 @@
 import OpenAI from 'openai'
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+function getOpenAI() { return new OpenAI({ apiKey: process.env.OPENAI_API_KEY }) }
 
 export interface ResearchProduct {
   id: string
@@ -24,7 +24,7 @@ export interface ComparisonResult {
 }
 
 export async function researchProducts(query: string): Promise<ResearchResult> {
-  const completion = await openai.chat.completions.create({
+  const completion = await getOpenAI().chat.completions.create({
     model: 'gpt-4o-mini',
     messages: [{
       role: 'user',
@@ -59,7 +59,7 @@ export async function compareProducts(products: ResearchProduct[]): Promise<Comp
     `${i + 1}. ${p.name}: ${p.keySpecs.join(', ')} | Price: ${p.estimatedPriceRange}`
   ).join('\n')
 
-  const completion = await openai.chat.completions.create({
+  const completion = await getOpenAI().chat.completions.create({
     model: 'gpt-4o-mini',
     messages: [{
       role: 'user',
