@@ -60,7 +60,8 @@ function parseDate(raw: string): Date | null {
 
 function parseNumber(raw: string): number | null {
   if (!raw) return null
-  const cleaned = raw.replace(/[^0-9,.-]/g, '').replace(/\./g, '').replace(',', '.')
+  // Remove Rp prefix, spaces, then handle dots as thousands separator
+  const cleaned = raw.replace(/[Rp\s]/g, '').replace(/\./g, '').replace(',', '.')
   const n = parseFloat(cleaned)
   return isNaN(n) ? null : n
 }
@@ -94,10 +95,12 @@ export async function getAllMaterials(): Promise<MaterialSummary[]> {
         const rows = res.data.values ?? []
         if (rows.length < 2) return
 
-        // Find header row (look for "ITEM" column)
+        // Find header row: look for ITEM, TGL, or HARGA keyword in first 5 rows
+        const headerKeywords = ['ITEM', 'HARGA', 'TGL', 'SUPPLIER']
         let headerIdx = 0
         for (let r = 0; r < Math.min(5, rows.length); r++) {
-          if (rows[r].some((c: string) => String(c).toUpperCase().includes('ITEM'))) {
+          const rowText = rows[r].map((c: unknown) => String(c).toUpperCase()).join(' ')
+          if (headerKeywords.some(k => rowText.includes(k))) {
             headerIdx = r
             break
           }
@@ -106,27 +109,47 @@ export async function getAllMaterials(): Promise<MaterialSummary[]> {
 
         const col = (name: string) => headers.findIndex(h => h.includes(name))
 
-        // Detect tab type: "Pati-Kapal" style (TGL PO | QTY PO | Harga)
-        // vs standard style (Code Supplier | Code BB | TGL PO | ... | ITEM | Price | ...)
-        const hasHargaCol = col('HARGA') !== -1
-        const hasItemCol = col('ITEM') !== -1
+        const hasItemCol     = col('ITEM') !== -1
+        const hasSebelumPPN  = col('SEBELUM') !== -1   // "Harga sebelum ppn"
+        const hasSetelahPPN  = col('SETELAH') !== -1   // "Harga setelah ppn"
+        const hasHarga       = col('HARGA') !== -1     // plain "Harga"
+        const hasOriginal    = col('ORIGINAL') !== -1  // "Original Price Exclude PPN"
+        const hasInclude     = col('INCLUDE') !== -1   // "Price Include PPN"
 
-        const iItem = hasItemCol ? col('ITEM') : -1
+        const iItem     = hasItemCol ? col('ITEM') : -1
         const iSupplier = col('SUPPLIER')
-        // Standard: ORIGINAL PRICE excl, INCLUDE = incl PPN
-        // Simple format: HARGA = single price (no PPN breakdown)
-        const iPriceEx = hasHargaCol ? col('HARGA') : (col('ORIGINAL PRICE') !== -1 ? col('ORIGINAL PRICE') : col('EXCLUDE'))
-        const iPriceInc = hasHargaCol ? col('HARGA') : col('INCLUDE')
-        const iQty = col('QTY PO') !== -1 ? col('QTY PO') : col('PO QTY')
-        const iPacking = col('PACKING')
-        const iTglPO = col('TGL') !== -1 ? col('TGL') : 0
-        const iCodeSupplier = 0
-        const iCodeBB = 1
+        const iCodeBB   = col('CODE BB') !== -1 ? col('CODE BB') : 1
 
-        // For simple tabs (Pati-Kapal style), ITEM comes from tab name
+        // Price excl PPN: prefer "sebelum ppn" → "original price" → "harga" (single)
+        const iPriceEx = hasSebelumPPN ? col('SEBELUM')
+          : hasOriginal ? col('ORIGINAL')
+          : hasHarga ? col('HARGA') : -1
+
+        // Price incl PPN: prefer "setelah ppn" → "include" → same as excl (single harga)
+        const iPriceInc = hasSetelahPPN ? col('SETELAH')
+          : hasInclude ? col('INCLUDE')
+          : hasHarga ? col('HARGA') : -1
+
+        // Qty: try several column name variants
+        const iQty = col('QTY PO') !== -1 ? col('QTY PO')
+          : col('PO QTY') !== -1 ? col('PO QTY')
+          : col('QTY') !== -1 ? col('QTY') : -1
+
+        const iPacking = col('PACKING')
+
+        // Date: prefer TGL PO → TGL KIRIM → first TGL column
+        const iTglPO = col('TGL PO') !== -1 ? col('TGL PO')
+          : col('TGL KIRIM') !== -1 ? col('TGL KIRIM')
+          : col('TGL') !== -1 ? col('TGL') : 0
+
+        const iCodeSupplier = 0
+
+        // For Pati-Kapal style (no ITEM col), derive item name from tab
         const tabItemName = tab.split('-')[0]?.trim() ?? tab
 
-        if (iItem === -1 && !hasHargaCol) return
+        // Skip tab if no usable price or item info
+        if (iPriceEx === -1 && iPriceInc === -1) return
+        if (iItem === -1 && !tabItemName) return
 
         for (let r = headerIdx + 1; r < rows.length; r++) {
           const row = rows[r]
