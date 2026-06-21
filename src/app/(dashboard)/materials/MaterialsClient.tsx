@@ -35,7 +35,9 @@ export default function MaterialsClient({ hasData, canSeed, recordCount }: Props
 
   const fetchMaterials = useCallback(async (q = '') => {
     setLoading(true)
-    const res = await fetch(`/api/materials?q=${encodeURIComponent(q)}`)
+    // Try Google Sheets first, fall back to Supabase
+    let res = await fetch(`/api/materials/sheets?q=${encodeURIComponent(q)}`)
+    if (!res.ok) res = await fetch(`/api/materials?q=${encodeURIComponent(q)}`)
     const data = await res.json()
     setLoading(false)
     if (Array.isArray(data)) setMaterials(data)
@@ -108,8 +110,8 @@ export default function MaterialsClient({ hasData, canSeed, recordCount }: Props
           <ChevronLeft className="w-5 h-5" />
         </Link>
         <div className="flex-1">
-          <h1 className="text-xl font-bold text-gray-900">Price Intelligence</h1>
-          <p className="text-sm text-gray-500">{count} 筆採購記錄 · 原物料價格趨勢追蹤</p>
+          <h1 className="text-xl font-bold text-gray-900">Harga Bahan Baku</h1>
+          <p className="text-sm text-gray-500">Data langsung dari Google Sheets · sinkronisasi otomatis</p>
         </div>
         {canSeed && count === 0 && (
           <button onClick={seedData} disabled={seeding}
@@ -124,7 +126,7 @@ export default function MaterialsClient({ hasData, canSeed, recordCount }: Props
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
         <input
           type="text"
-          placeholder="搜尋 Code BB、品名、供應商..."
+          placeholder="Cari nama bahan, kode, atau supplier..."
           value={search}
           onChange={e => setSearch(e.target.value)}
           className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
