@@ -7,6 +7,17 @@ import type { SearchIntent, ResearchProduct, ResearchResult, ComparisonResult } 
 
 type LoadingPhase = 'idle' | 'analyzing' | 'searching'
 
+interface MaterialRef {
+  item: string
+  tabProduct: string
+  tabSupplier: string
+  latestPrice: number | null
+  latestPriceExPPN: number | null
+  latestDate: string
+  packing: string
+  priceHistory: Array<{ date: string; priceIncPPN: number | null; supplier: string }>
+}
+
 export default function ResearchClient() {
   const [query, setQuery] = useState('')
   const [loadingPhase, setLoadingPhase] = useState<LoadingPhase>('idle')
@@ -16,6 +27,7 @@ export default function ResearchClient() {
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [comparing, setComparing] = useState(false)
   const [comparison, setComparison] = useState<ComparisonResult | null>(null)
+  const [materialRef, setMaterialRef] = useState<MaterialRef | null>(null)
   const comparisonRef = useRef<HTMLDivElement>(null)
 
   const isSearching = loadingPhase !== 'idle'
@@ -26,6 +38,7 @@ export default function ResearchClient() {
     setSelected(new Set())
     setComparison(null)
     setAmbiguous(false)
+    setMaterialRef(null)
 
     try {
       if (!overrideIntent) {
@@ -51,6 +64,12 @@ export default function ResearchClient() {
 
       setIntent(data.intent)
       setResult(data)
+
+      // Fetch reference price from Sheets in background
+      fetch(`/api/materials/reference?q=${encodeURIComponent(data.intent?.product ?? query)}`)
+        .then(r => r.json())
+        .then((refs: MaterialRef[]) => { if (refs.length > 0) setMaterialRef(refs[0]) })
+        .catch(() => {})
     } catch (err: any) {
       toast.error(err.message ?? 'Pencarian gagal')
     } finally {
@@ -219,6 +238,50 @@ export default function ResearchClient() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Harga Referensi dari Sheets */}
+      {materialRef && result && !isSearching && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-5">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-1">
+                📊 Harga Referensi Internal
+              </p>
+              <p className="text-sm font-bold text-amber-900">{materialRef.item}</p>
+              <p className="text-xs text-amber-700 mt-0.5">
+                Supplier terakhir: <span className="font-medium">{materialRef.tabSupplier}</span>
+                {materialRef.packing && ` · ${materialRef.packing}`}
+              </p>
+            </div>
+            <div className="text-right shrink-0">
+              {materialRef.latestPrice && (
+                <>
+                  <p className="text-base font-bold text-amber-900">
+                    Rp {materialRef.latestPrice.toLocaleString('id-ID')}
+                  </p>
+                  <p className="text-xs text-amber-600">incl. PPN</p>
+                </>
+              )}
+              {materialRef.latestPriceExPPN && (
+                <p className="text-xs text-amber-700">
+                  Rp {materialRef.latestPriceExPPN.toLocaleString('id-ID')} excl. PPN
+                </p>
+              )}
+              <p className="text-xs text-amber-500 mt-0.5">{materialRef.latestDate}</p>
+            </div>
+          </div>
+          {materialRef.priceHistory.length >= 2 && (
+            <div className="mt-3 pt-3 border-t border-amber-200 flex gap-3 overflow-x-auto">
+              {materialRef.priceHistory.map((h, i) => (
+                <div key={i} className="shrink-0 text-xs text-amber-700">
+                  <span className="text-amber-500">{h.date}</span>
+                  {h.priceIncPPN && <span className="ml-1 font-medium">Rp {h.priceIncPPN.toLocaleString('id-ID')}</span>}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

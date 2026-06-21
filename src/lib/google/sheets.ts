@@ -24,6 +24,8 @@ export interface MaterialRecord {
 export interface MaterialSummary {
   item: string
   tab: string
+  tabProduct: string   // parsed from tab name, e.g. "Pati" from "Pati-Kapal"
+  tabSupplier: string  // parsed from tab name, e.g. "Kapal" from "Pati-Kapal"
   latestPrice: number | null
   latestPriceExPPN: number | null
   latestDate: string
@@ -159,17 +161,23 @@ export async function getAllMaterials(): Promise<MaterialSummary[]> {
       return db - da
     })
     const latest = sorted[0]
+    const tabParts = latest.tab.split('-')
+    const tabProduct = tabParts[0]?.trim() ?? latest.tab
+    const tabSupplier = tabParts.slice(1).join('-').trim() || latest.supplier
+
     summaries.push({
       item: latest.item,
       tab: latest.tab,
+      tabProduct,
+      tabSupplier,
       latestPrice: latest.priceIncPPN,
       latestPriceExPPN: latest.priceExPPN,
       latestDate: latest.tglPO,
-      latestSupplier: latest.supplier,
+      latestSupplier: latest.supplier || tabSupplier,
       packing: latest.packing,
       history: sorted.slice(0, 10).map(r => ({
         date: r.tglPO,
-        supplier: r.supplier,
+        supplier: r.supplier || tabSupplier,
         priceIncPPN: r.priceIncPPN,
         priceExPPN: r.priceExPPN,
         qty: r.poQty,
