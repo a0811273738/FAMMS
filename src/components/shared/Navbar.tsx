@@ -17,11 +17,11 @@ interface NavbarProps {
 }
 
 const NAV_LINKS = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/requests/new', label: 'New Request', icon: Plus },
-  { href: '/history', label: 'History', icon: Clock },
-  { href: '/materials', label: 'Prices', icon: BarChart2 },
   { href: '/research', label: 'Riset Produk', icon: FlaskConical },
+  { href: '/requests/new', label: 'Permintaan Baru', icon: Plus },
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/history', label: 'Riwayat', icon: Clock },
+  { href: '/materials', label: 'Harga', icon: BarChart2 },
 ]
 
 export default function Navbar({ profile }: NavbarProps) {
@@ -42,7 +42,7 @@ export default function Navbar({ profile }: NavbarProps) {
     <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
       <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
         {/* Logo */}
-        <Link href="/dashboard" className="flex items-center gap-2 font-bold text-blue-600">
+        <Link href="/research" className="flex items-center gap-2 font-bold text-blue-600">
           <ShoppingCart className="w-5 h-5" />
           <span className="hidden sm:inline">PDP</span>
         </Link>
