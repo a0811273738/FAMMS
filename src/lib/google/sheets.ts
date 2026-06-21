@@ -65,9 +65,9 @@ function parseNumber(raw: string): number | null {
   return isNaN(n) ? null : n
 }
 
-function twoYearsAgo(): Date {
+function oneYearAgo(): Date {
   const d = new Date()
-  d.setFullYear(d.getFullYear() - 2)
+  d.setFullYear(d.getFullYear() - 1)
   return d
 }
 
@@ -79,7 +79,7 @@ export async function getAllMaterials(): Promise<MaterialSummary[]> {
   const meta = await sheets.spreadsheets.get({ spreadsheetId })
   const tabs = meta.data.sheets?.map(s => s.properties?.title ?? '').filter(Boolean) ?? []
 
-  const cutoff = twoYearsAgo()
+  const cutoff = oneYearAgo()
   const records: MaterialRecord[] = []
 
   // Read each tab in parallel (batch of 10)
@@ -105,21 +105,32 @@ export async function getAllMaterials(): Promise<MaterialSummary[]> {
         const headers = rows[headerIdx].map((h: string) => String(h).trim().toUpperCase())
 
         const col = (name: string) => headers.findIndex(h => h.includes(name))
-        const iItem = col('ITEM')
+
+        // Detect tab type: "Pati-Kapal" style (TGL PO | QTY PO | Harga)
+        // vs standard style (Code Supplier | Code BB | TGL PO | ... | ITEM | Price | ...)
+        const hasHargaCol = col('HARGA') !== -1
+        const hasItemCol = col('ITEM') !== -1
+
+        const iItem = hasItemCol ? col('ITEM') : -1
         const iSupplier = col('SUPPLIER')
-        const iPriceEx = col('ORIGINAL PRICE') !== -1 ? col('ORIGINAL PRICE') : col('EXCLUDE')
-        const iPriceInc = col('INCLUDE')
-        const iQty = col('PO QTY')
+        // Standard: ORIGINAL PRICE excl, INCLUDE = incl PPN
+        // Simple format: HARGA = single price (no PPN breakdown)
+        const iPriceEx = hasHargaCol ? col('HARGA') : (col('ORIGINAL PRICE') !== -1 ? col('ORIGINAL PRICE') : col('EXCLUDE'))
+        const iPriceInc = hasHargaCol ? col('HARGA') : col('INCLUDE')
+        const iQty = col('QTY PO') !== -1 ? col('QTY PO') : col('PO QTY')
         const iPacking = col('PACKING')
         const iTglPO = col('TGL') !== -1 ? col('TGL') : 0
         const iCodeSupplier = 0
         const iCodeBB = 1
 
-        if (iItem === -1) return
+        // For simple tabs (Pati-Kapal style), ITEM comes from tab name
+        const tabItemName = tab.split('-')[0]?.trim() ?? tab
+
+        if (iItem === -1 && !hasHargaCol) return
 
         for (let r = headerIdx + 1; r < rows.length; r++) {
           const row = rows[r]
-          const item = String(row[iItem] ?? '').trim()
+          const item = iItem >= 0 ? String(row[iItem] ?? '').trim() : tabItemName
           if (!item) continue
 
           const tglRaw = iTglPO >= 0 ? String(row[iTglPO] ?? '') : ''
