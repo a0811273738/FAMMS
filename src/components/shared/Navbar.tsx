@@ -9,7 +9,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuSeparator, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { ShoppingCart, LayoutDashboard, Clock, Plus, LogOut, User, Shield, BarChart2 } from 'lucide-react'
+import { ShoppingCart, LayoutDashboard, Clock, Plus, LogOut, User, Shield, BarChart2, FlaskConical } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface NavbarProps {
@@ -21,6 +21,7 @@ const NAV_LINKS = [
   { href: '/requests/new', label: 'New Request', icon: Plus },
   { href: '/history', label: 'History', icon: Clock },
   { href: '/materials', label: 'Prices', icon: BarChart2 },
+  { href: '/research', label: 'Research', icon: FlaskConical },
 ]
 
 export default function Navbar({ profile }: NavbarProps) {

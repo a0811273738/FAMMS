@@ -62,22 +62,30 @@ export async function POST(req: NextRequest) {
   })
   if (authError) return NextResponse.json({ error: authError.message }, { status: 500 })
 
-  const { data: newProfile, error: profileError } = await adminClient
+  // Wait briefly for trigger to fire, then update the auto-created profile
+  await new Promise(r => setTimeout(r, 800))
+
+  const { data: updatedProfile, error: updateError } = await adminClient
     .from('profiles')
-    .upsert({
-      id: newUser.user.id,
-      email,
-      full_name,
-      role,
-      department_id: department_id || null,
-    }, { onConflict: 'id' })
+    .update({ email, full_name, role, department_id: department_id || null })
+    .eq('id', newUser.user.id)
     .select()
     .single()
 
-  if (profileError) {
-    await adminClient.auth.admin.deleteUser(newUser.user.id)
-    return NextResponse.json({ error: profileError.message }, { status: 500 })
+  if (updateError) {
+    // If trigger didn't fire yet, insert directly
+    const { data: insertedProfile, error: insertError } = await adminClient
+      .from('profiles')
+      .insert({ id: newUser.user.id, email, full_name, role, department_id: department_id || null })
+      .select()
+      .single()
+
+    if (insertError) {
+      await adminClient.auth.admin.deleteUser(newUser.user.id)
+      return NextResponse.json({ error: insertError.message }, { status: 500 })
+    }
+    return NextResponse.json(insertedProfile)
   }
 
-  return NextResponse.json(newProfile)
+  return NextResponse.json(updatedProfile)
 }
