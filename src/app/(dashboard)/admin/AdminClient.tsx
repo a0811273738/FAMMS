@@ -402,7 +402,7 @@ export default function AdminClient({ departments: initDepts, profiles: initProf
               </div>
               <div>
                 <Label className="text-base font-semibold">Department</Label>
-                <Select value={newUserDept} onValueChange={v => setNewUserDept(v)}>
+                <Select value={newUserDept} onValueChange={v => setNewUserDept(v ?? '')}>
                   <SelectTrigger className="mt-2 h-11 text-base"><SelectValue placeholder="None" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="">None</SelectItem>
