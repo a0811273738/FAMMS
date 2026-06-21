@@ -21,7 +21,7 @@ const NAV_LINKS = [
   { href: '/requests/new', label: 'Permintaan Baru', icon: Plus },
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/history', label: 'Riwayat', icon: Clock },
-  { href: '/materials', label: 'Harga', icon: BarChart2 },
+  { href: '/materials', label: ['Food', 'Bahan Baku'], icon: BarChart2 },
 ]
 
 export default function Navbar({ profile }: NavbarProps) {
@@ -61,7 +61,9 @@ export default function Navbar({ profile }: NavbarProps) {
               )}
             >
               <Icon className="w-4 h-4" />
-              <span className="hidden sm:inline">{label}</span>
+              <span className="hidden sm:inline leading-tight">
+                {Array.isArray(label) ? label.map((l, i) => <span key={i} className="block">{l}</span>) : label}
+              </span>
             </Link>
           ))}
           {(profile?.role === 'purchasing' || profile?.role === 'director') && (
