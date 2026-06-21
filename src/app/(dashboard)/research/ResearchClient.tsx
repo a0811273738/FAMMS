@@ -1,40 +1,86 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { Search, RefreshCw, GitCompare, X, CheckSquare, Square, ExternalLink } from 'lucide-react'
+import { Search, RefreshCw, GitCompare, X, CheckSquare, Square, ExternalLink, Sparkles, Tag } from 'lucide-react'
 import { toast } from 'sonner'
-import type { ResearchProduct, ResearchResult, ComparisonResult } from '@/lib/ai/gateway'
+import type { SearchIntent, ResearchProduct, ResearchResult, ComparisonResult } from '@/lib/ai/gateway'
+
+type LoadingPhase = 'idle' | 'analyzing' | 'searching'
 
 export default function ResearchClient() {
   const [query, setQuery] = useState('')
-  const [searching, setSearching] = useState(false)
+  const [loadingPhase, setLoadingPhase] = useState<LoadingPhase>('idle')
+  const [intent, setIntent] = useState<SearchIntent | null>(null)
+  const [ambiguous, setAmbiguous] = useState(false)
   const [result, setResult] = useState<ResearchResult | null>(null)
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [comparing, setComparing] = useState(false)
   const [comparison, setComparison] = useState<ComparisonResult | null>(null)
   const comparisonRef = useRef<HTMLDivElement>(null)
 
-  async function handleSearch(e: React.FormEvent) {
-    e.preventDefault()
+  const isSearching = loadingPhase !== 'idle'
+
+  async function doSearch(overrideIntent?: SearchIntent) {
     if (!query.trim()) return
-    setSearching(true)
     setResult(null)
     setSelected(new Set())
     setComparison(null)
+    setAmbiguous(false)
+
     try {
+      if (!overrideIntent) {
+        setLoadingPhase('analyzing')
+      } else {
+        setLoadingPhase('searching')
+      }
+
       const res = await fetch('/api/ai/research', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query }),
+        body: JSON.stringify({ query, intent: overrideIntent ?? null }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
+
+      if (data.ambiguous) {
+        setIntent(data.intent)
+        setAmbiguous(true)
+        setLoadingPhase('idle')
+        return
+      }
+
+      setIntent(data.intent)
       setResult(data)
     } catch (err: any) {
       toast.error(err.message ?? 'Pencarian gagal')
     } finally {
-      setSearching(false)
+      setLoadingPhase('idle')
     }
+  }
+
+  async function handleSearch(e: React.FormEvent) {
+    e.preventDefault()
+    setIntent(null)
+    await doSearch()
+  }
+
+  async function handleCategorySelect(category: string) {
+    if (!intent) return
+    const enrichedIntent: SearchIntent = {
+      ...intent,
+      product: category,
+      isAmbiguous: false,
+      suggestedCategories: null,
+      expandedKeywords: [
+        category,
+        `${category} Indonesia`,
+        `${category} industri`,
+        `${category} harga`,
+      ],
+    }
+    setIntent(enrichedIntent)
+    setAmbiguous(false)
+    await doSearch(enrichedIntent)
   }
 
   function toggleSelect(id: string) {
@@ -80,30 +126,89 @@ export default function ResearchClient() {
       </div>
 
       {/* Pencarian */}
-      <form onSubmit={handleSearch} className="flex gap-3 mb-8">
+      <form onSubmit={handleSearch} className="flex gap-3 mb-6">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             type="text"
-            placeholder='Contoh: "printer label industri", "kursi ergonomis kantor"'
+            placeholder='Contoh: "label printer untuk pabrik makanan", "asam sitrat 25kg"'
             value={query}
             onChange={e => setQuery(e.target.value)}
-            disabled={searching}
+            disabled={isSearching}
             className="w-full pl-9 pr-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60"
           />
         </div>
         <button
           type="submit"
-          disabled={searching || !query.trim()}
+          disabled={isSearching || !query.trim()}
           className="flex items-center gap-2 px-5 py-3 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-colors"
         >
-          {searching ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
-          {searching ? 'Mencari...' : 'Cari'}
+          {isSearching ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+          {isSearching ? (loadingPhase === 'analyzing' ? 'Menganalisis...' : 'Mencari...') : 'Cari'}
         </button>
       </form>
 
+      {/* Loading phases */}
+      {isSearching && (
+        <div className="flex items-center gap-3 mb-6 text-sm text-gray-500">
+          <div className={`flex items-center gap-1.5 ${loadingPhase === 'analyzing' ? 'text-blue-600 font-medium' : 'text-gray-400'}`}>
+            <Sparkles className="w-3.5 h-3.5" />
+            Menganalisis kebutuhan
+          </div>
+          <span className="text-gray-300">→</span>
+          <div className={`flex items-center gap-1.5 ${loadingPhase === 'searching' ? 'text-blue-600 font-medium' : 'text-gray-400'}`}>
+            <Search className="w-3.5 h-3.5" />
+            Mencari produk
+          </div>
+        </div>
+      )}
+
+      {/* Intent badges (after result) */}
+      {intent && !isSearching && !ambiguous && (
+        <div className="flex flex-wrap gap-2 mb-5">
+          {intent.industry && (
+            <span className="flex items-center gap-1 text-xs bg-purple-50 text-purple-700 border border-purple-200 px-2.5 py-1 rounded-full">
+              <Tag className="w-3 h-3" />Industri: {intent.industry}
+            </span>
+          )}
+          {intent.budget && (
+            <span className="flex items-center gap-1 text-xs bg-green-50 text-green-700 border border-green-200 px-2.5 py-1 rounded-full">
+              <Tag className="w-3 h-3" />Anggaran: {intent.budget}
+            </span>
+          )}
+          {intent.expandedKeywords.length > 0 && (
+            <span className="text-xs text-gray-400 self-center">
+              Kata kunci: {intent.expandedKeywords.slice(0, 3).join(' · ')}
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Category picker (ambiguous) */}
+      {ambiguous && intent?.suggestedCategories && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 mb-6">
+          <p className="text-sm font-semibold text-amber-900 mb-1">
+            Produk apa yang kamu cari?
+          </p>
+          <p className="text-xs text-amber-700 mb-4">
+            Kata kunci &ldquo;{query}&rdquo; bisa berarti beberapa kategori. Pilih salah satu:
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {intent.suggestedCategories.map(cat => (
+              <button
+                key={cat}
+                onClick={() => handleCategorySelect(cat)}
+                className="px-4 py-2 bg-white border border-amber-300 text-amber-900 text-sm font-medium rounded-xl hover:bg-amber-100 transition-colors"
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Skeleton */}
-      {searching && (
+      {isSearching && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {[...Array(4)].map((_, i) => (
             <div key={i} className="bg-white border border-gray-200 rounded-2xl p-5 animate-pulse">
@@ -118,11 +223,11 @@ export default function ResearchClient() {
       )}
 
       {/* Hasil Pencarian */}
-      {result && !searching && (
+      {result && !isSearching && (
         <>
           <div className="flex items-center justify-between mb-4">
             <p className="text-sm text-gray-500">
-              {result.products.length} produk ditemukan untuk &ldquo;{result.query}&rdquo;
+              {result.products.length} produk ditemukan untuk &ldquo;{result.intent.product}&rdquo;
               {selected.size > 0 && <span className="ml-2 text-blue-600 font-medium">· {selected.size} dipilih</span>}
             </p>
             {selected.size >= 2 && (
@@ -158,7 +263,6 @@ export default function ResearchClient() {
                     </div>
                   </div>
 
-                  {/* Spesifikasi */}
                   <ul className="space-y-1 mb-3">
                     {product.keySpecs.map((spec, i) => (
                       <li key={i} className="flex items-start gap-1.5 text-xs text-gray-600">
@@ -167,20 +271,17 @@ export default function ResearchClient() {
                     ))}
                   </ul>
 
-                  {/* Estimasi Harga */}
                   <div className="bg-gray-50 rounded-xl px-3 py-2 mb-3">
                     <p className="text-xs text-gray-500">Estimasi Harga</p>
                     <p className="text-sm font-bold text-gray-900">{product.estimatedPriceRange}</p>
                   </div>
 
-                  {/* Supplier */}
                   <div className="flex flex-wrap gap-1 mb-3">
                     {product.suggestedSuppliers.map((s, i) => (
                       <span key={i} className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{s}</span>
                     ))}
                   </div>
 
-                  {/* Tautan Marketplace */}
                   <div className="flex gap-2 mb-3" onClick={e => e.stopPropagation()}>
                     {product.shopeeSearchUrl && (
                       <a href={product.shopeeSearchUrl} target="_blank" rel="noopener noreferrer"
@@ -249,10 +350,11 @@ export default function ResearchClient() {
       )}
 
       {/* Kosong */}
-      {!searching && !result && (
+      {!isSearching && !result && !ambiguous && (
         <div className="text-center py-20 text-gray-400">
           <Search className="w-10 h-10 mx-auto mb-3 opacity-30" />
           <p className="text-sm">Masukkan nama produk atau kebutuhan untuk mulai mencari</p>
+          <p className="text-xs mt-1 opacity-70">AI akan membantu memperluas pencarian secara otomatis</p>
         </div>
       )}
     </div>

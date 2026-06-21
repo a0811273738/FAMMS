@@ -2,6 +2,15 @@ import OpenAI from 'openai'
 
 function getOpenAI() { return new OpenAI({ apiKey: process.env.OPENAI_API_KEY }) }
 
+export interface SearchIntent {
+  product: string
+  industry: string | null
+  budget: string | null
+  expandedKeywords: string[]
+  isAmbiguous: boolean
+  suggestedCategories: string[] | null
+}
+
 export interface ResearchProduct {
   id: string
   name: string
@@ -16,6 +25,7 @@ export interface ResearchProduct {
 
 export interface ResearchResult {
   query: string
+  intent: SearchIntent
   products: ResearchProduct[]
 }
 
@@ -25,31 +35,75 @@ export interface ComparisonResult {
   recommendation: string
 }
 
-export async function researchProducts(query: string): Promise<ResearchResult> {
+export async function analyzeSearchIntent(query: string): Promise<SearchIntent> {
+  const completion = await getOpenAI().chat.completions.create({
+    model: 'gpt-4o-mini',
+    messages: [{
+      role: 'user',
+      content: `Kamu adalah sistem analisis pencarian pengadaan untuk bisnis di Indonesia.
+
+Pengguna memasukkan: "${query}"
+
+Tugasmu:
+1. Tentukan apakah kata kunci ini AMBIGU (bisa berarti banyak produk berbeda) atau JELAS.
+2. Jika AMBIGU: berikan 3-5 kategori pilihan untuk user pilih.
+3. Jika JELAS: buat 4-6 keyword pencarian yang lebih spesifik untuk pengadaan.
+4. Ekstrak informasi tambahan jika ada (industri, anggaran, dll).
+
+Contoh AMBIGU: "printer", "mesin", "pompa", "filter"
+Contoh JELAS: "label printer thermal", "asam sitrat food grade", "kursi ergonomis kantor"
+
+Jawab HANYA dengan JSON valid:
+{
+  "product": "Nama produk yang dipahami",
+  "industry": "Industri yang relevan atau null",
+  "budget": "Anggaran jika disebutkan atau null",
+  "expandedKeywords": ["keyword spesifik 1", "keyword spesifik 2", "keyword spesifik 3", "keyword spesifik 4"],
+  "isAmbiguous": false,
+  "suggestedCategories": null
+}
+
+Jika ambigu, set isAmbiguous: true dan isi suggestedCategories, kosongkan expandedKeywords.`,
+    }],
+    temperature: 0.2,
+    response_format: { type: 'json_object' },
+  })
+  return JSON.parse(completion.choices[0].message.content ?? '{}')
+}
+
+export async function researchProducts(query: string, intent: SearchIntent): Promise<ResearchProduct[]> {
+  const keywordsContext = intent.expandedKeywords.length > 0
+    ? `\n\nKata kunci pencarian yang diperluas: ${intent.expandedKeywords.join(', ')}`
+    : ''
+  const industryContext = intent.industry ? `\nIndustri: ${intent.industry}` : ''
+  const budgetContext = intent.budget ? `\nAnggaran: ${intent.budget}` : ''
+
   const encoded = encodeURIComponent(query)
   const completion = await getOpenAI().chat.completions.create({
     model: 'gpt-4o-mini',
     messages: [{
       role: 'user',
-      content: `Kamu adalah spesialis pengadaan barang. Pengguna sedang mencari "${query}" untuk keperluan bisnis/industri di Indonesia.
+      content: `Kamu adalah spesialis pengadaan barang untuk bisnis/industri di Indonesia.
 
-Buat 4–6 opsi produk yang berbeda. Setiap produk mewakili tingkat yang berbeda (entry-level, menengah, premium) atau pendekatan yang berbeda.
-Semua teks harus dalam Bahasa Indonesia. Gunakan URL pencarian Shopee dan Tokopedia yang benar untuk setiap produk.
+Pengguna mencari: "${query}"${keywordsContext}${industryContext}${budgetContext}
 
-Jawab HANYA dengan JSON yang valid:
+Buat 4–6 opsi produk yang berbeda (entry-level, menengah, premium).
+Gunakan konteks kata kunci yang diperluas untuk menghasilkan produk yang LEBIH RELEVAN dan SPESIFIK.
+Semua teks dalam Bahasa Indonesia.
+
+Jawab HANYA dengan JSON valid:
 {
-  "query": "${query}",
   "products": [
     {
       "id": "product-0",
       "name": "Nama Produk Spesifik",
       "category": "Kategori Produk",
-      "keySpecs": ["spesifikasi 1", "spesifikasi 2", "spesifikasi 3", "spesifikasi 4"],
+      "keySpecs": ["spesifikasi teknis 1", "spesifikasi teknis 2", "spesifikasi teknis 3", "spesifikasi teknis 4"],
       "estimatedPriceRange": "Rp X.XXX.XXX – Rp Y.YYY.YYY",
       "suggestedSuppliers": ["Nama Supplier A", "Nama Supplier B"],
       "shopeeSearchUrl": "https://shopee.co.id/search?keyword=${encoded}",
       "tokopediaSearchUrl": "https://www.tokopedia.com/search?st=product&q=${encoded}",
-      "notes": "Satu hingga dua kalimat catatan pembelian yang relevan."
+      "notes": "Catatan pembelian singkat yang relevan."
     }
   ]
 }`,
@@ -57,7 +111,8 @@ Jawab HANYA dengan JSON yang valid:
     temperature: 0.4,
     response_format: { type: 'json_object' },
   })
-  return JSON.parse(completion.choices[0].message.content ?? '{}')
+  const data = JSON.parse(completion.choices[0].message.content ?? '{}')
+  return data.products ?? []
 }
 
 export async function compareProducts(products: ResearchProduct[]): Promise<ComparisonResult> {
@@ -73,12 +128,12 @@ export async function compareProducts(products: ResearchProduct[]): Promise<Comp
 
 ${productList}
 
-Fokus perbandingan pada SPESIFIKASI TEKNIS dan HARGA saja. Jangan tulis kelebihan umum atau kegunaan — langsung ke angka dan detail teknis.
-Semua teks harus dalam Bahasa Indonesia.
+Fokus perbandingan pada SPESIFIKASI TEKNIS dan HARGA saja.
+Semua teks dalam Bahasa Indonesia.
 
-Jawab HANYA dengan JSON yang valid:
+Jawab HANYA dengan JSON valid:
 {
-  "summary": "Ringkasan eksekutif 2-3 kalimat dalam Bahasa Indonesia, fokus pada perbedaan harga dan spesifikasi utama",
+  "summary": "Ringkasan eksekutif 2-3 kalimat, fokus pada perbedaan harga dan spesifikasi utama",
   "tableRows": [
     { "criterion": "Rentang Harga", "values": ["harga produk 1", "harga produk 2"] },
     { "criterion": "Spesifikasi Utama", "values": ["spek teknis produk 1", "spek teknis produk 2"] },
@@ -87,7 +142,7 @@ Jawab HANYA dengan JSON yang valid:
     { "criterion": "Garansi", "values": ["garansi produk 1", "garansi produk 2"] },
     { "criterion": "Supplier Tersedia", "values": ["supplier produk 1", "supplier produk 2"] }
   ],
-  "recommendation": "Rekomendasi pembelian yang jelas berdasarkan perbandingan harga, volume penjualan toko, dan reputasi supplier di Indonesia"
+  "recommendation": "Rekomendasi pembelian berdasarkan perbandingan harga, volume penjualan, dan reputasi supplier di Indonesia"
 }`,
     }],
     temperature: 0.3,
