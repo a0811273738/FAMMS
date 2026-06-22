@@ -34,21 +34,29 @@ export default function MaterialsClient({ hasData, canSeed, recordCount, sheetsC
   const [selected, setSelected] = useState<Material | null>(null)
   const [count, setCount] = useState(recordCount)
   const [dataLoaded, setDataLoaded] = useState(false)
+  const [fetchError, setFetchError] = useState<string | null>(null)
 
   const fetchMaterials = useCallback(async (q = '') => {
     setLoading(true)
+    setFetchError(null)
     try {
       let res = await fetch(`/api/materials/sheets?q=${encodeURIComponent(q)}`)
       let data = await res.json()
       if (!Array.isArray(data)) {
+        const sheetsErr = data?.error ?? 'Sheets error'
         // Sheets failed, try Supabase
         res = await fetch(`/api/materials?q=${encodeURIComponent(q)}`)
         data = await res.json()
+        if (!Array.isArray(data)) {
+          setFetchError(`Sheets: ${sheetsErr} | Supabase: ${data?.error ?? 'unknown error'}`)
+        }
       }
       if (Array.isArray(data)) {
         setMaterials(data)
         setDataLoaded(true)
       }
+    } catch (e: any) {
+      setFetchError(e.message)
     } finally {
       setLoading(false)
     }
@@ -254,11 +262,17 @@ export default function MaterialsClient({ hasData, canSeed, recordCount, sheetsC
       {loading ? (
         <div className="text-center py-16 text-gray-400">
           <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2" />
-          <p className="text-sm">載入中...</p>
+          <p className="text-sm">Memuat data...</p>
+        </div>
+      ) : fetchError ? (
+        <div className="text-center py-16">
+          <p className="text-sm font-semibold text-red-600 mb-2">Gagal memuat data</p>
+          <p className="text-xs text-gray-500 max-w-lg mx-auto break-all">{fetchError}</p>
+          <button onClick={() => fetchMaterials(search)} className="mt-4 text-sm text-blue-600 hover:underline">Coba lagi</button>
         </div>
       ) : materials.length === 0 ? (
         <div className="text-center py-16 text-gray-400">
-          <p>找不到符合的原物料</p>
+          <p>Tidak ada data bahan baku</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
