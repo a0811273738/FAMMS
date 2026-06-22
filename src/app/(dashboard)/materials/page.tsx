@@ -11,9 +11,9 @@ export default async function MaterialsPage() {
   const canSeed = profile && ['purchasing', 'director'].includes(profile.role)
 
   const sheetsConfigured = !!(
-    process.env.GOOGLE_CLIENT_EMAIL &&
-    process.env.GOOGLE_PRIVATE_KEY &&
-    process.env.GOOGLE_SHEETS_ID
+    process.env.GOOGLE_SHEETS_ID &&
+    (process.env.GOOGLE_SERVICE_ACCOUNT_JSON ||
+      (process.env.GOOGLE_CLIENT_EMAIL && process.env.GOOGLE_PRIVATE_KEY))
   )
 
   // Only check Supabase count if Sheets not configured

@@ -1,11 +1,18 @@
 import { google } from 'googleapis'
 
 function getAuth() {
-  // Vercel stores env vars with literal \n — replace and strip surrounding quotes
-  const rawKey = process.env.GOOGLE_PRIVATE_KEY ?? ''
-  const key = rawKey
-    .replace(/^["']|["']$/g, '')  // strip wrapping quotes if any
-    .replace(/\\n/g, '\n')         // literal \n → real newline
+  // Prefer full service account JSON (avoids private key newline issues on Vercel)
+  if (process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
+    const creds = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON)
+    return new google.auth.GoogleAuth({
+      credentials: creds,
+      scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
+    })
+  }
+  // Fallback: individual env vars
+  const key = (process.env.GOOGLE_PRIVATE_KEY ?? '')
+    .replace(/^["']|["']$/g, '')
+    .replace(/\\n/g, '\n')
   return new google.auth.JWT({
     email: process.env.GOOGLE_CLIENT_EMAIL,
     key,
