@@ -6,8 +6,8 @@ import { Toaster } from '@/components/ui/sonner'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'PDP — Procurement Decision Platform',
-  description: 'Fast procurement approvals for decision makers',
+  title: 'FAMMS — Factory Asset & Maintenance Management',
+  description: 'Sistem manajemen aset & maintenance equipment untuk SJA, DIN, Olentia',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

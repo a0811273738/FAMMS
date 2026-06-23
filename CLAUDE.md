@@ -391,11 +391,13 @@ Before first run:
 
 ## Project Status
 
-- **TypeScript**: 0 errors (should be 0)
+- **TypeScript**: 0 errors (`npx tsc --noEmit` exits 0); production build passes
 - **Data Model**: ✅ Complete (14 tables)
-- **Fault Tree**: ✅ Standardized (100+ codes, 5 main categories)
-- **Incident Logic**: ✅ Repeat failure detection, RCA trigger
-- **Not Yet Built**: UI components, API routes, Dashboard
+- **Fault Tree**: ✅ Standardized (100+ codes, 5 main categories) — `seed_fault_tree.sql`
+- **Incident Logic**: ✅ Repeat failure detection (API), RCA trigger (planned)
+- **Built (Phase 2)**: ✅ Incident list / report form (cascading fault tree) / detail + action timeline; `POST /api/incidents` (auto incident_no + repeat detection); `POST /api/incidents/[id]/actions`; Machines list; Indonesian UI throughout
+- **Demo data**: `seed_demo.sql` (areas + 6 sample machines incl. DIN-HMG-001)
+- **Not Yet Built**: PM module, Knowledge Base, KPI charts, RCA forms, photo upload, Telegram, health score, QR codes, machine CRUD
 
 ---
 

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
-import { Loader2, ShoppingCart } from 'lucide-react'
+import { Loader2, Wrench } from 'lucide-react'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -29,15 +29,15 @@ export default function LoginPage() {
           options: { data: { full_name: fullName } },
         })
         if (error) throw error
-        toast.success('Account created! Check your email to confirm.')
+        toast.success('Akun berhasil dibuat! Cek email untuk konfirmasi.')
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
         router.push('/dashboard')
         router.refresh()
       }
-    } catch (err: any) {
-      toast.error(err.message || 'Authentication failed')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Gagal masuk')
     } finally {
       setLoading(false)
     }
@@ -49,22 +49,22 @@ export default function LoginPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-14 h-14 bg-blue-600 rounded-2xl mb-4 shadow-lg">
-            <ShoppingCart className="w-7 h-7 text-white" />
+            <Wrench className="w-7 h-7 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">PDP</h1>
-          <p className="text-sm text-gray-500 mt-1">Procurement Decision Platform</p>
+          <h1 className="text-2xl font-bold text-gray-900">FAMMS</h1>
+          <p className="text-sm text-gray-500 mt-1">Factory Asset & Maintenance Management</p>
         </div>
 
         {/* Card */}
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <h2 className="text-lg font-semibold text-gray-900 mb-6">
-            {isSignUp ? 'Create account' : 'Sign in'}
+            {isSignUp ? 'Buat Akun' : 'Masuk'}
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {isSignUp && (
               <div>
-                <Label htmlFor="fullName">Full Name</Label>
+                <Label htmlFor="fullName">Nama Lengkap</Label>
                 <Input
                   id="fullName"
                   type="text"
@@ -104,17 +104,17 @@ export default function LoginPage() {
 
             <Button type="submit" className="w-full" disabled={loading}>
               {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              {isSignUp ? 'Create Account' : 'Sign In'}
+              {isSignUp ? 'Buat Akun' : 'Masuk'}
             </Button>
           </form>
 
           <p className="text-center text-sm text-gray-500 mt-6">
-            {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
+            {isSignUp ? 'Sudah punya akun?' : 'Belum punya akun?'}{' '}
             <button
               onClick={() => setIsSignUp(!isSignUp)}
               className="text-blue-600 font-medium hover:underline"
             >
-              {isSignUp ? 'Sign in' : 'Sign up'}
+              {isSignUp ? 'Masuk' : 'Daftar'}
             </button>
           </p>
         </div>

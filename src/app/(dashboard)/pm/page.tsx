@@ -1,0 +1,13 @@
+import { CalendarCheck } from 'lucide-react'
+
+export default function PMPage() {
+  return (
+    <div className="space-y-6">
+      <h1 className="text-xl font-bold text-gray-900">Preventive Maintenance</h1>
+      <div className="text-center py-20 text-gray-400">
+        <CalendarCheck className="w-10 h-10 mx-auto mb-3" />
+        <p>Modul PM akan dibangun di fase berikutnya.</p>
+      </div>
+    </div>
+  )
+}
