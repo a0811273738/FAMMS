@@ -14,6 +14,7 @@ import { Textarea } from '@/components/ui/textarea'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
+import PhotoUpload from '@/components/shared/PhotoUpload'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
 
@@ -27,6 +28,9 @@ export default function ActionForm({ incidentId }: { incidentId: string }) {
   const [duration, setDuration] = useState('')
   const [newStatus, setNewStatus] = useState<IncidentStatus | ''>('')
   const [completionType, setCompletionType] = useState<CompletionType | ''>('')
+  const [photosBefore, setPhotosBefore] = useState<string[]>([])
+  const [photosDuring, setPhotosDuring] = useState<string[]>([])
+  const [photosAfter, setPhotosAfter] = useState<string[]>([])
   const [submitting, setSubmitting] = useState(false)
 
   // Completion type only relevant for fix-type actions
@@ -48,12 +52,16 @@ export default function ActionForm({ incidentId }: { incidentId: string }) {
           duration_minutes: duration ? Number(duration) : undefined,
           new_status: newStatus || undefined,
           completion_type: showCompletion && completionType ? completionType : undefined,
+          photos_before: photosBefore.length ? photosBefore : undefined,
+          photos_during: photosDuring.length ? photosDuring : undefined,
+          photos_after: photosAfter.length ? photosAfter : undefined,
         }),
       })
       const json = await res.json()
       if (!res.ok) throw new Error(json.error || 'Gagal menambah action')
       toast.success('Action ditambahkan')
       setActionType(''); setDescription(''); setDuration(''); setNewStatus(''); setCompletionType('')
+      setPhotosBefore([]); setPhotosDuring([]); setPhotosAfter([])
       router.refresh()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Gagal menambah action')
@@ -121,6 +129,13 @@ export default function ActionForm({ incidentId }: { incidentId: string }) {
             {STATUSES.map(s => <SelectItem key={s} value={s}>{INCIDENT_STATUS_LABELS[s]}</SelectItem>)}
           </SelectContent>
         </Select>
+      </div>
+
+      {/* Photos: before / during / after */}
+      <div className="space-y-3 border-t border-gray-100 pt-4">
+        <PhotoUpload label="Foto Sebelum" value={photosBefore} onChange={setPhotosBefore} folder={`incidents/${incidentId}`} />
+        <PhotoUpload label="Foto Saat Perbaikan" value={photosDuring} onChange={setPhotosDuring} folder={`incidents/${incidentId}`} />
+        <PhotoUpload label="Foto Sesudah" value={photosAfter} onChange={setPhotosAfter} folder={`incidents/${incidentId}`} />
       </div>
 
       <Button onClick={submit} disabled={submitting} className="w-full">

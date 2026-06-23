@@ -22,6 +22,9 @@ export async function POST(
     vendor_cost,
     new_status,        // optional: advance incident status
     completion_type,   // optional: 'temporary_fix' | 'permanent_fix'
+    photos_before,     // optional: string[] storage paths
+    photos_during,
+    photos_after,
   } = body
 
   if (!action_type) {
@@ -46,6 +49,9 @@ export async function POST(
       labor_cost: labor_cost || null,
       material_cost: material_cost || null,
       vendor_cost: vendor_cost || null,
+      photos_before: photos_before?.length ? JSON.stringify(photos_before) : null,
+      photos_during: photos_during?.length ? JSON.stringify(photos_during) : null,
+      photos_after: photos_after?.length ? JSON.stringify(photos_after) : null,
       status: 'completed',
     })
     .select('*')

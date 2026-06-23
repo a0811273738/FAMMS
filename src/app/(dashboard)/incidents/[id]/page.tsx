@@ -5,6 +5,7 @@ import StatusBadge from '@/components/shared/StatusBadge'
 import ActionForm from '@/components/incidents/ActionForm'
 import RCAForm from '@/components/incidents/RCAForm'
 import CloseIncidentButton from '@/components/incidents/CloseIncidentButton'
+import ImageViewer from '@/components/shared/ImageViewer'
 import { checkRCARequirement } from '@/lib/rca'
 import {
   IncidentStatus, DowntimeImpact, DOWNTIME_IMPACT_LABELS,
@@ -41,6 +42,17 @@ export default async function IncidentDetailPage({
 
   const machine = incident.machine as { machine_code: string; machine_name: string; brand?: string; model?: string } | null
   const fc = incident.failure_code as { code: string; name: string } | null
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+  const parsePhotos = (raw: unknown): string[] => {
+    if (!raw || typeof raw !== 'string') return []
+    try {
+      const v = JSON.parse(raw)
+      return Array.isArray(v) ? v : []
+    } catch {
+      return []
+    }
+  }
 
   // RCA gate: when the same failure_code crossed the threshold and no RCA exists,
   // closing is blocked and the RCA form is shown.
@@ -129,6 +141,34 @@ export default async function IncidentDetailPage({
                   {a.duration_minutes ? (
                     <p className="text-xs text-gray-400 mt-1">Durasi: {a.duration_minutes} menit</p>
                   ) : null}
+                  {(() => {
+                    const before = parsePhotos(a.photos_before)
+                    const during = parsePhotos(a.photos_during)
+                    const after = parsePhotos(a.photos_after)
+                    if (!before.length && !during.length && !after.length) return null
+                    return (
+                      <div className="mt-3 space-y-2">
+                        {before.length > 0 && (
+                          <div>
+                            <p className="text-xs font-medium text-gray-500 mb-1">Sebelum</p>
+                            <ImageViewer paths={before} supabaseUrl={supabaseUrl} />
+                          </div>
+                        )}
+                        {during.length > 0 && (
+                          <div>
+                            <p className="text-xs font-medium text-gray-500 mb-1">Saat Perbaikan</p>
+                            <ImageViewer paths={during} supabaseUrl={supabaseUrl} />
+                          </div>
+                        )}
+                        {after.length > 0 && (
+                          <div>
+                            <p className="text-xs font-medium text-gray-500 mb-1">Sesudah</p>
+                            <ImageViewer paths={after} supabaseUrl={supabaseUrl} />
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })()}
                 </div>
               </li>
             ))}

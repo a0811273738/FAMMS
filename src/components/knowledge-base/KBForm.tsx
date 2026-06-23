@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import PhotoUpload from '@/components/shared/PhotoUpload'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
 
@@ -23,6 +24,7 @@ export default function KBForm({ incidentId, defaultProblem = '', defaultRootCau
   const [lessons, setLessons] = useState('')
   const [keywords, setKeywords] = useState('')
   const [partsUsed, setPartsUsed] = useState('')
+  const [photos, setPhotos] = useState<string[]>([])
   const [submitting, setSubmitting] = useState(false)
 
   async function submit() {
@@ -47,6 +49,7 @@ export default function KBForm({ incidentId, defaultProblem = '', defaultRootCau
           lessons_learned: lessons || undefined,
           keywords: keywords || undefined,
           parts_used: parts.length ? parts : undefined,
+          photos: photos.length ? photos : undefined,
         }),
       })
       const json = await res.json()
@@ -126,6 +129,10 @@ export default function KBForm({ incidentId, defaultProblem = '', defaultRootCau
             className="mt-1"
           />
         </div>
+      </div>
+
+      <div className="border-t border-gray-100 pt-4">
+        <PhotoUpload label="Foto" value={photos} onChange={setPhotos} folder="knowledge-base" />
       </div>
 
       <Button onClick={submit} disabled={submitting} className="w-full">

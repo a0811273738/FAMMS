@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import ImageViewer from '@/components/shared/ImageViewer'
 import { ArrowLeft, ExternalLink } from 'lucide-react'
 import { format } from 'date-fns'
 
@@ -32,7 +33,9 @@ export default async function KBDetailPage({ params }: { params: Promise<{ id: s
   if (!entry) notFound()
 
   const parts = parseList(entry.parts_used)
+  const photos = parseList(entry.photos)
   const keywords = (entry.keywords ?? '').split(',').map((k: string) => k.trim()).filter(Boolean)
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -65,6 +68,13 @@ export default async function KBDetailPage({ params }: { params: Promise<{ id: s
         <Section title="Root Cause (Akar Masalah)" body={entry.root_cause} />
         <Section title="Metode Perbaikan" body={entry.repair_method} />
         {entry.lessons_learned && <Section title="Lessons Learned" body={entry.lessons_learned} />}
+
+        {photos.length > 0 && (
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Foto</p>
+            <ImageViewer paths={photos} supabaseUrl={supabaseUrl} bucket="incident-photos" />
+          </div>
+        )}
 
         {parts.length > 0 && (
           <div>
