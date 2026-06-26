@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import imageCompression from 'browser-image-compression'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
@@ -11,7 +12,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
 import { toast } from 'sonner'
-import { Loader2, Camera, X } from 'lucide-react'
+import { Loader2, Camera, X, ZoomIn } from 'lucide-react'
 import type { IncidentStatus } from '@/types'
 import { STATUS_ZH } from '@/lib/incident-display'
 
@@ -34,10 +35,34 @@ export default function ProgressUpdate({
   const [updaterName, setUpdaterName] = useState('')
   const [photos, setPhotos] = useState<File[]>([])
   const [submitting, setSubmitting] = useState(false)
+  const [compressing, setCompressing] = useState(false)
 
-  function addPhoto(e: React.ChangeEvent<HTMLInputElement>) {
+  async function addPhoto(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? [])
-    setPhotos(prev => [...prev, ...files].slice(0, 5))
+    if (files.length === 0) return
+
+    setCompressing(true)
+    try {
+      const compressed: File[] = []
+      for (const file of files) {
+        if (!file.type.startsWith('image/')) continue
+        const options = {
+          maxSizeMB: 1,
+          maxWidthOrHeight: 2000,
+          useWebWorker: true,
+        }
+        const compressedFile = await imageCompression(file, options)
+        compressed.push(compressedFile)
+      }
+      setPhotos(prev => [...prev, ...compressed].slice(0, 5))
+      if (compressed.length > 0) {
+        toast.success(`壓縮 ${compressed.length} 張圖片完成`)
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : '圖片壓縮失敗')
+    } finally {
+      setCompressing(false)
+    }
   }
 
   async function submit() {
@@ -133,17 +158,27 @@ export default function ProgressUpdate({
       </div>
 
       <div>
-        <Label>照片（最多 5 張）</Label>
+        <Label>照片（最多 5 張，自動壓縮）</Label>
         <div className="mt-1 space-y-2">
           {photos.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {photos.map((p, i) => (
-                <div key={i} className="relative">
-                  <img src={URL.createObjectURL(p)} alt="" className="w-16 h-16 object-cover rounded-lg border" />
+                <div key={i} className="relative group">
+                  <img
+                    src={URL.createObjectURL(p)}
+                    alt=""
+                    className="w-20 h-20 object-cover rounded-lg border border-gray-200 group-hover:opacity-80 transition-opacity"
+                  />
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/0 group-hover:bg-black/40 rounded-lg transition-all">
+                    <ZoomIn className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <span className="text-xs text-white opacity-0 group-hover:opacity-100 mt-0.5 transition-opacity">
+                      {(p.size / 1024).toFixed(0)} KB
+                    </span>
+                  </div>
                   <button
                     type="button"
                     onClick={() => setPhotos(prev => prev.filter((_, j) => j !== i))}
-                    className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center"
+                    className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center shadow-lg hover:bg-red-600"
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -152,11 +187,28 @@ export default function ProgressUpdate({
             </div>
           )}
           {photos.length < 5 && (
-            <label className="flex items-center gap-2 border-2 border-dashed border-gray-300 rounded-lg p-2.5 cursor-pointer hover:border-blue-400">
+            <label className={`flex items-center gap-2 border-2 border-dashed rounded-lg p-2.5 cursor-pointer transition-colors ${
+              compressing ? 'border-blue-300 bg-blue-50' : 'border-gray-300 hover:border-blue-400'
+            }`}>
               <Camera className="w-5 h-5 text-gray-400" />
-              <span className="text-sm text-gray-500">新增照片</span>
-              <input type="file" accept="image/*" multiple capture="environment" onChange={addPhoto} className="hidden" />
+              <span className="text-sm text-gray-500">
+                {compressing ? '壓縮中...' : '新增照片'}
+              </span>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                capture="environment"
+                onChange={addPhoto}
+                disabled={compressing}
+                className="hidden"
+              />
             </label>
+          )}
+          {photos.length > 0 && (
+            <p className="text-xs text-gray-400">
+              共 {photos.length} 張（{(photos.reduce((s, f) => s + f.size, 0) / 1024 / 1024).toFixed(1)} MB）
+            </p>
           )}
         </div>
       </div>
