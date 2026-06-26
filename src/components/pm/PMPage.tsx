@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -11,7 +12,7 @@ import {
 import { toast } from 'sonner'
 import { Loader2, Plus, Wrench, Clock, CheckCircle, Settings } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
-import { zhTW } from 'date-fns/locale'
+import { zhTW, enUS } from 'date-fns/locale'
 import OverdueMaintenanceAlert from './OverdueMaintenanceAlert'
 import PMScheduleManager from './PMScheduleManager'
 
@@ -35,6 +36,7 @@ interface MaintenanceLog {
 }
 
 export default function PMPage() {
+  const { i18n, t } = useTranslation()
   const supabase = createClient()
 
   const [factories, setFactories] = useState<Factory[]>([])
@@ -90,7 +92,7 @@ export default function PMPage() {
   }
 
   async function submitLog() {
-    if (!selectedMachineId) { toast.error('請選擇機器'); return }
+    if (!selectedMachineId) { toast.error(t('common.error')); return }
 
     setSubmitting(true)
     try {
@@ -101,14 +103,14 @@ export default function PMPage() {
         performed_at: new Date().toISOString(),
       })
       if (error) throw error
-      toast.success('保養紀錄已新增')
+      toast.success(t('common.success'))
       setNotes('')
       setPerformer('')
       setSelectedMachineId('')
       setShowForm(false)
       loadLogs()
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : '新增失敗')
+      toast.error(err instanceof Error ? err.message : t('errors.saveFailed'))
     } finally {
       setSubmitting(false)
     }
@@ -138,15 +140,15 @@ export default function PMPage() {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">保養紀錄</h1>
-          <p className="text-sm text-gray-500 mt-1">追蹤機器保養頻率</p>
+          <h1 className="text-xl font-bold text-gray-900">{t('pm.title')}</h1>
+          <p className="text-sm text-gray-500 mt-1">{i18n.language === 'id' ? '追蹤機器保養頻率' : 'Track machine maintenance frequency'}</p>
         </div>
         <div className="flex gap-2">
           <Button onClick={() => setShowSchedules(!showSchedules)} variant="outline" className="gap-2">
-            <Settings className="w-4 h-4" /> 保養計畫
+            <Settings className="w-4 h-4" /> {t('pm.schedule')}
           </Button>
           <Button onClick={() => setShowForm(!showForm)} className="gap-2">
-            <Plus className="w-4 h-4" /> 新增保養
+            <Plus className="w-4 h-4" /> {i18n.language === 'id' ? '新增保養' : 'Add Maintenance'}
           </Button>
         </div>
       </div>
@@ -166,10 +168,10 @@ export default function PMPage() {
       {/* Add Maintenance Form */}
       {showForm && (
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 space-y-4">
-          <h3 className="font-semibold text-blue-900">記錄保養</h3>
+          <h3 className="font-semibold text-blue-900">{i18n.language === 'id' ? '記錄保養' : 'Log Maintenance'}</h3>
 
           <Select value={factoryId} onValueChange={(v) => setFactoryId(v ?? '')}>
-            <SelectTrigger><SelectValue placeholder="選擇工廠" /></SelectTrigger>
+            <SelectTrigger><SelectValue placeholder={i18n.language === 'id' ? '選擇工廠' : 'Select Factory'} /></SelectTrigger>
             <SelectContent>
               {factories.map(f => <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>)}
             </SelectContent>
@@ -177,7 +179,7 @@ export default function PMPage() {
 
           {areas.length > 0 && (
             <Select value={areaId} onValueChange={(v) => setAreaId(v ?? '')}>
-              <SelectTrigger><SelectValue placeholder="選擇區域" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={i18n.language === 'id' ? '選擇區域' : 'Select Area'} /></SelectTrigger>
               <SelectContent>
                 {areas.map(a => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}
               </SelectContent>
@@ -186,7 +188,7 @@ export default function PMPage() {
 
           {displayMachines.length > 0 && (
             <Select value={selectedMachineId} onValueChange={(v) => setSelectedMachineId(v ?? '')}>
-              <SelectTrigger><SelectValue placeholder="選擇機器 *" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={i18n.language === 'id' ? '選擇機器 *' : 'Select Machine *'} /></SelectTrigger>
               <SelectContent>
                 {displayMachines.map(m => (
                   <SelectItem key={m.id} value={m.id}>
@@ -198,21 +200,21 @@ export default function PMPage() {
           )}
 
           <div>
-            <Label>保養人員</Label>
+            <Label>{i18n.language === 'id' ? '保養人員' : 'Performed By'}</Label>
             <input
               value={performer}
               onChange={e => setPerformer(e.target.value)}
-              placeholder="姓名"
+              placeholder={i18n.language === 'id' ? '姓名' : 'Name'}
               className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
             />
           </div>
 
           <div>
-            <Label>保養說明</Label>
+            <Label>{t('pm.notes')}</Label>
             <Textarea
               value={notes}
               onChange={e => setNotes(e.target.value)}
-              placeholder="更換零件、調整項目、發現問題..."
+              placeholder={i18n.language === 'id' ? '更換零件、調整項目、發現問題...' : 'Parts replaced, adjustments made, issues found...'}
               className="mt-1"
               rows={3}
             />
@@ -221,9 +223,9 @@ export default function PMPage() {
           <div className="flex gap-2">
             <Button onClick={submitLog} disabled={submitting || !selectedMachineId}>
               {submitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              儲存
+              {t('common.save')}
             </Button>
-            <Button variant="outline" onClick={() => setShowForm(false)}>取消</Button>
+            <Button variant="outline" onClick={() => setShowForm(false)}>{t('common.cancel')}</Button>
           </div>
         </div>
       )}
@@ -231,7 +233,7 @@ export default function PMPage() {
       {/* Machine Status Overview */}
       {areaId && displayMachines.length > 0 && (
         <div className="space-y-2">
-          <h3 className="font-semibold text-gray-700 text-sm">區域機器保養狀態</h3>
+          <h3 className="font-semibold text-gray-700 text-sm">{i18n.language === 'id' ? '區域機器保養狀態' : 'Area Machine Maintenance Status'}</h3>
           {displayMachines.map(m => {
             const last = lastMaintained[m.id]
             const daysSince = last ? getDaysSince(last) : null
@@ -244,19 +246,19 @@ export default function PMPage() {
                     {m.machine_code ? `[${m.machine_code}] ` : ''}{m.machine_name}
                   </p>
                   <p className="text-xs text-gray-500 mt-0.5">
-                    保養週期: {m.maintenance_cycle} 天
+                    {i18n.language === 'id' ? '保養週期' : 'Maintenance Cycle'}: {m.maintenance_cycle} {i18n.language === 'id' ? '天' : 'days'}
                   </p>
                 </div>
                 <div className="text-right">
                   {last ? (
                     <>
                       <p className={`text-sm font-semibold ${statusColor}`}>
-                        {daysSince} 天前
+                        {daysSince} {i18n.language === 'id' ? '天前' : 'days ago'}
                       </p>
-                      <p className="text-xs text-gray-400">上次保養</p>
+                      <p className="text-xs text-gray-400">{t('pm.lastMaintained')}</p>
                     </>
                   ) : (
-                    <p className="text-xs text-gray-400">未有紀錄</p>
+                    <p className="text-xs text-gray-400">{i18n.language === 'id' ? '未有紀錄' : 'No records'}</p>
                   )}
                 </div>
               </div>
@@ -267,11 +269,11 @@ export default function PMPage() {
 
       {/* Recent Logs */}
       <div className="space-y-2">
-        <h3 className="font-semibold text-gray-700 text-sm">最近保養紀錄</h3>
+        <h3 className="font-semibold text-gray-700 text-sm">{i18n.language === 'id' ? '最近保養紀錄' : 'Recent Maintenance Records'}</h3>
         {logs.length === 0 ? (
           <div className="text-center py-10 text-gray-400">
             <Wrench className="w-10 h-10 mx-auto mb-2 opacity-30" />
-            <p className="text-sm">尚無保養紀錄</p>
+            <p className="text-sm">{i18n.language === 'id' ? '尚無保養紀錄' : 'No maintenance records'}</p>
           </div>
         ) : (
           logs.slice(0, 20).map(log => (
@@ -280,14 +282,14 @@ export default function PMPage() {
                 <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-700">
-                    {log.performed_by || '保養員'}
+                    {log.performed_by || (i18n.language === 'id' ? '保養員' : 'Technician')}
                   </p>
                   {log.notes && (
                     <p className="text-xs text-gray-600 mt-0.5 line-clamp-2">{log.notes}</p>
                   )}
                   <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
                     <Clock className="w-3 h-3" />
-                    {formatDistanceToNow(new Date(log.performed_at), { addSuffix: true, locale: zhTW })}
+                    {formatDistanceToNow(new Date(log.performed_at), { addSuffix: true, locale: i18n.language === 'id' ? zhTW : enUS })}
                   </p>
                 </div>
               </div>

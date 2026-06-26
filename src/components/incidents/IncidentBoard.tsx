@@ -2,9 +2,10 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useTranslation } from 'react-i18next'
 import { AlertCircle, ChevronRight, UserCheck, Lock } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
-import { zhTW } from 'date-fns/locale'
+import { zhTW, enUS } from 'date-fns/locale'
 import type { IncidentStatus, UserRole } from '@/types'
 import {
   ISSUE_TYPE_LABELS, URGENCY_FROM_IMPACT, STATUS_ZH, STATUS_ZH_COLOR, BOARD_FILTERS,
@@ -33,6 +34,7 @@ interface IncidentBoardProps {
 
 export default function IncidentBoard({ rows, userRole = 'technician' }: IncidentBoardProps) {
   const [filter, setFilter] = useState('all')
+  const { i18n, t } = useTranslation()
   const canAssign = PERMISSIONS.assignIncident(userRole)
 
   const activeFilter = BOARD_FILTERS.find(f => f.key === filter)!
@@ -47,7 +49,7 @@ export default function IncidentBoard({ rows, userRole = 'technician' }: Inciden
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-bold text-gray-900">案件看板</h1>
+      <h1 className="text-xl font-bold text-gray-900">{t('incidents.title')}</h1>
 
       {/* Filter tabs */}
       <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
@@ -73,7 +75,7 @@ export default function IncidentBoard({ rows, userRole = 'technician' }: Inciden
       {filtered.length === 0 ? (
         <div className="text-center py-16 text-gray-400">
           <AlertCircle className="w-10 h-10 mx-auto mb-2 opacity-30" />
-          <p className="text-sm">沒有案件</p>
+          <p className="text-sm">{t('common.noData')}</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -111,7 +113,7 @@ export default function IncidentBoard({ rows, userRole = 'technician' }: Inciden
                 <div className="flex items-center justify-between mt-1">
                   <p className="text-xs text-gray-400">
                     {inc.reporter_name ? `${inc.reporter_name} · ` : ''}
-                    {formatDistanceToNow(new Date(inc.reported_at), { addSuffix: true, locale: zhTW })}
+                    {formatDistanceToNow(new Date(inc.reported_at), { addSuffix: true, locale: i18n.language === 'id' ? zhTW : enUS })}
                   </p>
                   {inc.status !== 'closed' && (
                     inc.assigned_to ? (
@@ -119,10 +121,10 @@ export default function IncidentBoard({ rows, userRole = 'technician' }: Inciden
                         <UserCheck className="w-3 h-3" /> {inc.assigned_to}
                       </span>
                     ) : canAssign ? (
-                      <span className="text-xs text-amber-600">未指派</span>
+                      <span className="text-xs text-amber-600">{i18n.language === 'id' ? '未指派' : 'Unassigned'}</span>
                     ) : (
-                      <span className="inline-flex items-center gap-0.5 text-xs text-gray-400" title="只有主管可以派工">
-                        <Lock className="w-3 h-3" /> 未指派
+                      <span className="inline-flex items-center gap-0.5 text-xs text-gray-400" title={i18n.language === 'id' ? '只有主管可以派工' : 'Only supervisors can assign'}>
+                        <Lock className="w-3 h-3" /> {i18n.language === 'id' ? '未指派' : 'Unassigned'}
                       </span>
                     )
                   )}
