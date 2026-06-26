@@ -1,7 +1,16 @@
 // Simplified Chinese display maps for the mobile-first issue tracker UI.
 // These map the underlying (Bahasa) IncidentStatus + issue types to the
 // labels field staff actually see.
-import type { IncidentStatus } from '@/types'
+import type { IncidentStatus, UserRole } from '@/types'
+
+// Chinese role labels (UI is Chinese; underlying roles unchanged)
+export const ROLE_ZH: Record<UserRole, string> = {
+  technician: '技師',
+  supervisor: '主管',
+  manager: '經理',
+  director: '廠長',
+  admin: '系統管理員',
+}
 
 export const ISSUE_TYPE_LABELS: Record<string, string> = {
   machine: '🔧 機器故障',

@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import TopBar from '@/components/shared/TopBar'
 import BottomNav from '@/components/shared/BottomNav'
+import AccountDisabled from '@/components/shared/AccountDisabled'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -13,6 +14,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
     .select('*')
     .eq('id', user.id)
     .single()
+
+  // Admin-disabled accounts are blocked from the app entirely
+  if (profile && profile.is_active === false) {
+    return <AccountDisabled />
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">

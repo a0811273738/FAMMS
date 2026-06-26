@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Profile } from '@/types'
+import { ROLE_ZH } from '@/lib/incident-display'
 import { Wrench, LogOut, User } from 'lucide-react'
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
@@ -43,6 +44,9 @@ export default function TopBar({ profile }: TopBarProps) {
           <DropdownMenuContent align="end" className="w-48">
             <div className="px-3 py-2">
               <p className="text-sm font-medium">{profile?.full_name || '使用者'}</p>
+              {profile?.role && (
+                <p className="text-xs text-gray-400 mt-0.5">{ROLE_ZH[profile.role]}</p>
+              )}
             </div>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => router.push('/profile')} className="flex items-center gap-2 cursor-pointer">

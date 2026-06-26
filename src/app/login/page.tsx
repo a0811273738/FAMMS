@@ -14,8 +14,6 @@ export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  const [isSignUp, setIsSignUp] = useState(false)
-  const [fullName, setFullName] = useState('')
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -24,22 +22,12 @@ export default function LoginPage() {
     // prerendered at build time without Supabase env vars present.
     const supabase = createClient()
     try {
-      if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: { data: { full_name: fullName } },
-        })
-        if (error) throw error
-        toast.success('Akun berhasil dibuat! Cek email untuk konfirmasi.')
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password })
-        if (error) throw error
-        router.push('/dashboard')
-        router.refresh()
-      }
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Gagal masuk')
+      const { error } = await supabase.auth.signInWithPassword({ email, password })
+      if (error) throw error
+      router.push('/dashboard')
+      router.refresh()
+    } catch {
+      toast.error('帳號或密碼錯誤')
     } finally {
       setLoading(false)
     }
@@ -53,33 +41,17 @@ export default function LoginPage() {
           <div className="inline-flex items-center justify-center w-14 h-14 bg-blue-600 rounded-2xl mb-4 shadow-lg">
             <Wrench className="w-7 h-7 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">FAMMS</h1>
+          <h1 className="text-2xl font-bold text-gray-900">工廠維修系統</h1>
           <p className="text-sm text-gray-500 mt-1">Factory Asset & Maintenance Management</p>
         </div>
 
         {/* Card */}
         <div className="bg-white rounded-2xl shadow-xl p-8">
-          <h2 className="text-lg font-semibold text-gray-900 mb-6">
-            {isSignUp ? 'Buat Akun' : 'Masuk'}
-          </h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-6">登入</h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {isSignUp && (
-              <div>
-                <Label htmlFor="fullName">Nama Lengkap</Label>
-                <Input
-                  id="fullName"
-                  type="text"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  placeholder="John Doe"
-                  required
-                  className="mt-1"
-                />
-              </div>
-            )}
             <div>
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">帳號 (Email)</Label>
               <Input
                 id="email"
                 type="email"
@@ -91,7 +63,7 @@ export default function LoginPage() {
               />
             </div>
             <div>
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">密碼</Label>
               <Input
                 id="password"
                 type="password"
@@ -99,25 +71,18 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 required
-                minLength={6}
                 className="mt-1"
               />
             </div>
 
             <Button type="submit" className="w-full" disabled={loading}>
               {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              {isSignUp ? 'Buat Akun' : 'Masuk'}
+              登入
             </Button>
           </form>
 
-          <p className="text-center text-sm text-gray-500 mt-6">
-            {isSignUp ? 'Sudah punya akun?' : 'Belum punya akun?'}{' '}
-            <button
-              onClick={() => setIsSignUp(!isSignUp)}
-              className="text-blue-600 font-medium hover:underline"
-            >
-              {isSignUp ? 'Masuk' : 'Daftar'}
-            </button>
+          <p className="text-center text-xs text-gray-400 mt-6">
+            帳號由系統管理員建立，如需帳號請洽管理員
           </p>
         </div>
       </div>
