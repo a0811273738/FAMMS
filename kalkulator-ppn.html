@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kalkulator PPN — 含稅單價推算</title>
+
+<!-- Bootstrap 5 -->
+<link
+  href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+  rel="stylesheet"
+  integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+  crossorigin="anonymous"
+/>
+
+<!-- decimal.js (untuk presisi tinggi / 高精度) -->
+<script src="https://cdn.jsdelivr.net/npm/decimal.js@10.4.3/decimal.min.js"></script>
+
+<style>
+  :root { --pdp-accent: #0d6efd; }
+  body { background: #ffffff; }
+  .app-title { font-weight: 700; letter-spacing: .5px; }
+  .sub { font-size: .72rem; color: #6c757d; display: block; line-height: 1.1; }
+  .table-wrap { overflow-x: auto; }
+  table.calc-table { min-width: 980px; }
+  table.calc-table th { white-space: nowrap; font-size: .8rem; vertical-align: middle; }
+  table.calc-table td { vertical-align: middle; }
+  table.calc-table input { text-align: right; }
+  .cell-num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .cell-strong { font-weight: 600; }
+  .col-no { width: 48px; text-align: center; }
+  .col-act { width: 52px; text-align: center; }
+  .input-money { text-align: right; }
+  .status-pill { font-weight: 600; }
+  .legend small { display: block; }
+  .footer-note { font-size: .75rem; color: #6c757d; }
+  .adj-pos { color: #198754; }
+  .adj-neg { color: #dc3545; }
+  .check-ok { color: #198754; }
+  .check-warn { color: #fd7e14; }
+  .check-err { color: #dc3545; }
+  .summary-card .val { font-size: 1.1rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+
+<div class="container-fluid py-4 px-md-5">
+
+  <!-- Header -->
+  <div class="d-flex flex-wrap align-items-end justify-content-between mb-4">
+    <div>
+      <h2 class="app-title mb-0">Kalkulator PPN</h2>
+      <span class="sub">推算含稅單價 — 反推每個品項真正的含稅單價（4 位小數）</span>
+    </div>
+    <div id="statusBox" class="mt-2 mt-md-0">
+      <span id="statusPill" class="badge rounded-pill status-pill bg-secondary fs-6">—</span>
+      <div class="text-end mt-1">
+        <small class="text-muted">Confidence（信心度）:</small>
+        <strong id="confidenceVal">—</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- Input atas -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-6 col-md-3">
+          <label class="form-label mb-1">Total DPP <span class="sub">（未稅總額）</span></label>
+          <input type="text" inputmode="decimal" class="form-control input-money js-money js-header" id="totalDPP" autocomplete="off" />
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="form-label mb-1">Total PPN <span class="sub">（總稅額）</span></label>
+          <input type="text" inputmode="decimal" class="form-control input-money js-money js-header" id="totalPPN" autocomplete="off" />
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="form-label mb-1">Grand Total <span class="sub">（完稅總額）</span></label>
+          <input type="text" inputmode="decimal" class="form-control input-money js-money js-header" id="grandTotal" autocomplete="off" />
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="form-label mb-1">Tarif PPN % <span class="sub">（稅率）</span></label>
+          <input type="text" inputmode="decimal" class="form-control js-header" id="taxRate" value="11" autocomplete="off" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tombol -->
+  <div class="d-flex flex-wrap gap-2 mb-3">
+    <button class="btn btn-primary" id="btnHitung">Hitung <span class="sub d-inline text-white-50">（開始推算）</span></button>
+    <button class="btn btn-outline-secondary" id="btnTambah">Tambah Item <span class="sub d-inline">（新增品項）</span></button>
+    <button class="btn btn-outline-danger ms-auto" id="btnReset">Reset <span class="sub d-inline">（清除）</span></button>
+  </div>
+
+  <!-- Tabel item -->
+  <div class="card shadow-sm mb-4">
+    <div class="table-wrap">
+      <table class="table table-bordered table-hover mb-0 calc-table align-middle">
+        <thead class="table-light">
+          <tr>
+            <th class="col-no">No</th>
+            <th>Qty<span class="sub">（數量）</span></th>
+            <th>Harga DPP<span class="sub">（未稅單價）</span></th>
+            <th>Harga Inc Standar<span class="sub">（標準含稅單價）</span></th>
+            <th>Adjustment<span class="sub">（調整）</span></th>
+            <th>Harga Inc Final<span class="sub">（含稅單價）</span></th>
+            <th>Harga DPP Final<span class="sub">（未稅單價）</span></th>
+            <th>Line Total<span class="sub">（行合計）</span></th>
+            <th class="col-act"></th>
+          </tr>
+        </thead>
+        <tbody id="rowsBody"><!-- diisi oleh JS --></tbody>
+        <tfoot class="table-light">
+          <tr class="cell-strong">
+            <td class="text-center">Σ</td>
+            <td class="cell-num" id="sumQty">—</td>
+            <td class="cell-num" id="sumDppUnit"></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="cell-num" id="sumDppFinal">—</td>
+            <td class="cell-num" id="sumLineTotal">—</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+  <!-- Verifikasi -->
+  <div class="row g-3 mb-4">
+    <div class="col-12 col-lg-7">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-white"><strong>Verifikasi</strong> <span class="sub d-inline">（驗證）</span></div>
+        <div class="card-body legend">
+          <div class="mb-2" id="chk1">
+            <span class="me-2">①</span> Σ(Qty × DPP) = Total DPP
+            <small class="text-muted ms-2" id="chk1detail"></small>
+          </div>
+          <div class="mb-2" id="chk2">
+            <span class="me-2">②</span> Total DPP × Tarif ≈ Total PPN
+            <small class="text-muted ms-2" id="chk2detail"></small>
+          </div>
+          <div class="mb-0" id="chk3">
+            <span class="me-2">③</span> Total DPP + Total PPN = Grand Total
+            <small class="text-muted ms-2" id="chk3detail"></small>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-lg-5">
+      <div class="card shadow-sm h-100 summary-card">
+        <div class="card-header bg-white"><strong>Hasil</strong> <span class="sub d-inline">（結果）</span></div>
+        <div class="card-body">
+          <div class="d-flex justify-content-between mb-2">
+            <span>Σ Line Total <span class="sub d-inline">（行合計加總）</span></span>
+            <span class="val" id="resLineTotal">—</span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <span>Grand Total <span class="sub d-inline">（目標）</span></span>
+            <span class="val" id="resGrand">—</span>
+          </div>
+          <div class="d-flex justify-content-between">
+            <span>Selisih <span class="sub d-inline">（誤差）</span></span>
+            <span class="val" id="resDiff">—</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="footer-note mb-1">
+    提示：輸入 <kbd>Enter</kbd> 跳下一格、<kbd>Tab</kbd> 正常順序、<kbd>Ctrl+V</kbd> 可直接貼上 Excel 兩欄（Qty、Harga DPP）。資料自動保存於瀏覽器 LocalStorage。
+  </p>
+  <p class="footer-note">
+    內部一律以 decimal.js 高精度計算；畫面僅顯示四位小數（單價）與整數（Line Total），所有驗證與加總皆使用內部高精度值，而非畫面顯示值。
+  </p>
+
+</div>
+
+<script>
+"use strict";
+
+/* =====================================================================
+ * Kalkulator PPN — single-file, no backend, no jQuery, no eval.
+ * Modul logis dipisah: format / parse / compute / render / events / store.
+ * Semua angka memakai Decimal (decimal.js) untuk hindari 0.1 + 0.2.
+ * ===================================================================== */
+
+/* Presisi tinggi global */
+Decimal.set({ precision: 40, rounding: Decimal.ROUND_HALF_UP });
+
+const D = (v) => new Decimal(v); // pendek
+
+/* =====================================================================
+ * MODUL: format.js  — format & parse angka
+ * ===================================================================== */
+const Fmt = (() => {
+
+  /** Buang pemisah ribuan & validasi, kembalikan Decimal | null. */
+  function parse(str) {
+    if (str === null || str === undefined) return null;
+    const cleaned = String(str).replace(/,/g, "").trim();
+    if (cleaned === "" || cleaned === "-" || cleaned === ".") return null;
+    if (!/^-?\d*\.?\d*$/.test(cleaned)) return null;
+    try { return D(cleaned); } catch (e) { return null; }
+  }
+
+  /** Sisipkan pemisah ribuan "," pada bagian integer. */
+  function group(intPart) {
+    return intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  }
+
+  /** Format Decimal -> string dengan dp angka desimal + ribuan. */
+  function fixed(dec, dp) {
+    if (dec === null || dec === undefined) return "";
+    const s = D(dec).toFixed(dp);
+    const neg = s.startsWith("-");
+    const abs = neg ? s.slice(1) : s;
+    const parts = abs.split(".");
+    parts[0] = group(parts[0]);
+    return (neg ? "-" : "") + parts.join(".");
+  }
+
+  const money = (dec) => fixed(dec, 2);  // 金額 2 位小數
+  const price = (dec) => fixed(dec, 4);  // 單價 4 位小數
+  const int   = (dec) => fixed(dec, 0);  // Line Total 整數
+
+  return { parse, fixed, money, price, int };
+})();
+
+/* =====================================================================
+ * MODUL: state / store  — state aplikasi + LocalStorage
+ * ===================================================================== */
+const Store = (() => {
+  const KEY = "kalkulator-ppn-v1";
+
+  /** State: header + baris item. */
+  const state = {
+    totalDPP: "",
+    totalPPN: "",
+    grandTotal: "",
+    taxRate: "11",
+    rows: [], // { qty: string, dpp: string }
+  };
+
+  function emptyRows(n) {
+    const arr = [];
+    for (let i = 0; i < n; i++) arr.push({ qty: "", dpp: "" });
+    return arr;
+  }
+
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* abaikan */ }
+  }
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(KEY);
+      if (!raw) return false;
+      const data = JSON.parse(raw);
+      Object.assign(state, data);
+      if (!Array.isArray(state.rows) || state.rows.length === 0) {
+        state.rows = emptyRows(6);
+      }
+      return true;
+    } catch (e) { return false; }
+  }
+
+  return { state, emptyRows, save, load };
+})();
+
+/* =====================================================================
+ * MODUL: compute.js  — inti algoritma推算
+ * ===================================================================== */
+const Compute = (() => {
+
+  /**
+   * Jalankan推算.
+   * @param {Object} opts { rows:[{qtyD,dppD}], grandTotalD, factorD }
+   * @returns {Object} hasil per-baris (presisi tinggi) + total.
+   *
+   * Langkah (sesuai spesifikasi):
+   *  1. inc teori   = dpp * (1 + tax)            -> Decimal, tanpa pembulatan
+   *  2. line teori  = inc * qty
+   *  3. total teori = Σ line teori
+   *  4. difference  = GrandTotal - total teori
+   *  5. bagi difference proporsional weight = qty * dpp
+   *  6. exactLineTotal per baris
+   *  7. floor (bukan langsung round harga) lalu
+   *  8. Largest Remainder Method -> Σ Line Total == Grand Total 100%
+   *  9. inc final = LineTotal / qty
+   * 10. dpp final = inc final / (1 + tax)
+   */
+  function run({ rows, grandTotalD, factorD }) {
+    const n = rows.length;
+
+    // Langkah 1-3: nilai teori per baris
+    const incStd   = new Array(n); // harga inc standar (dpp * faktor)
+    const lineTheo = new Array(n); // line total teori
+    const weight   = new Array(n); // qty * dpp
+    let totalWeight = D(0);
+    let totalTheo   = D(0);
+
+    for (let i = 0; i < n; i++) {
+      const qty = rows[i].qtyD || D(0);
+      const dpp = rows[i].dppD || D(0);
+      incStd[i]   = dpp.mul(factorD);
+      lineTheo[i] = incStd[i].mul(qty);
+      weight[i]   = qty.mul(dpp);
+      totalWeight = totalWeight.add(weight[i]);
+      totalTheo   = totalTheo.add(lineTheo[i]);
+    }
+
+    // Langkah 4: selisih terhadap Grand Total
+    const difference = grandTotalD.minus(totalTheo);
+
+    // Langkah 5-6: sebar difference proporsional weight -> exactLineTotal
+    const exact = new Array(n);
+    let sumExact = D(0);
+    for (let i = 0; i < n; i++) {
+      let share;
+      if (totalWeight.isZero()) {
+        // semua weight 0 -> bagi rata
+        share = n > 0 ? difference.div(n) : D(0);
+      } else {
+        share = difference.mul(weight[i]).div(totalWeight);
+      }
+      exact[i] = lineTheo[i].add(share);
+      sumExact = sumExact.add(exact[i]);
+    }
+    // exact dijamin Σ == grandTotal (selisih difumble dihabiskan); namun jika
+    // pembagian rata menyisakan sisa kecil, kompensasi di baris terakhir.
+    if (n > 0) {
+      const drift = grandTotalD.minus(sumExact);
+      exact[n - 1] = exact[n - 1].add(drift);
+    }
+
+    // Langkah 7: floor tiap exactLineTotal, hitung sisa integer
+    const floors = new Array(n);
+    const fracs  = new Array(n);
+    let sumFloor = D(0);
+    for (let i = 0; i < n; i++) {
+      floors[i] = exact[i].floor();
+      fracs[i]  = exact[i].minus(floors[i]); // bagian pecahan [0,1)
+      sumFloor  = sumFloor.add(floors[i]);
+    }
+
+    // sisa unit integer yang harus dibagikan = GrandTotal - Σfloor
+    let remainder = grandTotalD.minus(sumFloor);
+    let remN = remainder.toNumber();
+
+    const lineTotal = floors.slice(); // mulai dari floor
+
+    // Langkah 8: Largest Remainder Method
+    // urutkan index berdasar pecahan terbesar (tie-break: weight terbesar)
+    const order = [];
+    for (let i = 0; i < n; i++) order.push(i);
+    order.sort((a, b) => {
+      const c = fracs[b].cmp(fracs[a]);
+      if (c !== 0) return c;
+      return weight[b].cmp(weight[a]);
+    });
+
+    if (remN > 0) {
+      for (let k = 0; k < remN && k < n; k++) {
+        const idx = order[k];
+        lineTotal[idx] = lineTotal[idx].add(1);
+      }
+    } else if (remN < 0) {
+      // jika overshoot (jarang): kurangi dari pecahan terkecil
+      let need = -remN;
+      for (let k = n - 1; k >= 0 && need > 0; k--) {
+        const idx = order[k];
+        lineTotal[idx] = lineTotal[idx].minus(1);
+        need--;
+      }
+    }
+
+    // Langkah 9-10: reverse harga dari Line Total (sumber kebenaran = LineTotal)
+    const incFinal = new Array(n);
+    const dppFinal = new Array(n);
+    const adjust   = new Array(n);
+    let sumLine = D(0);
+    let sumDppFinal = D(0);
+
+    for (let i = 0; i < n; i++) {
+      const qty = rows[i].qtyD || D(0);
+      if (qty.isZero()) {
+        incFinal[i] = D(0);
+        dppFinal[i] = D(0);
+      } else {
+        incFinal[i] = lineTotal[i].div(qty);          // 含稅單價 (presisi tinggi)
+        dppFinal[i] = incFinal[i].div(factorD);        // 未稅單價
+      }
+      adjust[i]   = incFinal[i].minus(incStd[i]);      // 調整 = inc final - inc standar
+      sumLine     = sumLine.add(lineTotal[i]);
+      sumDppFinal = sumDppFinal.add(dppFinal[i].mul(qty));
+    }
+
+    return {
+      rows: rows.map((r, i) => ({
+        qtyD: r.qtyD || D(0),
+        dppD: r.dppD || D(0),
+        incStd: incStd[i],
+        adjust: adjust[i],
+        incFinal: incFinal[i],
+        dppFinal: dppFinal[i],
+        lineTotal: lineTotal[i],
+      })),
+      totalTheo,
+      difference,
+      sumLineTotal: sumLine,       // dijamin == grandTotal
+      sumDppFinal,                 // Σ (dppFinal * qty) presisi tinggi
+      grandTotalD,
+    };
+  }
+
+  return { run };
+})();
+
+/* =====================================================================
+ * MODUL: validate.js — status & confidence
+ * ===================================================================== */
+const Validate = (() => {
+
+  /**
+   * Cek tiga verifikasi + tentukan status & confidence.
+   * Semua perbandingan memakai nilai Decimal internal (bukan tampilan).
+   */
+  function check({ rowsRaw, totalDPP, totalPPN, grandTotal, rateD, result }) {
+    const TOL_OK = D("0.01");  // toleransi "sama"
+    const TOL_WARN = D("1");   // di atas ini -> error
+
+    // ① Σ(Qty*DPP) = Total DPP
+    let sumQtyDpp = D(0);
+    for (const r of rowsRaw) {
+      const q = r.qtyD || D(0), d = r.dppD || D(0);
+      sumQtyDpp = sumQtyDpp.add(q.mul(d));
+    }
+    const diff1 = totalDPP ? sumQtyDpp.minus(totalDPP).abs() : null;
+
+    // ② Total DPP * tarif ≈ Total PPN
+    const expectedPPN = totalDPP ? totalDPP.mul(rateD).div(100) : null;
+    const diff2 = (totalDPP && totalPPN) ? expectedPPN.minus(totalPPN).abs() : null;
+
+    // ③ Total DPP + Total PPN = Grand Total
+    const diff3 = (totalDPP && totalPPN && grandTotal)
+      ? totalDPP.add(totalPPN).minus(grandTotal).abs() : null;
+
+    const grade = (diff) => {
+      if (diff === null) return "na";
+      if (diff.lte(TOL_OK)) return "ok";
+      if (diff.lte(TOL_WARN)) return "warn";
+      return "err";
+    };
+
+    const g1 = grade(diff1), g2 = grade(diff2), g3 = grade(diff3);
+
+    // Status keseluruhan: hasil rekonstruksi (Σ Line Total == Grand Total) wajib.
+    const reconExact = result ? result.sumLineTotal.equals(grandTotal || D(0)) : false;
+
+    let overall = "ok";
+    const grades = [g1, g2, g3];
+    if (grades.includes("err") || !reconExact) overall = "err";
+    else if (grades.includes("warn")) overall = "warn";
+
+    // Confidence: 100% - |selisih teori| / grandTotal (presisi tinggi)
+    let confidence = D(100);
+    if (grandTotal && !grandTotal.isZero() && result) {
+      const rel = result.difference.abs().div(grandTotal);
+      confidence = D(100).minus(rel.mul(100));
+      if (confidence.lt(0)) confidence = D(0);
+      if (confidence.gt(100)) confidence = D(100);
+    }
+
+    return {
+      g1, g2, g3, overall,
+      diff1, diff2, diff3,
+      sumQtyDpp, expectedPPN,
+      reconExact,
+      confidence,
+    };
+  }
+
+  return { check };
+})();
+
+/* =====================================================================
+ * MODUL: ui.js — render tabel & event
+ * ===================================================================== */
+const UI = (() => {
+  const els = {};
+
+  function cacheEls() {
+    els.rowsBody    = document.getElementById("rowsBody");
+    els.totalDPP    = document.getElementById("totalDPP");
+    els.totalPPN    = document.getElementById("totalPPN");
+    els.grandTotal  = document.getElementById("grandTotal");
+    els.taxRate     = document.getElementById("taxRate");
+    els.sumQty      = document.getElementById("sumQty");
+    els.sumDppFinal = document.getElementById("sumDppFinal");
+    els.sumLineTotal= document.getElementById("sumLineTotal");
+    els.statusPill  = document.getElementById("statusPill");
+    els.confidence  = document.getElementById("confidenceVal");
+    els.resLineTotal= document.getElementById("resLineTotal");
+    els.resGrand    = document.getElementById("resGrand");
+    els.resDiff     = document.getElementById("resDiff");
+    els.chk = {
+      1: { row: document.getElementById("chk1"), d: document.getElementById("chk1detail") },
+      2: { row: document.getElementById("chk2"), d: document.getElementById("chk2detail") },
+      3: { row: document.getElementById("chk3"), d: document.getElementById("chk3detail") },
+    };
+  }
+
+  /** Bangun ulang seluruh baris tabel dari Store.state.rows. */
+  function renderRows() {
+    const body = els.rowsBody;
+    body.innerHTML = "";
+    Store.state.rows.forEach((row, i) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td class="col-no">${i + 1}</td>
+        <td><input type="text" inputmode="decimal" class="form-control form-control-sm js-cell"
+                   data-row="${i}" data-col="qty" value="${row.qty || ""}" autocomplete="off" /></td>
+        <td><input type="text" inputmode="decimal" class="form-control form-control-sm js-cell"
+                   data-row="${i}" data-col="dpp" value="${row.dpp || ""}" autocomplete="off" /></td>
+        <td class="cell-num" data-out="incStd-${i}">—</td>
+        <td class="cell-num" data-out="adjust-${i}">—</td>
+        <td class="cell-num cell-strong" data-out="incFinal-${i}">—</td>
+        <td class="cell-num" data-out="dppFinal-${i}">—</td>
+        <td class="cell-num cell-strong" data-out="lineTotal-${i}">—</td>
+        <td class="col-act">
+          <button class="btn btn-sm btn-outline-danger js-del" data-row="${i}" title="Hapus / 刪除">&times;</button>
+        </td>`;
+      body.appendChild(tr);
+    });
+  }
+
+  /** Tulis hasil compute ke sel-sel output. */
+  function renderResult(result) {
+    result.rows.forEach((r, i) => {
+      setOut(`incStd-${i}`,   Fmt.price(r.incStd));
+      setOutAdj(`adjust-${i}`, r.adjust);
+      setOut(`incFinal-${i}`, Fmt.price(r.incFinal));
+      setOut(`dppFinal-${i}`, Fmt.price(r.dppFinal));
+      setOut(`lineTotal-${i}`, Fmt.int(r.lineTotal));
+    });
+
+    // footer
+    let sumQty = D(0);
+    for (const r of result.rows) sumQty = sumQty.add(r.qtyD);
+    els.sumQty.textContent = Fmt.int(sumQty);
+    els.sumDppFinal.textContent = Fmt.money(result.sumDppFinal);
+    els.sumLineTotal.textContent = Fmt.int(result.sumLineTotal);
+
+    els.resLineTotal.textContent = Fmt.int(result.sumLineTotal);
+    els.resGrand.textContent = Fmt.int(result.grandTotalD);
+    const diff = result.sumLineTotal.minus(result.grandTotalD);
+    els.resDiff.textContent = Fmt.money(diff);
+    els.resDiff.classList.toggle("text-danger", !diff.isZero());
+    els.resDiff.classList.toggle("text-success", diff.isZero());
+  }
+
+  function setOut(key, text) {
+    const el = els.rowsBody.querySelector(`[data-out="${key}"]`);
+    if (el) el.textContent = text;
+  }
+  function setOutAdj(key, dec) {
+    const el = els.rowsBody.querySelector(`[data-out="${key}"]`);
+    if (!el) return;
+    el.textContent = Fmt.price(dec);
+    el.classList.remove("adj-pos", "adj-neg");
+    if (dec.gt(0)) el.classList.add("adj-pos");
+    else if (dec.lt(0)) el.classList.add("adj-neg");
+  }
+
+  /** Render status pill, confidence, dan 3 baris verifikasi. */
+  function renderStatus(v) {
+    const map = {
+      ok:   { cls: "bg-success", label: "Valid（綠）" },
+      warn: { cls: "bg-warning text-dark", label: "Warning（黃）" },
+      err:  { cls: "bg-danger", label: "Error（紅）" },
+    };
+    const m = map[v.overall] || map.err;
+    els.statusPill.className = "badge rounded-pill status-pill fs-6 " + m.cls;
+    els.statusPill.textContent = m.label;
+
+    els.confidence.textContent = Fmt.fixed(v.confidence, 2) + " %";
+
+    paintCheck(1, v.g1, v.diff1, v.sumQtyDpp, "Σ(Qty×DPP)");
+    paintCheck(2, v.g2, v.diff2, v.expectedPPN, "DPP×Tarif");
+    paintCheck(3, v.g3, v.diff3, null, "");
+  }
+
+  function paintCheck(no, grade, diff, expected, label) {
+    const c = els.chk[no];
+    c.row.classList.remove("check-ok", "check-warn", "check-err");
+    let cls = "check-warn", mark = "—";
+    if (grade === "ok") { cls = "check-ok"; mark = "✔"; }
+    else if (grade === "warn") { cls = "check-warn"; mark = "▲"; }
+    else if (grade === "err") { cls = "check-err"; mark = "✘"; }
+    else { mark = "—"; }
+    c.row.classList.add(cls);
+    c.row.querySelector("span").textContent = mark;
+
+    let detail = "";
+    if (diff !== null && diff !== undefined) {
+      detail = `selisih（誤差）= ${Fmt.money(diff)}`;
+      if (expected) detail = `${label} = ${Fmt.money(expected)}　|　` + detail;
+    } else {
+      detail = "（資料不足 / data belum lengkap）";
+    }
+    c.d.textContent = detail;
+  }
+
+  return { els, cacheEls, renderRows, renderResult, renderStatus };
+})();
+
+/* =====================================================================
+ * MODUL: app.js — orkestrasi: baca input, hitung, render, simpan
+ * ===================================================================== */
+const App = (() => {
+
+  /** Ambil faktor pajak (1 + tarif/100) sebagai Decimal. */
+  function taxFactor() {
+    const rate = Fmt.parse(Store.state.taxRate) || D(0);
+    return D(1).add(rate.div(100));
+  }
+
+  /** Bangun array baris {qtyD, dppD} dari state. */
+  function buildRows() {
+    return Store.state.rows.map((r) => ({
+      qtyD: Fmt.parse(r.qty) || D(0),
+      dppD: Fmt.parse(r.dpp) || D(0),
+    }));
+  }
+
+  /** Tentukan Grand Total target (integer). Pakai input; jika kosong, DPP+PPN. */
+  function grandTotalTarget() {
+    let g = Fmt.parse(Store.state.grandTotal);
+    if (g === null) {
+      const dpp = Fmt.parse(Store.state.totalDPP);
+      const ppn = Fmt.parse(Store.state.totalPPN);
+      if (dpp !== null && ppn !== null) g = dpp.add(ppn);
+    }
+    if (g === null) return null;
+    return g.toDecimalPlaces(0, Decimal.ROUND_HALF_UP); // Line Total整數加總 -> target整數
+  }
+
+  /** Jalankan penuh: compute + validate + render. */
+  function hitung() {
+    const rows = buildRows();
+    const factorD = taxFactor();
+    const grandTotalD = grandTotalTarget();
+
+    if (grandTotalD === null) {
+      // tidak cukup data untuk推算
+      UI.els.statusPill.className = "badge rounded-pill status-pill fs-6 bg-secondary";
+      UI.els.statusPill.textContent = "Isi Grand Total dulu（請先填 Grand Total）";
+      return;
+    }
+
+    const result = Compute.run({ rows, grandTotalD, factorD });
+    UI.renderResult(result);
+
+    const v = Validate.check({
+      rowsRaw: rows,
+      totalDPP: Fmt.parse(Store.state.totalDPP),
+      totalPPN: Fmt.parse(Store.state.totalPPN),
+      grandTotal: grandTotalD,
+      rateD: Fmt.parse(Store.state.taxRate) || D(0),
+      result,
+    });
+    UI.renderStatus(v);
+  }
+
+  /* ---------- event handlers ---------- */
+
+  function onHeaderInput(e) {
+    const id = e.target.id;
+    Store.state[id] = e.target.value;
+    Store.save();
+  }
+
+  function onHeaderBlur(e) {
+    if (!e.target.classList.contains("js-money")) return;
+    const dec = Fmt.parse(e.target.value);
+    if (dec !== null) {
+      e.target.value = Fmt.money(dec);
+      Store.state[e.target.id] = e.target.value;
+      Store.save();
+    }
+  }
+
+  function onCellInput(e) {
+    const el = e.target;
+    if (!el.classList.contains("js-cell")) return;
+    const row = +el.dataset.row, col = el.dataset.col;
+    Store.state.rows[row][col] = el.value;
+    Store.save();
+  }
+
+  function onCellBlur(e) {
+    const el = e.target;
+    if (!el.classList.contains("js-cell")) return;
+    const dec = Fmt.parse(el.value);
+    if (dec !== null) {
+      // Qty: tampil ribuan tanpa desimal; DPP: ribuan 2 desimal? -> DPP整數單價, 顯示千分位
+      const col = el.dataset.col;
+      el.value = col === "qty" ? Fmt.fixed(dec, dec.isInteger() ? 0 : 2) : Fmt.money(dec);
+      Store.state.rows[+el.dataset.row][col] = el.value;
+      Store.save();
+    }
+    hitung();
+  }
+
+  /** Enter -> turun satu baris (kolom sama); Tab default. */
+  function onCellKeydown(e) {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    const el = e.target;
+    if (!el.classList.contains("js-cell")) return;
+    const row = +el.dataset.row, col = el.dataset.col;
+    el.blur(); // memformat + hitung
+    const next = UI.els.rowsBody.querySelector(`.js-cell[data-row="${row + 1}"][data-col="${col}"]`);
+    if (next) { next.focus(); next.select(); }
+  }
+
+  /** Ctrl+V dari Excel: isi grid mulai sel aktif (Tab=kolom, Newline=baris). */
+  function onCellPaste(e) {
+    const el = e.target;
+    if (!el.classList.contains("js-cell")) return;
+    const text = (e.clipboardData || window.clipboardData).getData("text");
+    if (!text || (!text.includes("\t") && !text.includes("\n"))) return; // biarkan paste biasa
+    e.preventDefault();
+
+    const startRow = +el.dataset.row;
+    const editable = ["qty", "dpp"];
+    const startCol = editable.indexOf(el.dataset.col);
+
+    const lines = text.replace(/\r/g, "").split("\n").filter((l, i, a) => !(i === a.length - 1 && l === ""));
+    lines.forEach((line, r) => {
+      const cells = line.split("\t");
+      const targetRow = startRow + r;
+      while (Store.state.rows.length <= targetRow) Store.state.rows.push({ qty: "", dpp: "" });
+      cells.forEach((cell, c) => {
+        const colIdx = startCol + c;
+        if (colIdx >= editable.length) return;
+        const dec = Fmt.parse(cell);
+        Store.state.rows[targetRow][editable[colIdx]] = dec !== null ? cell.replace(/,/g, "").trim() : cell.trim();
+      });
+    });
+    Store.save();
+    UI.renderRows();
+    hitung();
+  }
+
+  function onDelete(e) {
+    const btn = e.target.closest(".js-del");
+    if (!btn) return;
+    const row = +btn.dataset.row;
+    Store.state.rows.splice(row, 1);
+    if (Store.state.rows.length === 0) Store.state.rows.push({ qty: "", dpp: "" });
+    Store.save();
+    UI.renderRows();
+    hitung();
+  }
+
+  function tambah() {
+    Store.state.rows.push({ qty: "", dpp: "" });
+    Store.save();
+    UI.renderRows();
+  }
+
+  function reset() {
+    if (!confirm("Reset semua data? / 確定清除所有資料？")) return;
+    Store.state.totalDPP = "";
+    Store.state.totalPPN = "";
+    Store.state.grandTotal = "";
+    Store.state.taxRate = "11";
+    Store.state.rows = Store.emptyRows(6);
+    Store.save();
+    syncHeaderInputs();
+    UI.renderRows();
+    // bersihkan tampilan hasil
+    UI.els.statusPill.className = "badge rounded-pill status-pill fs-6 bg-secondary";
+    UI.els.statusPill.textContent = "—";
+    UI.els.confidence.textContent = "—";
+  }
+
+  /** Tulis nilai header dari state ke <input>. */
+  function syncHeaderInputs() {
+    UI.els.totalDPP.value   = Store.state.totalDPP;
+    UI.els.totalPPN.value   = Store.state.totalPPN;
+    UI.els.grandTotal.value = Store.state.grandTotal;
+    UI.els.taxRate.value    = Store.state.taxRate;
+  }
+
+  /** Pasang semua listener (delegasi event di body tabel + header). */
+  function bindEvents() {
+    document.querySelectorAll(".js-header").forEach((el) => {
+      el.addEventListener("input", onHeaderInput);
+      el.addEventListener("blur", onHeaderBlur);
+      el.addEventListener("change", hitung);
+    });
+
+    const body = UI.els.rowsBody;
+    body.addEventListener("input", onCellInput);
+    body.addEventListener("blur", onCellBlur, true);   // capture: blur tidak bubble
+    body.addEventListener("keydown", onCellKeydown);
+    body.addEventListener("paste", onCellPaste);
+    body.addEventListener("click", onDelete);
+
+    document.getElementById("btnHitung").addEventListener("click", hitung);
+    document.getElementById("btnTambah").addEventListener("click", tambah);
+    document.getElementById("btnReset").addEventListener("click", reset);
+  }
+
+  function init() {
+    UI.cacheEls();
+    if (!Store.load()) {
+      Store.state.rows = Store.emptyRows(6);
+    }
+    syncHeaderInputs();
+    UI.renderRows();
+    bindEvents();
+    hitung(); // hitung awal jika ada data tersimpan
+  }
+
+  return { init, hitung };
+})();
+
+/* Boot */
+document.addEventListener("DOMContentLoaded", App.init);
+</script>
+</body>
+</html>
