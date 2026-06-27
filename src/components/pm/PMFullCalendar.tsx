@@ -13,16 +13,24 @@ import { toast } from 'sonner'
 interface PMTask {
   record_id: string
   projected: boolean
+  ad_hoc?: boolean
   machine_id: string
   machine_name: string
   machine_code: string | null
-  pm_type: string
+  pm_type: string | null
   description: string | null
   scheduled_date: string
   completed_at: string | null
   status: 'pending' | 'completed' | 'overdue' | 'skipped' | 'scheduled'
   cost: number | null
   delay_reason: string | null
+  performed_by?: string | null
+}
+
+// Short label for a task's kind: cadence (每月…) or 臨時保養 for ad-hoc logs.
+function typeLabel(task: PMTask): string {
+  if (task.ad_hoc) return '臨時保養'
+  return PM_TYPE_LABELS[task.pm_type || ''] || task.pm_type || ''
 }
 
 interface PMEvent {
@@ -350,7 +358,7 @@ export default function PMFullCalendar({ factoryId }: PMFullCalendarProps) {
                           {task.machine_code || task.machine_name}
                         </div>
                         <div className="opacity-70 truncate">
-                          {PM_TYPE_LABELS[task.pm_type] || task.pm_type}
+                          {typeLabel(task)}
                         </div>
                       </div>
                     ))}
@@ -390,7 +398,7 @@ export default function PMFullCalendar({ factoryId }: PMFullCalendarProps) {
                             {task.machine_code ? `[${task.machine_code}] ` : ''}{task.machine_name}
                           </span>
                           <span className="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 shrink-0">
-                            {PM_TYPE_LABELS[task.pm_type] || task.pm_type}
+                            {typeLabel(task)}
                           </span>
                           <span className={`text-xs px-1.5 py-0.5 rounded font-medium shrink-0 ${STATUS_BADGE[task.status] || 'bg-gray-100 text-gray-600'}`}>
                             {STATUS_LABELS[task.status] || task.status}

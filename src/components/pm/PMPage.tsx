@@ -27,12 +27,22 @@ interface Machine {
   last_maintained_at?: string | null
 }
 
-interface MaintenanceLog {
+// Unified recent-maintenance item — merges ad-hoc logs and scheduled PM completions
+// so "最近保養紀錄" stays in sync with what the calendar shows.
+interface RecentItem {
   id: string
-  machine_id: string
+  kind: 'adhoc' | 'scheduled'
+  machineName: string | null
+  performedBy: string | null
   notes: string | null
-  performed_by: string | null
-  performed_at: string
+  when: string
+  pmType?: string | null
+  cost?: number | null
+}
+
+const PM_TYPE_LABELS: Record<string, string> = {
+  daily: '每日', weekly: '每週', monthly: '每月',
+  quarterly: '每季', half_yearly: '每半年', yearly: '每年',
 }
 
 export default function PMPage() {
@@ -41,7 +51,7 @@ export default function PMPage() {
   const [factories, setFactories] = useState<Factory[]>([])
   const [areas, setAreas] = useState<Area[]>([])
   const [machines, setMachines] = useState<Machine[]>([])
-  const [logs, setLogs] = useState<MaintenanceLog[]>([])
+  const [recent, setRecent] = useState<RecentItem[]>([])
 
   const [factoryId, setFactoryId] = useState('')
   const [areaId, setAreaId] = useState('')
@@ -69,15 +79,57 @@ export default function PMPage() {
       .then(({ data }) => setMachines(data ?? []))
   }, [areaId])
 
-  useEffect(() => { loadLogs() }, [])
+  useEffect(() => { loadRecent() }, [])
 
-  async function loadLogs() {
-    const { data } = await supabase
+  async function loadRecent() {
+    // Ad-hoc maintenance logs
+    const { data: logs } = await supabase
       .from('maintenance_logs')
-      .select('*')
+      .select('id, notes, performed_by, performed_at, machine:machines(machine_name, machine_code)')
       .order('performed_at', { ascending: false })
       .limit(50)
-    setLogs(data ?? [])
+
+    // Completed scheduled PM records
+    const { data: records } = await supabase
+      .from('pm_records')
+      .select('id, completed_at, findings, cost, schedule:pm_schedules(pm_type, machine:machines(machine_name, machine_code))')
+      .eq('status', 'completed')
+      .order('completed_at', { ascending: false })
+      .limit(50)
+
+    const adhoc: RecentItem[] = (logs ?? []).map((l: any) => ({
+      id: `log-${l.id}`,
+      kind: 'adhoc',
+      machineName: l.machine
+        ? `${l.machine.machine_code ? `[${l.machine.machine_code}] ` : ''}${l.machine.machine_name}`
+        : null,
+      performedBy: l.performed_by,
+      notes: l.notes,
+      when: l.performed_at,
+    }))
+
+    const scheduled: RecentItem[] = (records ?? []).map((r: any) => {
+      const machine = r.schedule?.machine
+      return {
+        id: `rec-${r.id}`,
+        kind: 'scheduled' as const,
+        machineName: machine
+          ? `${machine.machine_code ? `[${machine.machine_code}] ` : ''}${machine.machine_name}`
+          : null,
+        performedBy: null,
+        notes: r.findings,
+        when: r.completed_at,
+        pmType: r.schedule?.pm_type ?? null,
+        cost: r.cost,
+      }
+    })
+
+    const merged = [...adhoc, ...scheduled]
+      .filter(i => i.when)
+      .sort((a, b) => new Date(b.when).getTime() - new Date(a.when).getTime())
+      .slice(0, 30)
+
+    setRecent(merged)
   }
 
   async function submitLog() {
@@ -97,7 +149,7 @@ export default function PMPage() {
       setPerformer('')
       setSelectedMachineId('')
       setShowForm(false)
-      loadLogs()
+      loadRecent()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : '新增失敗')
     } finally {
@@ -217,29 +269,44 @@ export default function PMPage() {
         </div>
       )}
 
-      {/* Recent Logs */}
+      {/* Recent Records — merged ad-hoc logs + scheduled PM completions */}
       <div className="space-y-2">
         <h3 className="font-semibold text-gray-700 text-sm">最近保養紀錄</h3>
-        {logs.length === 0 ? (
+        {recent.length === 0 ? (
           <div className="text-center py-10 text-gray-400">
             <Wrench className="w-10 h-10 mx-auto mb-2 opacity-30" />
             <p className="text-sm">尚無保養紀錄</p>
           </div>
         ) : (
-          logs.slice(0, 20).map(log => (
-            <div key={log.id} className="bg-white rounded-xl border border-gray-200 p-3">
+          recent.map(item => (
+            <div key={item.id} className="bg-white rounded-xl border border-gray-200 p-3">
               <div className="flex items-start gap-2">
                 <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-700">
-                    {log.performed_by || '保養員'}
-                  </p>
-                  {log.notes && (
-                    <p className="text-xs text-gray-600 mt-0.5 line-clamp-2">{log.notes}</p>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {item.machineName && (
+                      <span className="text-sm font-medium text-gray-800 truncate">{item.machineName}</span>
+                    )}
+                    <span className={`text-xs px-1.5 py-0.5 rounded shrink-0 ${
+                      item.kind === 'scheduled' ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-600'
+                    }`}>
+                      {item.kind === 'scheduled'
+                        ? `計畫保養${item.pmType ? ` · ${PM_TYPE_LABELS[item.pmType] || item.pmType}` : ''}`
+                        : '臨時保養'}
+                    </span>
+                  </div>
+                  {item.performedBy && (
+                    <p className="text-xs text-gray-500 mt-0.5">{item.performedBy}</p>
+                  )}
+                  {item.notes && (
+                    <p className="text-xs text-gray-600 mt-0.5 line-clamp-2">{item.notes}</p>
                   )}
                   <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
                     <Clock className="w-3 h-3" />
-                    {formatDistanceToNow(new Date(log.performed_at), { addSuffix: true, locale: zhTW })}
+                    {formatDistanceToNow(new Date(item.when), { addSuffix: true, locale: zhTW })}
+                    {typeof item.cost === 'number' && item.cost > 0 && (
+                      <span className="ml-1">· ${item.cost}</span>
+                    )}
                   </p>
                 </div>
               </div>
