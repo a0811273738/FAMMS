@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { getCurrentUser, PERMISSIONS } from '@/lib/auth'
+import { getCurrentUser } from '@/lib/auth'
+import { PERMISSIONS } from '@/lib/permissions'
 import Link from 'next/link'
 import { AlertTriangle, Clock, Factory, ChevronRight, CheckCircle2, Wrench } from 'lucide-react'
 import { formatDistanceToNow, addDays, addWeeks, addMonths } from 'date-fns'
