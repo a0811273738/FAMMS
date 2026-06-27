@@ -175,7 +175,7 @@ export default function IncidentSearch({ onResults }: IncidentSearchProps) {
           '案件號': r.incident_no,
           '標題': r.title || safeGetLabel(ISSUE_TYPE_LABELS, r.incident_type, '問題'),
           '類型': safeGetLabel(ISSUE_TYPE_LABELS, r.incident_type, r.incident_type),
-          '狀態': safeGetLabel(STATUS_ZH as any, r.status, r.status),
+          '狀態': statusLabels[r.status as IncidentStatus] || r.status,
           '緊急度': URGENCY_FROM_IMPACT[r.downtime_impact as any]?.label || r.downtime_impact,
           '機器': machineDisplay,
           '工廠': r.factory?.name || '',
