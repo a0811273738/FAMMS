@@ -90,10 +90,10 @@ export default function IncidentForm() {
         totalOriginalSize += file.size
 
         const options = {
-          maxSizeMB: 2,
-          maxWidthOrHeight: 2400,
+          maxSizeMB: 1,
+          maxWidthOrHeight: 1440,
           useWebWorker: true,
-          initialQuality: 0.9, // 保持高质量
+          initialQuality: 0.8, // 手机清晰足够
         }
         const compressedFile = await imageCompression(file, options)
         compressed.push(compressedFile)
