@@ -5,11 +5,10 @@ import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
 import { AlertCircle, ChevronRight, UserCheck, Lock } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
-import { zhTW, enUS } from 'date-fns/locale'
+import { id as idLocale, enUS } from 'date-fns/locale'
 import type { IncidentStatus, UserRole } from '@/types'
-import {
-  ISSUE_TYPE_LABELS, URGENCY_FROM_IMPACT, STATUS_ZH, STATUS_ZH_COLOR, BOARD_FILTERS,
-} from '@/lib/incident-display'
+import { STATUS_ZH_COLOR } from '@/lib/incident-display'
+import { useIncidentLabels } from '@/lib/useIncidentLabels'
 import { PERMISSIONS } from '@/lib/permissions'
 
 export interface BoardRow {
@@ -35,9 +34,10 @@ interface IncidentBoardProps {
 export default function IncidentBoard({ rows, userRole = 'technician' }: IncidentBoardProps) {
   const [filter, setFilter] = useState('all')
   const { i18n, t } = useTranslation()
+  const { issueTypeLabels, urgencyFromImpact, statusLabels, boardFilters } = useIncidentLabels()
   const canAssign = PERMISSIONS.assignIncident(userRole)
 
-  const activeFilter = BOARD_FILTERS.find(f => f.key === filter)!
+  const activeFilter = boardFilters.find(f => f.key === filter)!
   const filtered = activeFilter.statuses
     ? rows.filter(r => activeFilter.statuses!.includes(r.status))
     : rows
@@ -53,7 +53,7 @@ export default function IncidentBoard({ rows, userRole = 'technician' }: Inciden
 
       {/* Filter tabs */}
       <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
-        {BOARD_FILTERS.map(f => {
+        {boardFilters.map(f => {
           const n = countFor(f.statuses)
           const active = filter === f.key
           return (
@@ -80,7 +80,7 @@ export default function IncidentBoard({ rows, userRole = 'technician' }: Inciden
       ) : (
         <div className="space-y-2">
           {filtered.map(inc => {
-            const urgency = URGENCY_FROM_IMPACT[inc.downtime_impact]
+            const urgency = urgencyFromImpact[inc.downtime_impact]
             return (
               <Link
                 key={inc.id}
@@ -89,7 +89,7 @@ export default function IncidentBoard({ rows, userRole = 'technician' }: Inciden
               >
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_ZH_COLOR[inc.status]}`}>
-                    {STATUS_ZH[inc.status]}
+                    {statusLabels[inc.status]}
                   </span>
                   <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${urgency.color}`}>
                     {urgency.label}
@@ -98,12 +98,12 @@ export default function IncidentBoard({ rows, userRole = 'technician' }: Inciden
                 </div>
 
                 <p className="font-medium text-gray-900 mt-2 line-clamp-1">
-                  {inc.title || ISSUE_TYPE_LABELS[inc.incident_type] || '問題'}
+                  {inc.title || issueTypeLabels[inc.incident_type] || t('common.noData')}
                 </p>
 
                 <div className="flex items-center justify-between mt-1">
                   <p className="text-xs text-gray-500 truncate">
-                    {ISSUE_TYPE_LABELS[inc.incident_type] || inc.incident_type}
+                    {issueTypeLabels[inc.incident_type] || inc.incident_type}
                     {inc.factory ? ` · ${inc.factory.name}` : ''}
                     {inc.machine ? ` · ${inc.machine.machine_name}` : ''}
                   </p>
@@ -113,7 +113,7 @@ export default function IncidentBoard({ rows, userRole = 'technician' }: Inciden
                 <div className="flex items-center justify-between mt-1">
                   <p className="text-xs text-gray-400">
                     {inc.reporter_name ? `${inc.reporter_name} · ` : ''}
-                    {formatDistanceToNow(new Date(inc.reported_at), { addSuffix: true, locale: i18n.language === 'id' ? zhTW : enUS })}
+                    {formatDistanceToNow(new Date(inc.reported_at), { addSuffix: true, locale: i18n.language === 'en' ? enUS : idLocale })}
                   </p>
                   {inc.status !== 'closed' && (
                     inc.assigned_to ? (
@@ -121,10 +121,10 @@ export default function IncidentBoard({ rows, userRole = 'technician' }: Inciden
                         <UserCheck className="w-3 h-3" /> {inc.assigned_to}
                       </span>
                     ) : canAssign ? (
-                      <span className="text-xs text-amber-600">{i18n.language === 'id' ? '未指派' : 'Unassigned'}</span>
+                      <span className="text-xs text-amber-600">{t('incidents.unassigned', 'Belum Ditugaskan')}</span>
                     ) : (
-                      <span className="inline-flex items-center gap-0.5 text-xs text-gray-400" title={i18n.language === 'id' ? '只有主管可以派工' : 'Only supervisors can assign'}>
-                        <Lock className="w-3 h-3" /> {i18n.language === 'id' ? '未指派' : 'Unassigned'}
+                      <span className="inline-flex items-center gap-0.5 text-xs text-gray-400">
+                        <Lock className="w-3 h-3" /> {t('incidents.unassigned', 'Belum Ditugaskan')}
                       </span>
                     )
                   )}

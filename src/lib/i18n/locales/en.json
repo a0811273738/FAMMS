@@ -187,5 +187,29 @@
     "requiredField": "This field is required",
     "invalidInput": "Invalid input",
     "networkError": "Network error"
+  },
+  "issueTypes": {
+    "machine": "🔧 Machine Failure",
+    "pipe": "🚿 Pipe / Plumbing",
+    "electrical": "💡 Electrical / Lighting",
+    "facility": "🏭 Facility / Infrastructure",
+    "safety": "⚠️ Safety Issue",
+    "cleanliness": "🧹 Cleanliness",
+    "other": "📋 Other"
+  },
+  "urgency": {
+    "A": "🔴 Critical",
+    "B": "🟠 High",
+    "C": "🟡 Medium",
+    "D": "🟢 Low"
+  },
+  "boardFilters": {
+    "all": "All",
+    "reported": "Reported",
+    "accepted": "Accepted",
+    "progress": "In Progress",
+    "waiting": "Waiting",
+    "confirm": "Confirm",
+    "closed": "Closed"
   }
 }

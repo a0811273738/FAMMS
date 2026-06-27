@@ -187,5 +187,29 @@
     "requiredField": "Kolom ini wajib diisi",
     "invalidInput": "Input tidak valid",
     "networkError": "Kesalahan jaringan"
+  },
+  "issueTypes": {
+    "machine": "🔧 Kerusakan Mesin",
+    "pipe": "🚿 Pipa / Saluran",
+    "electrical": "💡 Listrik / Pencahayaan",
+    "facility": "🏭 Fasilitas / Infrastruktur",
+    "safety": "⚠️ Masalah Keselamatan",
+    "cleanliness": "🧹 Kebersihan",
+    "other": "📋 Lainnya"
+  },
+  "urgency": {
+    "A": "🔴 Kritis",
+    "B": "🟠 Tinggi",
+    "C": "🟡 Sedang",
+    "D": "🟢 Rendah"
+  },
+  "boardFilters": {
+    "all": "Semua",
+    "reported": "Dilaporkan",
+    "accepted": "Diterima",
+    "progress": "Proses",
+    "waiting": "Menunggu",
+    "confirm": "Konfirmasi",
+    "closed": "Selesai"
   }
 }
