@@ -14,6 +14,7 @@ import { formatDistanceToNow } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
 import OverdueMaintenanceAlert from './OverdueMaintenanceAlert'
 import PMScheduleManager from './PMScheduleManager'
+import PMFullCalendar from './PMFullCalendar'
 
 interface Factory { id: string; name: string }
 interface Area { id: string; factory_id: string; name: string }
@@ -41,7 +42,6 @@ export default function PMPage() {
   const [areas, setAreas] = useState<Area[]>([])
   const [machines, setMachines] = useState<Machine[]>([])
   const [logs, setLogs] = useState<MaintenanceLog[]>([])
-  const [lastMaintained, setLastMaintained] = useState<Record<string, string>>({})
 
   const [factoryId, setFactoryId] = useState('')
   const [areaId, setAreaId] = useState('')
@@ -69,9 +69,7 @@ export default function PMPage() {
       .then(({ data }) => setMachines(data ?? []))
   }, [areaId])
 
-  useEffect(() => {
-    loadLogs()
-  }, [])
+  useEffect(() => { loadLogs() }, [])
 
   async function loadLogs() {
     const { data } = await supabase
@@ -80,13 +78,6 @@ export default function PMPage() {
       .order('performed_at', { ascending: false })
       .limit(50)
     setLogs(data ?? [])
-
-    // Track last maintained per machine
-    const map: Record<string, string> = {}
-    for (const log of (data ?? [])) {
-      if (!map[log.machine_id]) map[log.machine_id] = log.performed_at
-    }
-    setLastMaintained(map)
   }
 
   async function submitLog() {
@@ -114,32 +105,12 @@ export default function PMPage() {
     }
   }
 
-  function getDaysSince(dateStr: string) {
-    const diff = Date.now() - new Date(dateStr).getTime()
-    return Math.floor(diff / 86400000)
-  }
-
-  function getStatusColor(machine: Machine) {
-    const last = lastMaintained[machine.id]
-    if (!last) return 'text-gray-400'
-    const days = getDaysSince(last)
-    const cycle = machine.maintenance_cycle || 30
-    if (days > cycle) return 'text-red-500'
-    if (days > cycle * 0.8) return 'text-amber-500'
-    return 'text-green-500'
-  }
-
-  const displayMachines = machines.length > 0 ? machines : []
-  const logsForSelected = selectedMachineId
-    ? logs.filter(l => l.machine_id === selectedMachineId)
-    : logs
-
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">保養紀錄</h1>
-          <p className="text-sm text-gray-500 mt-1">追蹤機器保養頻率</p>
+          <h1 className="text-xl font-bold text-gray-900">保養管理</h1>
+          <p className="text-sm text-gray-500 mt-1">追蹤機器保養頻率與計畫</p>
         </div>
         <div className="flex gap-2">
           <Button onClick={() => setShowSchedules(!showSchedules)} variant="outline" className="gap-2">
@@ -150,6 +121,24 @@ export default function PMPage() {
           </Button>
         </div>
       </div>
+
+      {/* Factory selector */}
+      <Select value={factoryId} onValueChange={(v) => { setFactoryId(v ?? ''); setAreaId('') }}>
+        <SelectTrigger className="w-full">
+          <SelectValue placeholder="選擇工廠" />
+        </SelectTrigger>
+        <SelectContent>
+          {factories.map(f => <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>)}
+        </SelectContent>
+      </Select>
+
+      {/* Factory PM Calendar */}
+      {factoryId && (
+        <div className="space-y-2">
+          <h2 className="font-semibold text-gray-700 text-sm">📅 保養日曆</h2>
+          <PMFullCalendar factoryId={factoryId} />
+        </div>
+      )}
 
       {/* Overdue Alert */}
       <div className="border-l-4 border-amber-500 bg-amber-50 rounded-lg p-4">
@@ -184,11 +173,11 @@ export default function PMPage() {
             </Select>
           )}
 
-          {displayMachines.length > 0 && (
+          {machines.length > 0 && (
             <Select value={selectedMachineId} onValueChange={(v) => setSelectedMachineId(v ?? '')}>
               <SelectTrigger><SelectValue placeholder="選擇機器 *" /></SelectTrigger>
               <SelectContent>
-                {displayMachines.map(m => (
+                {machines.map(m => (
                   <SelectItem key={m.id} value={m.id}>
                     {m.machine_code ? `[${m.machine_code}] ` : ''}{m.machine_name}
                   </SelectItem>
@@ -225,43 +214,6 @@ export default function PMPage() {
             </Button>
             <Button variant="outline" onClick={() => setShowForm(false)}>取消</Button>
           </div>
-        </div>
-      )}
-
-      {/* Machine Status Overview */}
-      {areaId && displayMachines.length > 0 && (
-        <div className="space-y-2">
-          <h3 className="font-semibold text-gray-700 text-sm">區域機器保養狀態</h3>
-          {displayMachines.map(m => {
-            const last = lastMaintained[m.id]
-            const daysSince = last ? getDaysSince(last) : null
-            const statusColor = getStatusColor(m)
-
-            return (
-              <div key={m.id} className="bg-white rounded-xl border border-gray-200 p-3 flex items-center justify-between">
-                <div>
-                  <p className="font-medium text-sm">
-                    {m.machine_code ? `[${m.machine_code}] ` : ''}{m.machine_name}
-                  </p>
-                  <p className="text-xs text-gray-500 mt-0.5">
-                    保養週期: {m.maintenance_cycle} 天
-                  </p>
-                </div>
-                <div className="text-right">
-                  {last ? (
-                    <>
-                      <p className={`text-sm font-semibold ${statusColor}`}>
-                        {daysSince} 天前
-                      </p>
-                      <p className="text-xs text-gray-400">上次保養</p>
-                    </>
-                  ) : (
-                    <p className="text-xs text-gray-400">未有紀錄</p>
-                  )}
-                </div>
-              </div>
-            )
-          })}
         </div>
       )}
 
