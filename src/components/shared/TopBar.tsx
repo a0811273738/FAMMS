@@ -48,7 +48,7 @@ export default function TopBar({ profile }: TopBarProps) {
           <DropdownMenu>
             <DropdownMenuTrigger className="flex items-center gap-1 px-2 py-1 rounded-md hover:bg-gray-100 focus:outline-none text-xs">
               <Globe className="w-3 h-3" />
-              <span className="hidden sm:inline">{languageLabel}</span>
+              <span className="hidden sm:inline" suppressHydrationWarning>{languageLabel}</span>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-40">
               <DropdownMenuItem
