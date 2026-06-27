@@ -1,74 +1,79 @@
 import { createClient } from '@/lib/supabase/server'
-import { NextResponse } from 'next/server'
-import { nextScheduledDate, toDateStr } from '@/lib/pm'
-import type { PMType } from '@/types'
 
-// POST /api/pm/schedules — create a PM schedule for a machine,
-// and generate its first pending pm_record.
 export async function POST(req: Request) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json()
-  const { machine_id, pm_type, description, checklist, first_due_date } = body as {
-    machine_id?: string
-    pm_type?: PMType
-    description?: string
-    checklist?: string[]
-    first_due_date?: string
-  }
+  const { machine_id, pm_type, interval_days, description, checklist } = body
 
   if (!machine_id || !pm_type) {
-    return NextResponse.json({ error: 'machine_id dan pm_type wajib diisi' }, { status: 400 })
+    return Response.json({ error: 'Missing required fields' }, { status: 400 })
   }
 
-  // Resolve factory from the machine
-  const { data: machine, error: machineErr } = await supabase
-    .from('machines')
-    .select('id, factory_id')
-    .eq('id', machine_id)
-    .single()
-  if (machineErr || !machine) {
-    return NextResponse.json({ error: 'Mesin tidak ditemukan' }, { status: 404 })
+  try {
+    // 获取 machine 信息以确认 factory_id
+    const { data: machine } = await supabase
+      .from('machines')
+      .select('factory_id')
+      .eq('id', machine_id)
+      .single()
+
+    if (!machine) {
+      return Response.json({ error: 'Machine not found' }, { status: 404 })
+    }
+
+    // 创建 PM 计划
+    const { data, error } = await supabase
+      .from('pm_schedules')
+      .insert({
+        factory_id: machine.factory_id,
+        machine_id,
+        pm_type,
+        description: `${description}\n\n[间隔: ${interval_days}天]`,
+        checklist: JSON.stringify(checklist || []),
+        is_active: true,
+      })
+      .select()
+      .single()
+
+    if (error) throw error
+
+    return Response.json(data, { status: 201 })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Server error'
+    return Response.json({ error: message }, { status: 500 })
+  }
+}
+
+export async function GET(req: Request) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const url = new URL(req.url)
+  const machineId = url.searchParams.get('machine_id')
+
+  if (!machineId) {
+    return Response.json({ error: 'Missing machine_id' }, { status: 400 })
   }
 
-  const { data: schedule, error: scheduleErr } = await supabase
-    .from('pm_schedules')
-    .insert({
-      factory_id: machine.factory_id,
-      machine_id,
-      pm_type,
-      description: description || null,
-      checklist: checklist && checklist.length ? JSON.stringify(checklist) : null,
-      is_active: true,
-    })
-    .select('*')
-    .single()
+  try {
+    const { data, error } = await supabase
+      .from('pm_schedules')
+      .select('*')
+      .eq('machine_id', machineId)
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
 
-  if (scheduleErr) {
-    return NextResponse.json({ error: scheduleErr.message }, { status: 500 })
+    if (error) throw error
+
+    return Response.json(data)
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Server error'
+    return Response.json({ error: message }, { status: 500 })
   }
-
-  // Generate the first pending record. Use first_due_date if provided,
-  // otherwise schedule one interval from today.
-  const dueDate = first_due_date
-    ? first_due_date
-    : toDateStr(nextScheduledDate(new Date(), pm_type))
-
-  const { data: record, error: recordErr } = await supabase
-    .from('pm_records')
-    .insert({
-      pm_schedule_id: schedule.id,
-      scheduled_date: dueDate,
-      status: 'pending',
-    })
-    .select('*')
-    .single()
-
-  if (recordErr) {
-    return NextResponse.json({ error: recordErr.message }, { status: 500 })
-  }
-
-  return NextResponse.json({ schedule, record })
 }
