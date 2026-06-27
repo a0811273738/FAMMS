@@ -84,20 +84,25 @@ export default function IncidentForm() {
     setCompressing(true)
     try {
       const compressed: File[] = []
+      let totalOriginalSize = 0
       for (const file of files) {
         if (!file.type.startsWith('image/')) continue
+        totalOriginalSize += file.size
+
         const options = {
-          maxSizeMB: 1,
-          maxWidthOrHeight: 2000,
+          maxSizeMB: 2,
+          maxWidthOrHeight: 2400,
           useWebWorker: true,
+          initialQuality: 0.9, // 保持高质量
         }
         const compressedFile = await imageCompression(file, options)
         compressed.push(compressedFile)
       }
       setPhotos(prev => [...prev, ...compressed].slice(0, 5))
-      toast.success(`壓縮完成（節省 ${Math.round(files.reduce((s, f) => s + f.size, 0) / 1024 / 1024)}MB）`)
+      const savedSize = (totalOriginalSize - compressed.reduce((s, f) => s + f.size, 0)) / 1024 / 1024
+      toast.success(`${t('incidents.photoCompressed')} ${t('incidents.saved')} ${savedSize.toFixed(1)}MB`)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : '圖片壓縮失敗')
+      toast.error(err instanceof Error ? err.message : t('incidents.photoCompressionFailed'))
     } finally {
       setCompressing(false)
     }

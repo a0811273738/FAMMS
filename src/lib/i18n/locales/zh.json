@@ -71,7 +71,10 @@
     "exportFailed": "导出失败",
     "noMatchingIncidents": "没有符合条件的案件",
     "statusLabel": "案件状态",
-    "exportExcel": "导出 Excel"
+    "exportExcel": "导出 Excel",
+    "photoCompressed": "图片压缩完成",
+    "photoCompressionFailed": "图片压缩失败",
+    "saved": "节省"
   },
   "status": {
     "reported": "已报告",

@@ -71,7 +71,10 @@
     "exportFailed": "Gagal mengekspor",
     "noMatchingIncidents": "Tidak ada laporan yang cocok",
     "statusLabel": "Status Laporan",
-    "exportExcel": "Ekspor Excel"
+    "exportExcel": "Ekspor Excel",
+    "photoCompressed": "Kompresi foto selesai",
+    "photoCompressionFailed": "Gagal mengompresi foto",
+    "saved": "Hemat"
   },
   "status": {
     "reported": "Dilaporkan",

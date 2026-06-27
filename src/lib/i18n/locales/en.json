@@ -72,7 +72,10 @@
     "exportFailed": "Export failed",
     "noMatchingIncidents": "No matching incidents",
     "statusLabel": "Incident Status",
-    "exportExcel": "Export Excel"
+    "exportExcel": "Export Excel",
+    "photoCompressed": "Photo compression complete",
+    "photoCompressionFailed": "Photo compression failed",
+    "saved": "Saved"
   },
   "status": {
     "reported": "Reported",
