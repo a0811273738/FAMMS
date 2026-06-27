@@ -10,12 +10,13 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
 import { toast } from 'sonner'
-import { Loader2, Plus, Wrench, Clock, CheckCircle, Settings } from 'lucide-react'
+import { Loader2, Plus, Wrench, Clock, CheckCircle, Settings, CalendarDays } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { zhTW, enUS } from 'date-fns/locale'
 import OverdueMaintenanceAlert from './OverdueMaintenanceAlert'
 import PMScheduleManager from './PMScheduleManager'
 import PMDueList from './PMDueList'
+import PMCalendar from './PMCalendar'
 
 interface Factory { id: string; name: string }
 interface Area { id: string; factory_id: string; name: string }
@@ -54,6 +55,8 @@ export default function PMPage() {
   const [showForm, setShowForm] = useState(false)
   const [showSchedules, setShowSchedules] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [calendarMachineId, setCalendarMachineId] = useState<string | null>(null)
+  const [calendarMachineName, setCalendarMachineName] = useState('')
 
   useEffect(() => {
     supabase.from('factories').select('*').order('name').then(({ data }) => setFactories(data ?? []))
@@ -249,27 +252,50 @@ export default function PMPage() {
             const statusColor = getStatusColor(m)
 
             return (
-              <div key={m.id} className="bg-white rounded-xl border border-gray-200 p-3 flex items-center justify-between">
-                <div>
-                  <p className="font-medium text-sm">
-                    {m.machine_code ? `[${m.machine_code}] ` : ''}{m.machine_name}
-                  </p>
-                  <p className="text-xs text-gray-500 mt-0.5">
-                    {i18n.language === 'id' ? '保養週期' : 'Maintenance Cycle'}: {m.maintenance_cycle} {i18n.language === 'id' ? '天' : 'days'}
-                  </p>
+              <div key={m.id} className="bg-white rounded-xl border border-gray-200 p-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-sm">
+                      {m.machine_code ? `[${m.machine_code}] ` : ''}{m.machine_name}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {i18n.language === 'id' ? '保養週期' : 'Maintenance Cycle'}: {m.maintenance_cycle} {i18n.language === 'id' ? '天' : 'days'}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="text-right">
+                      {last ? (
+                        <>
+                          <p className={`text-sm font-semibold ${statusColor}`}>
+                            {daysSince} {i18n.language === 'id' ? '天前' : 'days ago'}
+                          </p>
+                          <p className="text-xs text-gray-400">{t('pm.lastMaintained')}</p>
+                        </>
+                      ) : (
+                        <p className="text-xs text-gray-400">{i18n.language === 'id' ? '未有紀錄' : 'No records'}</p>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => {
+                        const name = (m.machine_code ? `[${m.machine_code}] ` : '') + m.machine_name
+                        setCalendarMachineId(calendarMachineId === m.id ? null : m.id)
+                        setCalendarMachineName(name)
+                      }}
+                      className={`p-1.5 rounded-lg border flex items-center ${
+                        calendarMachineId === m.id
+                          ? 'bg-blue-600 text-white border-blue-600'
+                          : 'border-gray-200 text-gray-500 hover:bg-gray-50'
+                      }`}
+                    >
+                      <CalendarDays className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
-                <div className="text-right">
-                  {last ? (
-                    <>
-                      <p className={`text-sm font-semibold ${statusColor}`}>
-                        {daysSince} {i18n.language === 'id' ? '天前' : 'days ago'}
-                      </p>
-                      <p className="text-xs text-gray-400">{t('pm.lastMaintained')}</p>
-                    </>
-                  ) : (
-                    <p className="text-xs text-gray-400">{i18n.language === 'id' ? '未有紀錄' : 'No records'}</p>
-                  )}
-                </div>
+                {calendarMachineId === m.id && (
+                  <div className="mt-3 pt-3 border-t border-gray-100">
+                    <PMCalendar machineId={m.id} machineName={calendarMachineName} />
+                  </div>
+                )}
               </div>
             )
           })}

@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { createClient } from '@/lib/supabase/client'
 import { Profile } from '@/types'
 import { ROLE_ZH } from '@/lib/incident-display'
-import { Wrench, LogOut, User, Globe } from 'lucide-react'
+import { Wrench, LogOut, User } from 'lucide-react'
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuSeparator, DropdownMenuTrigger,
@@ -33,8 +33,6 @@ export default function TopBar({ profile }: TopBarProps) {
     ? profile.full_name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
     : 'U'
 
-  const languageLabel = i18n.language === 'id' ? 'Bahasa Indonesia' : i18n.language === 'en' ? 'English' : '中文'
-
   return (
     <header className="bg-white border-b border-gray-100 sticky top-0 z-40">
       <div className="flex items-center justify-between px-4 h-12 max-w-lg mx-auto">
@@ -44,29 +42,27 @@ export default function TopBar({ profile }: TopBarProps) {
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Language Switcher */}
-          <DropdownMenu>
-            <DropdownMenuTrigger className="flex items-center gap-1 px-2 py-1 rounded-md hover:bg-gray-100 focus:outline-none text-xs">
-              <Globe className="w-3 h-3" />
-              <span className="hidden sm:inline" suppressHydrationWarning>{languageLabel}</span>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 z-50">
-              {[
-                { code: 'id', label: '🇮🇩 Bahasa Indonesia' },
-                { code: 'en', label: '🇬🇧 English' },
-                { code: 'zh', label: '🇨🇳 中文' },
-              ].map(lang => (
-                <DropdownMenuItem
-                  key={lang.code}
-                  onClick={() => handleLanguageChange(lang.code)}
-                  className={`cursor-pointer gap-2 ${i18n.language === lang.code ? 'bg-blue-50 text-blue-700 font-medium' : ''}`}
-                >
-                  {i18n.language === lang.code && <span>✓</span>}
-                  {lang.label}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {/* Language Switcher - inline buttons */}
+          <div className="flex items-center rounded-md border border-gray-200 overflow-hidden text-xs">
+            {[
+              { code: 'id', label: 'ID' },
+              { code: 'en', label: 'EN' },
+              { code: 'zh', label: '中' },
+            ].map((lang, idx) => (
+              <button
+                key={lang.code}
+                onClick={() => handleLanguageChange(lang.code)}
+                className={`px-2 py-1 ${idx > 0 ? 'border-l border-gray-200' : ''} ${
+                  i18n.language === lang.code
+                    ? 'bg-blue-600 text-white font-semibold'
+                    : 'bg-white text-gray-600 hover:bg-gray-50'
+                }`}
+                suppressHydrationWarning
+              >
+                {lang.label}
+              </button>
+            ))}
+          </div>
 
           {/* User Menu */}
           <DropdownMenu>
