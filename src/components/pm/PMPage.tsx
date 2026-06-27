@@ -145,22 +145,21 @@ export default function PMPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold text-gray-900">{t('pm.title')}</h1>
-          <p className="text-sm text-gray-500 mt-1">{i18n.language === 'id' ? '追蹤機器保養頻率' : 'Track machine maintenance frequency'}</p>
+          <p className="text-sm text-gray-500 mt-1">{t('pm.trackFrequency')}</p>
         </div>
         <div className="flex gap-2">
           <Button onClick={() => setShowSchedules(!showSchedules)} variant="outline" className="gap-2">
             <Settings className="w-4 h-4" /> {t('pm.schedule')}
           </Button>
           <Button onClick={() => setShowForm(!showForm)} className="gap-2">
-            <Plus className="w-4 h-4" /> {i18n.language === 'id' ? '新增保養' : 'Add Maintenance'}
+            <Plus className="w-4 h-4" /> {t('pm.addMaintenance')}
           </Button>
         </div>
       </div>
 
-      {/* PM Due Task List - 技师待办 */}
       {factoryId && (
         <div className="space-y-2">
-          <h2 className="font-semibold text-gray-700">📋 待處理保養任務</h2>
+          <h2 className="font-semibold text-gray-700">📋 {t('pm.pendingTasks')}</h2>
           <PMDueList factoryId={factoryId} />
         </div>
       )}
@@ -180,10 +179,10 @@ export default function PMPage() {
       {/* Add Maintenance Form */}
       {showForm && (
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 space-y-4">
-          <h3 className="font-semibold text-blue-900">{i18n.language === 'id' ? '記錄保養' : 'Log Maintenance'}</h3>
+          <h3 className="font-semibold text-blue-900">{t('pm.logMaintenance')}</h3>
 
           <Select value={factoryId} onValueChange={(v) => setFactoryId(v ?? '')}>
-            <SelectTrigger><SelectValue placeholder={i18n.language === 'id' ? '選擇工廠' : 'Select Factory'} /></SelectTrigger>
+            <SelectTrigger><SelectValue placeholder={t('machines.selectFactory')} /></SelectTrigger>
             <SelectContent>
               {factories.map(f => <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>)}
             </SelectContent>
@@ -191,7 +190,7 @@ export default function PMPage() {
 
           {areas.length > 0 && (
             <Select value={areaId} onValueChange={(v) => setAreaId(v ?? '')}>
-              <SelectTrigger><SelectValue placeholder={i18n.language === 'id' ? '選擇區域' : 'Select Area'} /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={t('machines.selectArea')} /></SelectTrigger>
               <SelectContent>
                 {areas.map(a => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}
               </SelectContent>
@@ -200,7 +199,7 @@ export default function PMPage() {
 
           {displayMachines.length > 0 && (
             <Select value={selectedMachineId} onValueChange={(v) => setSelectedMachineId(v ?? '')}>
-              <SelectTrigger><SelectValue placeholder={i18n.language === 'id' ? '選擇機器 *' : 'Select Machine *'} /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={t('machines.selectMachine') + ' *'} /></SelectTrigger>
               <SelectContent>
                 {displayMachines.map(m => (
                   <SelectItem key={m.id} value={m.id}>
@@ -212,11 +211,11 @@ export default function PMPage() {
           )}
 
           <div>
-            <Label>{i18n.language === 'id' ? '保養人員' : 'Performed By'}</Label>
+            <Label>{t('pm.performedBy')}</Label>
             <input
               value={performer}
               onChange={e => setPerformer(e.target.value)}
-              placeholder={i18n.language === 'id' ? '姓名' : 'Name'}
+              placeholder={t('pm.performedBy')}
               className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
             />
           </div>
@@ -226,7 +225,7 @@ export default function PMPage() {
             <Textarea
               value={notes}
               onChange={e => setNotes(e.target.value)}
-              placeholder={i18n.language === 'id' ? '更換零件、調整項目、發現問題...' : 'Parts replaced, adjustments made, issues found...'}
+              placeholder="Parts replaced, adjustments made, issues found..."
               className="mt-1"
               rows={3}
             />
@@ -245,7 +244,7 @@ export default function PMPage() {
       {/* Machine Status Overview */}
       {areaId && displayMachines.length > 0 && (
         <div className="space-y-2">
-          <h3 className="font-semibold text-gray-700 text-sm">{i18n.language === 'id' ? '區域機器保養狀態' : 'Area Machine Maintenance Status'}</h3>
+          <h3 className="font-semibold text-gray-700 text-sm">{t('pm.machineStatus')}</h3>
           {displayMachines.map(m => {
             const last = lastMaintained[m.id]
             const daysSince = last ? getDaysSince(last) : null
@@ -259,7 +258,7 @@ export default function PMPage() {
                       {m.machine_code ? `[${m.machine_code}] ` : ''}{m.machine_name}
                     </p>
                     <p className="text-xs text-gray-500 mt-0.5">
-                      {i18n.language === 'id' ? '保養週期' : 'Maintenance Cycle'}: {m.maintenance_cycle} {i18n.language === 'id' ? '天' : 'days'}
+                      {t('pm.maintenanceCycle')}: {m.maintenance_cycle} days
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -267,12 +266,12 @@ export default function PMPage() {
                       {last ? (
                         <>
                           <p className={`text-sm font-semibold ${statusColor}`}>
-                            {daysSince} {i18n.language === 'id' ? '天前' : 'days ago'}
+                            {t('pm.daysAgo', { count: daysSince })}
                           </p>
                           <p className="text-xs text-gray-400">{t('pm.lastMaintained')}</p>
                         </>
                       ) : (
-                        <p className="text-xs text-gray-400">{i18n.language === 'id' ? '未有紀錄' : 'No records'}</p>
+                        <p className="text-xs text-gray-400">{t('pm.noRecordYet')}</p>
                       )}
                     </div>
                     <button
@@ -304,11 +303,11 @@ export default function PMPage() {
 
       {/* Recent Logs */}
       <div className="space-y-2">
-        <h3 className="font-semibold text-gray-700 text-sm">{i18n.language === 'id' ? '最近保養紀錄' : 'Recent Maintenance Records'}</h3>
+        <h3 className="font-semibold text-gray-700 text-sm">{t('pm.recentRecords')}</h3>
         {logs.length === 0 ? (
           <div className="text-center py-10 text-gray-400">
             <Wrench className="w-10 h-10 mx-auto mb-2 opacity-30" />
-            <p className="text-sm">{i18n.language === 'id' ? '尚無保養紀錄' : 'No maintenance records'}</p>
+            <p className="text-sm">{t('pm.noRecords')}</p>
           </div>
         ) : (
           logs.slice(0, 20).map(log => (
@@ -317,7 +316,7 @@ export default function PMPage() {
                 <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-700">
-                    {log.performed_by || (i18n.language === 'id' ? '保養員' : 'Technician')}
+                    {log.performed_by || t('pm.technician')}
                   </p>
                   {log.notes && (
                     <p className="text-xs text-gray-600 mt-0.5 line-clamp-2">{log.notes}</p>
