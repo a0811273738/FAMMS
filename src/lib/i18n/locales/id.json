@@ -19,9 +19,9 @@
     "noData": "Tidak ada data"
   },
   "navigation": {
-    "dashboard": "Dashboard",
-    "incidents": "Laporan",
-    "machines": "Mesin",
+    "dashboard": "Dasbor",
+    "incidents": "Papan",
+    "newIncident": "Lapor",
     "pm": "Perawatan",
     "knowledgeBase": "Pengetahuan",
     "settings": "Pengaturan",
@@ -57,7 +57,21 @@
     "close": "Tutup Laporan",
     "reopen": "Buka Kembali",
     "repeatFailure": "Masalah Berulang",
-    "blockingReason": "Alasan Tertunda"
+    "blockingReason": "Alasan Tertunda",
+    "search": "Pencarian Laporan",
+    "startDate": "Tanggal Mulai",
+    "endDate": "Tanggal Akhir",
+    "selectType": "Pilih Jenis",
+    "selectStatus": "Pilih Status",
+    "searching": "Mencari...",
+    "reset": "Atur Ulang",
+    "foundIncidents": "Ditemukan {{count}} laporan",
+    "noDataToExport": "Tidak ada data untuk diekspor",
+    "excelExported": "File Excel telah diekspor",
+    "exportFailed": "Gagal mengekspor",
+    "noMatchingIncidents": "Tidak ada laporan yang cocok",
+    "statusLabel": "Status Laporan",
+    "exportExcel": "Ekspor Excel"
   },
   "status": {
     "reported": "Dilaporkan",
@@ -128,6 +142,7 @@
     "title": "Daftar Mesin",
     "machineCode": "Kode Mesin",
     "machineName": "Nama Mesin",
+    "machine": "Mesin",
     "brand": "Merek",
     "model": "Model",
     "serial": "No. Seri",
@@ -139,7 +154,11 @@
     "area": "Area",
     "factory": "Pabrik",
     "details": "Detail Mesin",
-    "history": "Riwayat"
+    "history": "Riwayat",
+    "selectFactory": "Pilih Pabrik",
+    "selectArea": "Pilih Area",
+    "selectMachine": "Pilih Mesin",
+    "issueType": "Jenis Masalah"
   },
   "dashboard": {
     "title": "Dashboard",

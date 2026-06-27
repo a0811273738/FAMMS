@@ -20,7 +20,8 @@
   },
   "navigation": {
     "dashboard": "Dashboard",
-    "incidents": "Incidents",
+    "incidents": "Board",
+    "newIncident": "Report",
     "machines": "Machines",
     "pm": "Maintenance",
     "knowledgeBase": "Knowledge Base",
@@ -57,7 +58,21 @@
     "close": "Close Incident",
     "reopen": "Reopen",
     "repeatFailure": "Repeat Failure",
-    "blockingReason": "Blocking Reason"
+    "blockingReason": "Blocking Reason",
+    "search": "Incident Search",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "selectType": "Select Type",
+    "selectStatus": "Select Status",
+    "searching": "Searching...",
+    "reset": "Reset",
+    "foundIncidents": "Found {{count}} incidents",
+    "noDataToExport": "No data to export",
+    "excelExported": "Excel file exported",
+    "exportFailed": "Export failed",
+    "noMatchingIncidents": "No matching incidents",
+    "statusLabel": "Incident Status",
+    "exportExcel": "Export Excel"
   },
   "status": {
     "reported": "Reported",
@@ -128,6 +143,7 @@
     "title": "Machine List",
     "machineCode": "Machine Code",
     "machineName": "Machine Name",
+    "machine": "Machine",
     "brand": "Brand",
     "model": "Model",
     "serial": "Serial Number",
@@ -139,7 +155,11 @@
     "area": "Area",
     "factory": "Factory",
     "details": "Machine Details",
-    "history": "History"
+    "history": "History",
+    "selectFactory": "Select Factory",
+    "selectArea": "Select Area",
+    "selectMachine": "Select Machine",
+    "issueType": "Issue Type"
   },
   "dashboard": {
     "title": "Dashboard",

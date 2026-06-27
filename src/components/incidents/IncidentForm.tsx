@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslation } from 'react-i18next'
 import { createClient } from '@/lib/supabase/client'
 import imageCompression from 'browser-image-compression'
 import { Button } from '@/components/ui/button'
@@ -38,6 +39,7 @@ const URGENCY = [
 export default function IncidentForm() {
   const router = useRouter()
   const supabase = createClient()
+  const { t } = useTranslation()
 
   const [factories, setFactories] = useState<Factory[]>([])
   const [areas, setAreas] = useState<Area[]>([])
@@ -103,7 +105,7 @@ export default function IncidentForm() {
 
   async function submit() {
     if (!factoryId || !title.trim() || !description.trim()) {
-      toast.error('請填寫工廠、標題和問題描述')
+      toast.error(t('common.requiredField', 'Mohon isi semua field'))
       return
     }
 
@@ -227,9 +229,9 @@ export default function IncidentForm() {
 
       {/* Location */}
       <div className="space-y-3">
-        <Label>位置</Label>
+        <Label>{t('machines.factory')}</Label>
         <Select value={factoryId} onValueChange={(v) => setFactoryId(v ?? '')}>
-          <SelectTrigger><SelectValue placeholder="選擇工廠 *" /></SelectTrigger>
+          <SelectTrigger><SelectValue placeholder={t('machines.selectFactory')} /></SelectTrigger>
           <SelectContent>
             {factories.map(f => (
               <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>
@@ -239,7 +241,7 @@ export default function IncidentForm() {
 
         {areas.length > 0 && (
           <Select value={areaId} onValueChange={(v) => setAreaId(v ?? '')}>
-            <SelectTrigger><SelectValue placeholder="選擇區域（可選）" /></SelectTrigger>
+            <SelectTrigger><SelectValue placeholder={t('machines.selectArea')} /></SelectTrigger>
             <SelectContent>
               {areas.map(a => (
                 <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
@@ -250,7 +252,7 @@ export default function IncidentForm() {
 
         {assets.length > 0 && (
           <Select value={assetId} onValueChange={(v) => setAssetId(v ?? '')}>
-            <SelectTrigger><SelectValue placeholder="選擇機器/項目（可選）" /></SelectTrigger>
+            <SelectTrigger><SelectValue placeholder={t('machines.selectMachine')} /></SelectTrigger>
             <SelectContent>
               {assets.map(a => (
                 <SelectItem key={a.id} value={a.id}>
