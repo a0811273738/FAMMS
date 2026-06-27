@@ -15,6 +15,7 @@ import { formatDistanceToNow } from 'date-fns'
 import { zhTW, enUS } from 'date-fns/locale'
 import OverdueMaintenanceAlert from './OverdueMaintenanceAlert'
 import PMScheduleManager from './PMScheduleManager'
+import PMDueList from './PMDueList'
 
 interface Factory { id: string; name: string }
 interface Area { id: string; factory_id: string; name: string }
@@ -152,6 +153,14 @@ export default function PMPage() {
           </Button>
         </div>
       </div>
+
+      {/* PM Due Task List - 技师待办 */}
+      {factoryId && (
+        <div className="space-y-2">
+          <h2 className="font-semibold text-gray-700">📋 待處理保養任務</h2>
+          <PMDueList factoryId={factoryId} />
+        </div>
+      )}
 
       {/* Overdue Alert */}
       <div className="border-l-4 border-amber-500 bg-amber-50 rounded-lg p-4">

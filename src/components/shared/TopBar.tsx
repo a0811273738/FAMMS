@@ -50,28 +50,21 @@ export default function TopBar({ profile }: TopBarProps) {
               <Globe className="w-3 h-3" />
               <span className="hidden sm:inline" suppressHydrationWarning>{languageLabel}</span>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-40">
-              <DropdownMenuItem
-                onClick={() => handleLanguageChange('id')}
-                className={`cursor-pointer ${i18n.language === 'id' ? 'bg-blue-50 text-blue-700' : ''}`}
-              >
-                {i18n.language === 'id' && <span className="mr-2">✓</span>}
-                Bahasa Indonesia
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => handleLanguageChange('en')}
-                className={`cursor-pointer ${i18n.language === 'en' ? 'bg-blue-50 text-blue-700' : ''}`}
-              >
-                {i18n.language === 'en' && <span className="mr-2">✓</span>}
-                English
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => handleLanguageChange('zh')}
-                className={`cursor-pointer ${i18n.language === 'zh' ? 'bg-blue-50 text-blue-700' : ''}`}
-              >
-                {i18n.language === 'zh' && <span className="mr-2">✓</span>}
-                中文
-              </DropdownMenuItem>
+            <DropdownMenuContent align="end" className="w-48 z-50">
+              {[
+                { code: 'id', label: '🇮🇩 Bahasa Indonesia' },
+                { code: 'en', label: '🇬🇧 English' },
+                { code: 'zh', label: '🇨🇳 中文' },
+              ].map(lang => (
+                <DropdownMenuItem
+                  key={lang.code}
+                  onClick={() => handleLanguageChange(lang.code)}
+                  className={`cursor-pointer gap-2 ${i18n.language === lang.code ? 'bg-blue-50 text-blue-700 font-medium' : ''}`}
+                >
+                  {i18n.language === lang.code && <span>✓</span>}
+                  {lang.label}
+                </DropdownMenuItem>
+              ))}
             </DropdownMenuContent>
           </DropdownMenu>
 
