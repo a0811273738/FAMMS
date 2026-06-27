@@ -33,7 +33,7 @@ export default function TopBar({ profile }: TopBarProps) {
     ? profile.full_name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
     : 'U'
 
-  const languageLabel = i18n.language === 'id' ? 'Bahasa Indonesia' : 'English'
+  const languageLabel = i18n.language === 'id' ? 'Bahasa Indonesia' : i18n.language === 'en' ? 'English' : '中文'
 
   return (
     <header className="bg-white border-b border-gray-100 sticky top-0 z-40">
@@ -64,6 +64,13 @@ export default function TopBar({ profile }: TopBarProps) {
               >
                 {i18n.language === 'en' && <span className="mr-2">✓</span>}
                 English
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => handleLanguageChange('zh')}
+                className={`cursor-pointer ${i18n.language === 'zh' ? 'bg-blue-50 text-blue-700' : ''}`}
+              >
+                {i18n.language === 'zh' && <span className="mr-2">✓</span>}
+                中文
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

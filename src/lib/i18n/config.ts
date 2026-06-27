@@ -4,10 +4,12 @@ import { initReactI18next } from 'react-i18next'
 
 import idTranslations from './locales/id.json'
 import enTranslations from './locales/en.json'
+import zhTranslations from './locales/zh.json'
 
 const resources = {
   id: { translation: idTranslations },
   en: { translation: enTranslations },
+  zh: { translation: zhTranslations },
 }
 
 i18n
