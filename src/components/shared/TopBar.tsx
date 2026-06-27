@@ -27,6 +27,7 @@ export default function TopBar({ profile }: TopBarProps) {
 
   const handleLanguageChange = (lang: string) => {
     i18n.changeLanguage(lang)
+    localStorage.setItem('famms_lang', lang)
   }
 
   const initials = profile?.full_name
