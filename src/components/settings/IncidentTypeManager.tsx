@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
 import { Loader2, Trash2, Plus } from 'lucide-react'
+import { useI18n } from '@/lib/i18n'
 
 interface IncidentType {
   id: string
@@ -17,6 +18,7 @@ interface IncidentType {
 }
 
 export default function IncidentTypeManager() {
+  const { t: tr } = useI18n()
   const supabase = createClient()
   const [types, setTypes] = useState<IncidentType[]>([])
   const [loading, setLoading] = useState(true)
@@ -36,7 +38,7 @@ export default function IncidentTypeManager() {
         .order('sort_order')
       setTypes(data ?? [])
     } catch {
-      toast.error('載入問題類型失敗')
+      toast.error(tr('settings.loadIncidentTypesFailed'))
     } finally {
       setLoading(false)
     }
@@ -44,7 +46,7 @@ export default function IncidentTypeManager() {
 
   async function add() {
     if (!label.trim()) {
-      toast.error('請輸入問題類型名稱')
+      toast.error(tr('settings.incidentTypeNameRequired'))
       return
     }
     setSubmitting(true)
@@ -58,12 +60,12 @@ export default function IncidentTypeManager() {
         is_active: true,
       }])
       if (error) throw error
-      toast.success('問題類型已新增')
+      toast.success(tr('settings.incidentTypeAdded'))
       setLabel('')
       setShowForm(false)
       load()
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : '新增失敗')
+      toast.error(err instanceof Error ? err.message : tr('settings.addFailed'))
     } finally {
       setSubmitting(false)
     }
@@ -71,10 +73,10 @@ export default function IncidentTypeManager() {
 
   async function remove(id: string, code: string) {
     if (code === 'other') {
-      toast.error('「其他」為系統預設類型，無法刪除')
+      toast.error(tr('settings.cannotDeleteOther'))
       return
     }
-    if (!confirm('確認刪除此問題類型？')) return
+    if (!confirm(tr('settings.confirmDeleteIncidentType'))) return
     try {
       // Soft-delete so historical incidents keep their label mapping.
       const { error } = await supabase
@@ -82,41 +84,41 @@ export default function IncidentTypeManager() {
         .update({ is_active: false })
         .eq('id', id)
       if (error) throw error
-      toast.success('已刪除')
+      toast.success(tr('settings.deleted'))
       load()
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : '刪除失敗')
+      toast.error(err instanceof Error ? err.message : tr('settings.deleteFailed'))
     }
   }
 
-  if (loading) return <div className="text-center text-gray-500 text-sm py-2">載入中...</div>
+  if (loading) return <div className="text-center text-gray-500 text-sm py-2">{tr('settings.loading')}</div>
 
   return (
     <div className="space-y-4">
       {!showForm && (
         <Button onClick={() => setShowForm(true)} className="gap-2">
-          <Plus className="w-4 h-4" /> 新增問題類型
+          <Plus className="w-4 h-4" /> {tr('settings.addIncidentType')}
         </Button>
       )}
 
       {showForm && (
         <div className="bg-gray-50 p-4 rounded-lg space-y-3">
           <div>
-            <Label>問題類型名稱</Label>
+            <Label>{tr('settings.incidentTypeName')}</Label>
             <Input
               value={label}
               onChange={e => setLabel(e.target.value)}
-              placeholder="例如：🔥 火災風險（可加 emoji）"
+              placeholder={tr('settings.incidentTypeNamePlaceholder')}
               className="mt-1"
             />
           </div>
           <div className="flex gap-2">
             <Button onClick={add} disabled={submitting}>
               {submitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              新增
+              {tr('settings.create')}
             </Button>
             <Button variant="outline" onClick={() => { setShowForm(false); setLabel('') }}>
-              取消
+              {tr('settings.cancel')}
             </Button>
           </div>
         </div>

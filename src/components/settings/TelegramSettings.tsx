@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
 import { Loader2, Plus, Trash2, Send, MessageCircle } from 'lucide-react'
+import { useI18n } from '@/lib/i18n'
 
 interface Group {
   id: string
@@ -25,6 +26,7 @@ export default function TelegramSettings({
   factoryId: string
   configured: boolean
 }) {
+  const { t } = useI18n()
   const supabase = createClient()
   const [groups, setGroups] = useState<Group[]>([])
   const [name, setName] = useState('')
@@ -47,7 +49,7 @@ export default function TelegramSettings({
 
   async function addGroup() {
     if (!name || !groupId) {
-      toast.error('Isi nama dan Group ID')
+      toast.error(t('telegram.fillNameAndId'))
       return
     }
     setSaving(true)
@@ -58,11 +60,11 @@ export default function TelegramSettings({
         telegram_group_id: Number(groupId),
       })
       if (error) throw error
-      toast.success('Group ditambahkan')
+      toast.success(t('telegram.groupAdded'))
       setName(''); setGroupId('')
       load()
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Gagal menambah group')
+      toast.error(err instanceof Error ? err.message : t('telegram.addGroupFailed'))
     } finally {
       setSaving(false)
     }
@@ -75,7 +77,7 @@ export default function TelegramSettings({
       .update({ [flag]: next })
       .eq('id', g.id)
     if (error) {
-      toast.error('Gagal memperbarui')
+      toast.error(t('telegram.updateFailed'))
       return
     }
     setGroups(groups.map(x => (x.id === g.id ? { ...x, [flag]: next } : x)))
@@ -84,11 +86,11 @@ export default function TelegramSettings({
   async function removeGroup(id: string) {
     const { error } = await supabase.from('telegram_groups').delete().eq('id', id)
     if (error) {
-      toast.error('Gagal menghapus')
+      toast.error(t('telegram.deleteFailed'))
       return
     }
     setGroups(groups.filter(g => g.id !== id))
-    toast.success('Group dihapus')
+    toast.success(t('telegram.groupDeleted'))
   }
 
   async function testSend() {
@@ -96,20 +98,20 @@ export default function TelegramSettings({
     try {
       const res = await fetch('/api/notifications/test', { method: 'POST' })
       const json = await res.json()
-      if (!res.ok) throw new Error(json.error || 'Gagal mengirim tes')
-      toast.success(`Terkirim: ${json.sent}, gagal: ${json.failed}`)
+      if (!res.ok) throw new Error(json.error || t('telegram.testFailed'))
+      toast.success(t('telegram.testSent').replace('{sent}', String(json.sent)).replace('{failed}', String(json.failed)))
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Gagal mengirim tes')
+      toast.error(err instanceof Error ? err.message : t('telegram.testFailed'))
     } finally {
       setTesting(false)
     }
   }
 
   const FLAGS: { key: keyof Group; label: string }[] = [
-    { key: 'notify_new_incident', label: 'Incident Baru' },
-    { key: 'notify_sla_alert', label: 'SLA Alert' },
-    { key: 'notify_blocking', label: 'Blocking' },
-    { key: 'notify_daily_summary', label: 'Ringkasan Harian' },
+    { key: 'notify_new_incident', label: t('telegram.flagNewIncident') },
+    { key: 'notify_sla_alert', label: t('telegram.flagSlaAlert') },
+    { key: 'notify_blocking', label: t('telegram.flagBlocking') },
+    { key: 'notify_daily_summary', label: t('telegram.flagDailySummary') },
   ]
 
   return (
@@ -120,32 +122,31 @@ export default function TelegramSettings({
           <MessageCircle className={`w-5 h-5 ${configured ? 'text-green-600' : 'text-amber-600'}`} />
           <p className={`text-sm font-medium ${configured ? 'text-green-800' : 'text-amber-800'}`}>
             {configured
-              ? 'Bot Telegram terkonfigurasi (TELEGRAM_BOT_TOKEN aktif).'
-              : 'TELEGRAM_BOT_TOKEN belum diset di server. Set di .env.local untuk mengaktifkan.'}
+              ? t('telegram.configured')
+              : t('telegram.notConfigured')}
           </p>
         </div>
         <p className="text-xs text-gray-500 mt-2">
-          Cara dapat Group ID: tambahkan bot ke group Telegram, lalu kirim <code>/chatid</code>.
-          Bot akan membalas dengan ID. Daftarkan ID itu di bawah.
+          {t('telegram.howToGetGroupId')}
         </p>
       </div>
 
       {/* Add group */}
       <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
-        <h3 className="font-semibold text-gray-900">Tambah Group Telegram</h3>
+        <h3 className="font-semibold text-gray-900">{t('telegram.addGroup')}</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <Label>Nama Group</Label>
+            <Label>{t('telegram.groupName')}</Label>
             <Input value={name} onChange={e => setName(e.target.value)} placeholder="e.g., Maintenance DIN" className="mt-1" />
           </div>
           <div>
-            <Label>Telegram Group ID</Label>
+            <Label>{t('telegram.groupId')}</Label>
             <Input value={groupId} onChange={e => setGroupId(e.target.value)} placeholder="-1001234567890" className="mt-1" />
           </div>
         </div>
         <Button onClick={addGroup} disabled={saving}>
           {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Plus className="w-4 h-4 mr-2" />}
-          Tambah Group
+          {t('telegram.addGroupBtn')}
         </Button>
       </div>
 
@@ -186,7 +187,7 @@ export default function TelegramSettings({
       {/* Test */}
       <Button variant="outline" onClick={testSend} disabled={testing || !configured}>
         {testing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Send className="w-4 h-4 mr-2" />}
-        Kirim Tes Notifikasi
+        {t('telegram.sendTest')}
       </Button>
     </div>
   )

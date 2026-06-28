@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
 import { Loader2, Trash2, Edit2, Plus } from 'lucide-react'
+import { useI18n } from '@/lib/i18n'
 
 interface Factory {
   id: string
@@ -15,6 +16,7 @@ interface Factory {
 }
 
 export default function FactoryManager() {
+  const { t } = useI18n()
   const supabase = createClient()
   const [factories, setFactories] = useState<Factory[]>([])
   const [loading, setLoading] = useState(true)
@@ -33,7 +35,7 @@ export default function FactoryManager() {
       const { data } = await supabase.from('factories').select('*').order('code')
       setFactories(data ?? [])
     } catch (err) {
-      toast.error('載入工廠失敗')
+      toast.error(t('settings.loadFactoriesFailed'))
     } finally {
       setLoading(false)
     }
@@ -41,7 +43,7 @@ export default function FactoryManager() {
 
   async function submit() {
     if (!formData.name.trim() || !formData.code.trim()) {
-      toast.error('名稱和代碼必填')
+      toast.error(t('settings.nameCodeRequired'))
       return
     }
 
@@ -53,34 +55,34 @@ export default function FactoryManager() {
           .update({ name: formData.name, code: formData.code })
           .eq('id', editing)
         if (error) throw error
-        toast.success('工廠已更新')
+        toast.success(t('settings.factoryUpdated'))
       } else {
         const { error } = await supabase
           .from('factories')
           .insert([{ name: formData.name, code: formData.code }])
         if (error) throw error
-        toast.success('工廠已新增')
+        toast.success(t('settings.factoryAdded'))
       }
       setFormData({ name: '', code: '' })
       setEditing(null)
       setShowForm(false)
       loadFactories()
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : '操作失敗')
+      toast.error(err instanceof Error ? err.message : t('settings.operationFailed'))
     } finally {
       setSubmitting(false)
     }
   }
 
   async function deleteFactory(id: string) {
-    if (!confirm('確認刪除此工廠？')) return
+    if (!confirm(t('settings.confirmDeleteFactory'))) return
     try {
       const { error } = await supabase.from('factories').delete().eq('id', id)
       if (error) throw error
-      toast.success('工廠已刪除')
+      toast.success(t('settings.factoryDeleted'))
       loadFactories()
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : '刪除失敗')
+      toast.error(err instanceof Error ? err.message : t('settings.deleteFailed'))
     }
   }
 
@@ -90,20 +92,20 @@ export default function FactoryManager() {
     setShowForm(true)
   }
 
-  if (loading) return <div className="text-center text-gray-500">載入中...</div>
+  if (loading) return <div className="text-center text-gray-500">{t('settings.loading')}</div>
 
   return (
     <div className="space-y-4">
       {!showForm && (
         <Button onClick={() => setShowForm(true)} className="gap-2">
-          <Plus className="w-4 h-4" /> 新增工廠
+          <Plus className="w-4 h-4" /> {t('settings.addFactory')}
         </Button>
       )}
 
       {showForm && (
         <div className="bg-gray-50 p-4 rounded-lg space-y-3">
           <div>
-            <Label>名稱</Label>
+            <Label>{t('settings.name')}</Label>
             <Input
               value={formData.name}
               onChange={e => setFormData({ ...formData, name: e.target.value })}
@@ -112,7 +114,7 @@ export default function FactoryManager() {
             />
           </div>
           <div>
-            <Label>代碼</Label>
+            <Label>{t('settings.code')}</Label>
             <Input
               value={formData.code}
               onChange={e => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
@@ -124,7 +126,7 @@ export default function FactoryManager() {
           <div className="flex gap-2">
             <Button onClick={submit} disabled={submitting}>
               {submitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              {editing ? '更新' : '新增'}
+              {editing ? t('settings.update') : t('settings.create')}
             </Button>
             <Button
               variant="outline"
@@ -134,7 +136,7 @@ export default function FactoryManager() {
                 setFormData({ name: '', code: '' })
               }}
             >
-              取消
+              {t('settings.cancel')}
             </Button>
           </div>
         </div>
@@ -145,7 +147,7 @@ export default function FactoryManager() {
           <div key={f.id} className="flex items-center justify-between p-3 border rounded-lg">
             <div>
               <p className="font-semibold">{f.name}</p>
-              <p className="text-xs text-gray-500">代碼: {f.code}</p>
+              <p className="text-xs text-gray-500">{t('settings.codeLabel').replace('{code}', f.code)}</p>
             </div>
             <div className="flex gap-2">
               <Button

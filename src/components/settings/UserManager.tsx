@@ -12,6 +12,7 @@ import { toast } from 'sonner'
 import { Loader2, Trash2, Plus, Pencil, ShieldCheck, KeyRound } from 'lucide-react'
 import { ROLE_ZH } from '@/lib/incident-display'
 import type { UserRole } from '@/types'
+import { useI18n } from '@/lib/i18n'
 
 interface Factory { id: string; name: string }
 interface ManagedUser {
@@ -35,7 +36,9 @@ const ROLE_BADGE: Record<UserRole, string> = {
 }
 
 export default function UserManager({ currentUserId }: { currentUserId: string }) {
+  const { t } = useI18n()
   const supabase = createClient()
+  const roleLabel = (r: UserRole) => t(`roles.${r}`, ROLE_ZH[r])
   const [users, setUsers] = useState<ManagedUser[]>([])
   const [factories, setFactories] = useState<Factory[]>([])
   const [loading, setLoading] = useState(true)
@@ -61,10 +64,10 @@ export default function UserManager({ currentUserId }: { currentUserId: string }
     try {
       const res = await fetch('/api/admin/users')
       const json = await res.json()
-      if (!res.ok) throw new Error(json.error || '載入失敗')
+      if (!res.ok) throw new Error(json.error || t('settings.loadFailed'))
       setUsers(json.users ?? [])
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : '載入使用者失敗')
+      toast.error(err instanceof Error ? err.message : t('settings.loadUsersFailed'))
     } finally {
       setLoading(false)
     }
@@ -98,7 +101,7 @@ export default function UserManager({ currentUserId }: { currentUserId: string }
 
   async function submit() {
     if (!editingId && (!email.trim() || !password)) {
-      toast.error('帳號與密碼必填')
+      toast.error(t('settings.emailPwdRequired'))
       return
     }
     setSubmitting(true)
@@ -115,8 +118,8 @@ export default function UserManager({ currentUserId }: { currentUserId: string }
           }),
         })
         const json = await res.json()
-        if (!res.ok) throw new Error(json.error || '更新失敗')
-        toast.success(password ? '已更新並重設密碼' : '已更新')
+        if (!res.ok) throw new Error(json.error || t('settings.updateFailed'))
+        toast.success(password ? t('settings.updatedWithPwd') : t('settings.updated'))
       } else {
         const res = await fetch('/api/admin/users', {
           method: 'POST',
@@ -126,13 +129,13 @@ export default function UserManager({ currentUserId }: { currentUserId: string }
           }),
         })
         const json = await res.json()
-        if (!res.ok) throw new Error(json.error || '建立失敗')
-        toast.success('已建立帳號')
+        if (!res.ok) throw new Error(json.error || t('settings.createFailed'))
+        toast.success(t('settings.userCreated'))
       }
       resetForm()
       loadUsers()
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : '操作失敗')
+      toast.error(err instanceof Error ? err.message : t('settings.operationFailed'))
     } finally {
       setSubmitting(false)
     }
@@ -146,48 +149,48 @@ export default function UserManager({ currentUserId }: { currentUserId: string }
         body: JSON.stringify({ is_active: !u.is_active }),
       })
       const json = await res.json()
-      if (!res.ok) throw new Error(json.error || '更新失敗')
-      toast.success(u.is_active ? '已停用' : '已啟用')
+      if (!res.ok) throw new Error(json.error || t('settings.updateFailed'))
+      toast.success(u.is_active ? t('settings.deactivated') : t('settings.activated'))
       loadUsers()
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : '操作失敗')
+      toast.error(err instanceof Error ? err.message : t('settings.operationFailed'))
     }
   }
 
   async function remove(u: ManagedUser) {
-    if (u.id === currentUserId) { toast.error('無法刪除自己的帳號'); return }
-    if (!confirm(`確認刪除帳號 ${u.email}？此動作無法復原。`)) return
+    if (u.id === currentUserId) { toast.error(t('settings.cannotDeleteSelf')); return }
+    if (!confirm(t('settings.confirmDeleteUser').replace('{email}', u.email))) return
     try {
       const res = await fetch(`/api/admin/users/${u.id}`, { method: 'DELETE' })
       const json = await res.json()
-      if (!res.ok) throw new Error(json.error || '刪除失敗')
-      toast.success('已刪除帳號')
+      if (!res.ok) throw new Error(json.error || t('settings.deleteFailed'))
+      toast.success(t('settings.userDeleted'))
       loadUsers()
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : '刪除失敗')
+      toast.error(err instanceof Error ? err.message : t('settings.deleteFailed'))
     }
   }
 
   const factoryName = (id: string | null) => factories.find(f => f.id === id)?.name ?? '—'
 
-  if (loading) return <div className="text-center text-gray-500 text-sm py-4">載入中...</div>
+  if (loading) return <div className="text-center text-gray-500 text-sm py-4">{t('settings.loading')}</div>
 
   return (
     <div className="space-y-4">
       {!showForm && (
         <Button onClick={startAdd} className="gap-2 w-full">
-          <Plus className="w-4 h-4" /> 新增帳號
+          <Plus className="w-4 h-4" /> {t('settings.addUser')}
         </Button>
       )}
 
       {showForm && (
         <div className="bg-gray-50 p-4 rounded-lg space-y-3">
           <p className="text-sm font-medium text-gray-700">
-            {editingId ? '編輯帳號' : '新增帳號'}
+            {editingId ? t('settings.editUser') : t('settings.addUser')}
           </p>
 
           <div>
-            <Label>帳號 (Email)</Label>
+            <Label>{t('settings.emailLabel')}</Label>
             <Input
               type="email"
               value={email}
@@ -196,47 +199,47 @@ export default function UserManager({ currentUserId }: { currentUserId: string }
               disabled={!!editingId}
               className="mt-1"
             />
-            {editingId && <p className="text-xs text-gray-400 mt-1">帳號 Email 不可修改</p>}
+            {editingId && <p className="text-xs text-gray-400 mt-1">{t('settings.emailImmutable')}</p>}
           </div>
 
           <div>
             <Label className="flex items-center gap-1">
               <KeyRound className="w-3.5 h-3.5" />
-              {editingId ? '重設密碼（留空則不變更）' : '密碼'}
+              {editingId ? t('settings.resetPassword') : t('settings.password')}
             </Label>
             <Input
               type="text"
               value={password}
               onChange={e => setPassword(e.target.value)}
-              placeholder={editingId ? '留空則維持原密碼' : '至少 6 碼'}
+              placeholder={editingId ? t('settings.pwdKeepPlaceholder') : t('settings.pwdMinPlaceholder')}
               className="mt-1 font-mono"
             />
           </div>
 
           <div>
-            <Label>姓名</Label>
+            <Label>{t('settings.fullName')}</Label>
             <Input
               value={fullName}
               onChange={e => setFullName(e.target.value)}
-              placeholder="例如：王小明"
+              placeholder={t('settings.fullNamePlaceholder')}
               className="mt-1"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <Label>角色</Label>
+              <Label>{t('settings.role')}</Label>
               <Select value={role} onValueChange={(v) => setRole((v ?? 'technician') as UserRole)}>
                 <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {ROLES.map(r => <SelectItem key={r} value={r}>{ROLE_ZH[r]}</SelectItem>)}
+                  {ROLES.map(r => <SelectItem key={r} value={r}>{roleLabel(r)}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label>工廠</Label>
+              <Label>{t('settings.factory')}</Label>
               <Select value={factoryId} onValueChange={(v) => setFactoryId(v ?? '')}>
-                <SelectTrigger className="mt-1"><SelectValue placeholder="選擇工廠" /></SelectTrigger>
+                <SelectTrigger className="mt-1"><SelectValue placeholder={t('settings.selectFactory')} /></SelectTrigger>
                 <SelectContent>
                   {factories.map(f => <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>)}
                 </SelectContent>
@@ -247,16 +250,16 @@ export default function UserManager({ currentUserId }: { currentUserId: string }
           <div className="flex gap-2">
             <Button onClick={submit} disabled={submitting}>
               {submitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              {editingId ? '更新' : '建立'}
+              {editingId ? t('settings.update') : t('settings.createBtn')}
             </Button>
-            <Button variant="outline" onClick={resetForm}>取消</Button>
+            <Button variant="outline" onClick={resetForm}>{t('settings.cancel')}</Button>
           </div>
         </div>
       )}
 
       <div className="space-y-2">
         {users.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-4">尚無帳號</p>
+          <p className="text-sm text-gray-400 text-center py-4">{t('settings.noUsers')}</p>
         ) : (
           users.map(u => (
             <div key={u.id} className="flex items-center justify-between p-3 border rounded-lg bg-white gap-2">
@@ -264,10 +267,10 @@ export default function UserManager({ currentUserId }: { currentUserId: string }
                 <div className="flex items-center gap-2">
                   <p className="font-medium text-sm truncate">{u.full_name || u.email}</p>
                   <span className={`shrink-0 text-xs px-1.5 py-0.5 rounded-full font-medium ${ROLE_BADGE[u.role]}`}>
-                    {ROLE_ZH[u.role]}
+                    {roleLabel(u.role)}
                   </span>
                   {!u.is_active && (
-                    <span className="shrink-0 text-xs px-1.5 py-0.5 rounded-full bg-gray-200 text-gray-500">已停用</span>
+                    <span className="shrink-0 text-xs px-1.5 py-0.5 rounded-full bg-gray-200 text-gray-500">{t('settings.deactivated')}</span>
                   )}
                 </div>
                 <p className="text-xs text-gray-500 truncate">{u.email}</p>
@@ -278,7 +281,7 @@ export default function UserManager({ currentUserId }: { currentUserId: string }
                   size="sm"
                   variant="outline"
                   onClick={() => toggleActive(u)}
-                  title={u.is_active ? '停用' : '啟用'}
+                  title={u.is_active ? t('settings.deactivate') : t('settings.activate')}
                   className={u.is_active ? 'text-green-600' : 'text-gray-400'}
                 >
                   <ShieldCheck className="w-4 h-4" />

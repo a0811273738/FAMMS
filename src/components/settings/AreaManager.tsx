@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/select'
 import { toast } from 'sonner'
 import { Loader2, Trash2, Edit2, Plus } from 'lucide-react'
+import { useI18n } from '@/lib/i18n'
 
 interface Factory {
   id: string
@@ -27,6 +28,7 @@ interface Area {
 }
 
 export default function AreaManager() {
+  const { t } = useI18n()
   const supabase = createClient()
   const [factories, setFactories] = useState<Factory[]>([])
   const [areas, setAreas] = useState<Area[]>([])
@@ -54,7 +56,7 @@ export default function AreaManager() {
         setSelectedFactoryId(data[0].id)
       }
     } catch (err) {
-      toast.error('載入工廠失敗')
+      toast.error(t('settings.loadFactoriesFailed'))
     } finally {
       setLoading(false)
     }
@@ -69,13 +71,13 @@ export default function AreaManager() {
         .order('name')
       setAreas(data ?? [])
     } catch (err) {
-      toast.error('載入區域失敗')
+      toast.error(t('settings.loadAreasFailed'))
     }
   }
 
   async function submit() {
     if (!formData.name.trim() || !formData.code.trim()) {
-      toast.error('名稱和代碼必填')
+      toast.error(t('settings.nameCodeRequired'))
       return
     }
 
@@ -91,7 +93,7 @@ export default function AreaManager() {
           })
           .eq('id', editing)
         if (error) throw error
-        toast.success('區域已更新')
+        toast.success(t('settings.areaUpdated'))
       } else {
         const { error } = await supabase
           .from('areas')
@@ -102,28 +104,28 @@ export default function AreaManager() {
             description: formData.description || null,
           }])
         if (error) throw error
-        toast.success('區域已新增')
+        toast.success(t('settings.areaAdded'))
       }
       setFormData({ name: '', code: '', description: '' })
       setEditing(null)
       setShowForm(false)
       loadAreas()
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : '操作失敗')
+      toast.error(err instanceof Error ? err.message : t('settings.operationFailed'))
     } finally {
       setSubmitting(false)
     }
   }
 
   async function deleteArea(id: string) {
-    if (!confirm('確認刪除此區域？')) return
+    if (!confirm(t('settings.confirmDeleteArea'))) return
     try {
       const { error } = await supabase.from('areas').delete().eq('id', id)
       if (error) throw error
-      toast.success('區域已刪除')
+      toast.success(t('settings.areaDeleted'))
       loadAreas()
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : '刪除失敗')
+      toast.error(err instanceof Error ? err.message : t('settings.deleteFailed'))
     }
   }
 
@@ -137,15 +139,15 @@ export default function AreaManager() {
     setShowForm(true)
   }
 
-  if (loading) return <div className="text-center text-gray-500">載入中...</div>
+  if (loading) return <div className="text-center text-gray-500">{t('settings.loading')}</div>
 
   return (
     <div className="space-y-4">
       <div>
-        <Label>選擇工廠</Label>
+        <Label>{t('settings.selectFactory')}</Label>
         <Select value={selectedFactoryId} onValueChange={(v) => setSelectedFactoryId(v ?? '')}>
           <SelectTrigger className="mt-1">
-            <SelectValue placeholder="選擇工廠" />
+            <SelectValue placeholder={t('settings.selectFactory')} />
           </SelectTrigger>
           <SelectContent>
             {factories.map(f => (
@@ -159,14 +161,14 @@ export default function AreaManager() {
 
       {!showForm && (
         <Button onClick={() => setShowForm(true)} className="gap-2">
-          <Plus className="w-4 h-4" /> 新增區域
+          <Plus className="w-4 h-4" /> {t('settings.addArea')}
         </Button>
       )}
 
       {showForm && (
         <div className="bg-gray-50 p-4 rounded-lg space-y-3">
           <div>
-            <Label>名稱</Label>
+            <Label>{t('settings.name')}</Label>
             <Input
               value={formData.name}
               onChange={e => setFormData({ ...formData, name: e.target.value })}
@@ -175,7 +177,7 @@ export default function AreaManager() {
             />
           </div>
           <div>
-            <Label>代碼</Label>
+            <Label>{t('settings.code')}</Label>
             <Input
               value={formData.code}
               onChange={e => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
@@ -185,11 +187,11 @@ export default function AreaManager() {
             />
           </div>
           <div>
-            <Label>描述 (可選)</Label>
+            <Label>{t('settings.descriptionOptional')}</Label>
             <Textarea
               value={formData.description}
               onChange={e => setFormData({ ...formData, description: e.target.value })}
-              placeholder="區域描述..."
+              placeholder={t('settings.areaDescPlaceholder')}
               className="mt-1"
               rows={2}
             />
@@ -197,7 +199,7 @@ export default function AreaManager() {
           <div className="flex gap-2">
             <Button onClick={submit} disabled={submitting}>
               {submitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              {editing ? '更新' : '新增'}
+              {editing ? t('settings.update') : t('settings.create')}
             </Button>
             <Button
               variant="outline"
@@ -207,7 +209,7 @@ export default function AreaManager() {
                 setFormData({ name: '', code: '', description: '' })
               }}
             >
-              取消
+              {t('settings.cancel')}
             </Button>
           </div>
         </div>
@@ -218,7 +220,7 @@ export default function AreaManager() {
           <div key={a.id} className="flex items-center justify-between p-3 border rounded-lg">
             <div>
               <p className="font-semibold">{a.name}</p>
-              <p className="text-xs text-gray-500">代碼: {a.code}</p>
+              <p className="text-xs text-gray-500">{t('settings.codeLabel').replace('{code}', a.code)}</p>
               {a.description && <p className="text-xs text-gray-600">{a.description}</p>}
             </div>
             <div className="flex gap-2">
