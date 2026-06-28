@@ -9,6 +9,8 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuSeparator, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import LanguageSwitcher from '@/components/shared/LanguageSwitcher'
+import { useI18n } from '@/lib/i18n'
 
 interface TopBarProps {
   profile: Profile | null
@@ -17,6 +19,7 @@ interface TopBarProps {
 export default function TopBar({ profile }: TopBarProps) {
   const router = useRouter()
   const supabase = createClient()
+  const { t } = useI18n()
 
   async function signOut() {
     await supabase.auth.signOut()
@@ -35,6 +38,8 @@ export default function TopBar({ profile }: TopBarProps) {
           <span className="text-sm">工廠維修系統</span>
         </div>
 
+        <div className="flex items-center gap-1">
+        <LanguageSwitcher />
         <DropdownMenu>
           <DropdownMenuTrigger className="flex items-center gap-2 focus:outline-none">
             <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
@@ -50,14 +55,15 @@ export default function TopBar({ profile }: TopBarProps) {
             </div>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => router.push('/profile')} className="flex items-center gap-2 cursor-pointer">
-              <User className="w-4 h-4" /> 個人資料
+              <User className="w-4 h-4" /> {t('navigation.profile')}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={signOut} className="text-red-600 flex items-center gap-2 cursor-pointer">
-              <LogOut className="w-4 h-4" /> 登出
+              <LogOut className="w-4 h-4" /> {t('navigation.logout')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        </div>
       </div>
     </header>
   )

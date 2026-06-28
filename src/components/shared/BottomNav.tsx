@@ -6,21 +6,22 @@ import { ClipboardList, Plus, LayoutDashboard, Settings, Wrench } from 'lucide-r
 import { cn } from '@/lib/utils'
 import type { UserRole } from '@/types'
 import { PERMISSIONS } from '@/lib/permissions'
+import { useI18n } from '@/lib/i18n'
 
 interface NavItem {
   href: string
-  label: string
+  labelKey: string
   icon: React.ComponentType<{ className?: string }>
   primary?: boolean
   requiredRole?: (role: UserRole) => boolean
 }
 
 const NAV: NavItem[] = [
-  { href: '/dashboard', label: '主管', icon: LayoutDashboard, requiredRole: (r) => PERMISSIONS.dashboard(r) },
-  { href: '/incidents', label: '看板', icon: ClipboardList },
-  { href: '/incidents/new', label: '回報', icon: Plus, primary: true },
-  { href: '/pm', label: '保養', icon: Wrench },
-  { href: '/settings', label: '設定', icon: Settings },
+  { href: '/dashboard', labelKey: 'navigation.dashboard', icon: LayoutDashboard, requiredRole: (r) => PERMISSIONS.dashboard(r) },
+  { href: '/incidents', labelKey: 'navigation.incidents', icon: ClipboardList },
+  { href: '/incidents/new', labelKey: 'navigation.newIncident', icon: Plus, primary: true },
+  { href: '/pm', labelKey: 'navigation.pm', icon: Wrench },
+  { href: '/settings', labelKey: 'navigation.settings', icon: Settings },
 ]
 
 interface BottomNavProps {
@@ -29,12 +30,14 @@ interface BottomNavProps {
 
 export default function BottomNav({ userRole = 'technician' }: BottomNavProps) {
   const pathname = usePathname()
+  const { t } = useI18n()
   const visibleNav = NAV.filter(item => !item.requiredRole || item.requiredRole(userRole))
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 safe-area-bottom">
       <div className="flex items-center justify-around h-16 max-w-lg mx-auto px-2">
-        {visibleNav.map(({ href, label, icon: Icon, primary }) => {
+        {visibleNav.map(({ href, labelKey, icon: Icon, primary }) => {
+          const label = t(labelKey)
           const active = href === '/incidents/new'
             ? pathname === href
             : pathname === href || (pathname.startsWith(href + '/') && href !== '/incidents/new')
