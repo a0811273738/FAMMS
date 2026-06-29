@@ -14,6 +14,19 @@
     "overdueMachines": "Mesin terlambat pemeliharaan",
     "noOverdue": "Tidak ada pemeliharaan terlambat"
   },
+  "assign": {
+    "title": "Penugasan",
+    "assignees": "Penanggung jawab (pilih banyak)",
+    "noAccounts": "Belum ada akun yang bisa ditugaskan",
+    "extraNames": "Orang lain (eksternal / vendor, pisahkan dengan koma)",
+    "extraPlaceholder": "mis. Vendor ABC, Pak Wang",
+    "dept": "Departemen",
+    "deptPlaceholder": "mis. E&M",
+    "dueDate": "Tanggal target",
+    "save": "Simpan penugasan",
+    "saved": "Penugasan diperbarui",
+    "onlySupervisor": "Hanya supervisor yang bisa menugaskan"
+  },
   "report": {
     "title": "Lapor Masalah",
     "subtitle": "Lapor masalah lapangan dengan cepat",

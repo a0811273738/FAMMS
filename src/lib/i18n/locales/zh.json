@@ -14,6 +14,19 @@
     "overdueMachines": "保養逾期機台",
     "noOverdue": "沒有逾期保養"
   },
+  "assign": {
+    "title": "派工指派",
+    "assignees": "負責人（可多選）",
+    "noAccounts": "尚無可指派的帳號",
+    "extraNames": "其他人員（外部/廠商，逗號分隔）",
+    "extraPlaceholder": "如：ABC 外包, 王師傅",
+    "dept": "部門",
+    "deptPlaceholder": "如：機電課",
+    "dueDate": "預計完成日",
+    "save": "儲存派工",
+    "saved": "派工已更新",
+    "onlySupervisor": "只有主管可以派工"
+  },
   "report": {
     "title": "回報問題",
     "subtitle": "現場問題快速回報",

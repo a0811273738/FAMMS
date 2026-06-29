@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { getCurrentUser } from '@/lib/auth'
+import { getCurrentUser, PERMISSIONS } from '@/lib/auth'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import ProgressUpdate from '@/components/incidents/ProgressUpdate'
@@ -53,6 +53,12 @@ export default async function IncidentDetailPage({
     .single()
 
   if (!incident) notFound()
+
+  // Technicians (no full-board access) may only open cases assigned to them.
+  if (user && !PERMISSIONS.boardFull(user.role)) {
+    const assignedIds: string[] = incident.assigned_user_ids ?? []
+    if (!assignedIds.includes(user.id)) notFound()
+  }
 
   const { data: updates } = await supabase
     .from('incident_updates')
@@ -195,6 +201,7 @@ export default async function IncidentDetailPage({
           incidentId={id}
           assignedTo={incident.assigned_to}
           assignedDept={incident.assigned_dept}
+          assignedUserIds={incident.assigned_user_ids}
           dueDate={incident.due_date}
           userRole={user?.role}
           userName={user?.full_name}

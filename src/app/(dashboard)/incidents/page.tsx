@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { getCurrentUser } from '@/lib/auth'
+import { getCurrentUser, PERMISSIONS } from '@/lib/auth'
 import IncidentBoard, { BoardRow } from '@/components/incidents/IncidentBoard'
 import IncidentsBoardWithSearch from '@/components/incidents/IncidentsBoardWithSearch'
 
@@ -22,6 +22,11 @@ export default async function IncidentsPage() {
 
   // Scope to the user's factory. Admins see every factory's cases.
   if (user?.factory_id && user.role !== 'admin') query = query.eq('factory_id', user.factory_id)
+
+  // Technicians (no full-board access) only see cases assigned to them.
+  if (user && !PERMISSIONS.boardFull(user.role)) {
+    query = query.contains('assigned_user_ids', [user.id])
+  }
 
   const { data: incidents } = await query
 

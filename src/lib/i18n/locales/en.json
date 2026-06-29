@@ -14,6 +14,19 @@
     "overdueMachines": "Machines overdue for maintenance",
     "noOverdue": "No overdue maintenance"
   },
+  "assign": {
+    "title": "Assignment",
+    "assignees": "Assignees (multi-select)",
+    "noAccounts": "No assignable accounts yet",
+    "extraNames": "Other people (external / vendor, comma-separated)",
+    "extraPlaceholder": "e.g. ABC Vendor, Mr. Wang",
+    "dept": "Department",
+    "deptPlaceholder": "e.g. E&M",
+    "dueDate": "Due date",
+    "save": "Save assignment",
+    "saved": "Assignment updated",
+    "onlySupervisor": "Only supervisors can assign"
+  },
   "report": {
     "title": "Report Issue",
     "subtitle": "Quickly report a site issue",
