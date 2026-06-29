@@ -1,4 +1,32 @@
 {
+  "dash": {
+    "title": "Pelacakan Supervisor",
+    "overview": "Ikhtisar insiden & pemeliharaan",
+    "open": "Kasus aktif",
+    "urgent": "Kasus mendesak",
+    "cases": "kasus",
+    "openByFactory": "Kasus aktif per pabrik",
+    "noOpen": "Tidak ada kasus aktif",
+    "urgentCases": "Kasus mendesak (A/B)",
+    "noUrgent": "Tidak ada kasus mendesak",
+    "staleCases": "Kasus tertunda (tidak diperbarui 3+ hari)",
+    "noStale": "Tidak ada kasus tertunda",
+    "overdueMachines": "Mesin terlambat pemeliharaan",
+    "noOverdue": "Tidak ada pemeliharaan terlambat"
+  },
+  "assign": {
+    "title": "Penugasan",
+    "assignees": "Penanggung jawab (pilih banyak)",
+    "noAccounts": "Belum ada akun yang bisa ditugaskan",
+    "extraNames": "Orang lain (eksternal / vendor, pisahkan dengan koma)",
+    "extraPlaceholder": "mis. Vendor ABC, Pak Wang",
+    "dept": "Departemen",
+    "deptPlaceholder": "mis. E&M",
+    "dueDate": "Tanggal target",
+    "save": "Simpan penugasan",
+    "saved": "Penugasan diperbarui",
+    "onlySupervisor": "Hanya supervisor yang bisa menugaskan"
+  },
   "report": {
     "title": "Lapor Masalah",
     "subtitle": "Lapor masalah lapangan dengan cepat",
@@ -307,6 +335,7 @@
     "details": "Detail Mesin",
     "history": "Riwayat",
     "selectFactory": "Pilih Pabrik",
+    "allFactories": "Semua pabrik (lintas pabrik)",
     "selectArea": "Pilih Area",
     "selectMachine": "Pilih Mesin",
     "issueType": "Jenis Masalah"
