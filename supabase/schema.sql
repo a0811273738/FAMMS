@@ -690,14 +690,30 @@ CREATE INDEX IF NOT EXISTS idx_maintenance_logs_performed_at ON maintenance_logs
 
 CREATE TABLE IF NOT EXISTS incident_types (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  code TEXT NOT NULL,       -- stored on incidents.incident_type
-  label TEXT NOT NULL,      -- display text (may include emoji)
+  code TEXT NOT NULL UNIQUE,  -- stored on incidents.incident_type
+  label TEXT NOT NULL,        -- display text (may include emoji)
   sort_order INTEGER DEFAULT 0,
   is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMP DEFAULT NOW()
 );
 
 ALTER TABLE incident_types DISABLE ROW LEVEL SECURITY;
+
+-- De-dupe any rows from earlier runs that lacked the UNIQUE(code) constraint,
+-- keeping the oldest row per code. Then ensure the constraint exists so the
+-- ON CONFLICT below actually fires on re-run instead of inserting duplicates.
+DELETE FROM incident_types a
+USING incident_types b
+WHERE a.code = b.code AND a.ctid > b.ctid;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'incident_types_code_key'
+  ) THEN
+    ALTER TABLE incident_types ADD CONSTRAINT incident_types_code_key UNIQUE (code);
+  END IF;
+END $$;
 
 -- Seed the default 7 types (safe to re-run)
 INSERT INTO incident_types (code, label, sort_order) VALUES
@@ -708,7 +724,7 @@ INSERT INTO incident_types (code, label, sort_order) VALUES
   ('safety',      '⚠️ 安全問題',     5),
   ('cleanliness', '🧹 衛生/清潔',    6),
   ('other',       '📋 其他',         99)
-ON CONFLICT DO NOTHING;
+ON CONFLICT (code) DO NOTHING;
 
 -- ============================================================================
 -- MIGRATION: add simplified report fields + make codes optional

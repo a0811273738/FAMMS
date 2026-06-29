@@ -68,7 +68,14 @@ export default function IncidentForm() {
     supabase.from('incident_types').select('code, label').eq('is_active', true)
       .order('sort_order').then(({ data }) => {
         if (data && data.length > 0) {
-          setIssueTypes(data.map((t: any) => ({ value: t.code, label: t.label })))
+          // De-dupe by code in case the table still has duplicate rows.
+          const seen = new Set<string>()
+          const unique = data.filter((t: any) => {
+            if (seen.has(t.code)) return false
+            seen.add(t.code)
+            return true
+          })
+          setIssueTypes(unique.map((t: any) => ({ value: t.code, label: t.label })))
         }
       })
   }, [])
