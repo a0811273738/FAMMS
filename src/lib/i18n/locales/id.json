@@ -328,6 +328,8 @@
     "completedMaintenance": "Perawatan selesai",
     "skippedDone": "Dilewati",
     "allMachines2": "Semua Mesin",
+    "responsible": "Penanggung jawab (multi-pilih)",
+    "onlyMine": "Hanya milik saya",
     "monthBtn": "Bulan",
     "weekBtn": "Minggu",
     "todayBtn": "Hari Ini",

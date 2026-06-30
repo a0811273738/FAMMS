@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useMemo } from 'react'
-import { ChevronLeft, ChevronRight, X, CheckCircle, SkipForward, Loader2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, X, CheckCircle, SkipForward, Loader2, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -9,6 +9,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
 import { toast } from 'sonner'
+import { createClient } from '@/lib/supabase/client'
 import { useI18n } from '@/lib/i18n'
 
 interface PMTask {
@@ -26,6 +27,8 @@ interface PMTask {
   cost: number | null
   delay_reason: string | null
   performed_by?: string | null
+  assigned_user_ids?: string[]
+  assigned_to?: string | null
 }
 
 interface PMEvent {
@@ -122,6 +125,14 @@ export default function PMFullCalendar({ factoryId }: PMFullCalendarProps) {
   const [machines, setMachines] = useState<MachineOption[]>([])
   const [loading, setLoading] = useState(false)
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
+  const [myId, setMyId] = useState<string | null>(null)
+  const [onlyMine, setOnlyMine] = useState(false)
+
+  // Current user id, so "only my maintenance" can filter to schedules this
+  // person is assigned to.
+  useEffect(() => {
+    createClient().auth.getUser().then(({ data }) => setMyId(data.user?.id ?? null))
+  }, [])
 
   // Inline action state for completing/skipping a real task from the detail panel
   const [action, setAction] = useState<{ taskId: string; mode: 'complete' | 'skip'; findings: string; cost: string; reason: string } | null>(null)
@@ -190,9 +201,15 @@ export default function PMFullCalendar({ factoryId }: PMFullCalendarProps) {
 
   const eventMap = useMemo(() => {
     const map: Record<string, PMTask[]> = {}
-    for (const e of events) map[e.date] = e.tasks
+    for (const e of events) {
+      // "Only mine": keep tasks where the current user is among the assignees.
+      const tasks = onlyMine && myId
+        ? e.tasks.filter(task => (task.assigned_user_ids ?? []).includes(myId))
+        : e.tasks
+      if (tasks.length > 0) map[e.date] = tasks
+    }
     return map
-  }, [events])
+  }, [events, onlyMine, myId])
 
   // Month calendar grid
   const daysInMonth = new Date(year, month + 1, 0).getDate()
@@ -269,6 +286,18 @@ export default function PMFullCalendar({ factoryId }: PMFullCalendarProps) {
             {t('pm.weekBtn')}
           </button>
         </div>
+
+        {/* Only my assigned maintenance */}
+        {myId && (
+          <button
+            onClick={() => setOnlyMine(v => !v)}
+            className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-md border text-xs shrink-0 ${
+              onlyMine ? 'bg-blue-600 text-white border-blue-600 font-semibold' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+            }`}
+          >
+            <Users className="w-3.5 h-3.5" /> {t('pm.onlyMine', '只看我的')}
+          </button>
+        )}
       </div>
 
       {/* Navigation */}
@@ -441,6 +470,11 @@ export default function PMFullCalendar({ factoryId }: PMFullCalendarProps) {
                         </div>
                         {task.description && (
                           <p className="text-xs text-gray-500 mt-1 line-clamp-2">{task.description}</p>
+                        )}
+                        {task.assigned_to && (
+                          <p className="text-xs text-blue-600 mt-0.5 flex items-center gap-1">
+                            <Users className="w-3 h-3 shrink-0" /> {task.assigned_to}
+                          </p>
                         )}
                         {task.completed_at && (
                           <p className="text-xs text-green-600 mt-0.5">✓ {task.completed_at.slice(0, 10)}</p>

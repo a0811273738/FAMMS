@@ -329,6 +329,8 @@
     "completedMaintenance": "Maintenance completed",
     "skippedDone": "Skipped",
     "allMachines2": "All Machines",
+    "responsible": "Responsible person(s)",
+    "onlyMine": "Only mine",
     "monthBtn": "Month",
     "weekBtn": "Week",
     "todayBtn": "Today",

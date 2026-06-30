@@ -328,6 +328,8 @@
     "completedMaintenance": "已完成保養",
     "skippedDone": "已跳過",
     "allMachines2": "所有機器",
+    "responsible": "負責人（可多選）",
+    "onlyMine": "只看我的",
     "monthBtn": "月",
     "weekBtn": "週",
     "todayBtn": "今天",
