@@ -218,6 +218,9 @@ export default function UserManager({ currentUserId }: { currentUserId: string }
               placeholder={editingId ? t('settings.pwdKeepPlaceholder') : t('settings.pwdMinPlaceholder')}
               className="mt-1 font-mono"
             />
+            {editingId && (
+              <p className="text-xs text-gray-400 mt-1">{t('settings.pwdResetHint')}</p>
+            )}
           </div>
 
           <div>

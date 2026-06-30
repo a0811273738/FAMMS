@@ -39,10 +39,14 @@
     "issueType": "Jenis Masalah",
     "otherPlaceholder": "Jelaskan jenis masalah, mis. plafon bocor",
     "urgency": "Tingkat Urgensi",
-    "urgencyCritical": "🔴 Kritis", "urgencyCriticalDesc": "Produksi berhenti",
-    "urgencyHigh": "🟠 Tinggi", "urgencyHighDesc": "Mempengaruhi produksi",
-    "urgencyMedium": "🟡 Sedang", "urgencyMediumDesc": "Dampak sebagian",
-    "urgencyLow": "🟢 Rendah", "urgencyLowDesc": "Tidak mempengaruhi produksi",
+    "urgencyCritical": "🔴 Kritis",
+    "urgencyCriticalDesc": "Produksi berhenti",
+    "urgencyHigh": "🟠 Tinggi",
+    "urgencyHighDesc": "Mempengaruhi produksi",
+    "urgencyMedium": "🟡 Sedang",
+    "urgencyMediumDesc": "Dampak sebagian",
+    "urgencyLow": "🟢 Rendah",
+    "urgencyLowDesc": "Tidak mempengaruhi produksi",
     "dueDate": "Tenggat waktu",
     "dueDateHint": "Kosongkan untuk dihitung otomatis dari urgensi (Kritis=hari ini, Tinggi=1h, Sedang=3h, Rendah=7h)",
     "location": "Lokasi",
@@ -318,7 +322,13 @@
     "confirmSkip2": "Konfirmasi Lewati"
   },
   "weekdays": {
-    "0": "Min", "1": "Sen", "2": "Sel", "3": "Rab", "4": "Kam", "5": "Jum", "6": "Sab"
+    "0": "Min",
+    "1": "Sen",
+    "2": "Sel",
+    "3": "Rab",
+    "4": "Kam",
+    "5": "Jum",
+    "6": "Sab"
   },
   "pmCal": {
     "monthHeader": "{month}/{year}"
@@ -376,18 +386,18 @@
     "users": "Pengguna",
     "language": "Bahasa",
     "theme": "Tema",
-    "userSectionTitle": "Manajemen Akun",
-    "userSectionDesc": "Buat akun staf, atur peran dan kata sandi (khusus admin)",
-    "assetSectionTitle": "Manajemen Mesin / Item",
-    "assetSectionDesc": "Tambah atau hapus mesin dan item per pabrik dan area",
+    "userSectionTitle": "Manajemen Pengguna",
+    "userSectionDesc": "Buat akun, ubah peran, atur ulang kata sandi",
+    "assetSectionTitle": "Aset Mesin",
+    "assetSectionDesc": "Tambah mesin, ubah status",
     "areaSectionTitle": "Manajemen Area",
-    "areaSectionDesc": "Tambah, ubah, atau hapus area untuk tiap pabrik",
+    "areaSectionDesc": "Tambah area produksi, zona pengemasan, dll.",
     "factorySectionTitle": "Manajemen Pabrik",
-    "factorySectionDesc": "Tambah, ubah, atau hapus pabrik",
-    "incidentTypeSectionTitle": "Manajemen Jenis Masalah",
-    "incidentTypeSectionDesc": "Tambah, edit, atau hapus jenis masalah yang dapat dipilih saat melapor",
+    "factorySectionDesc": "Tambah pabrik",
+    "incidentTypeSectionTitle": "Manajemen Tipe Insiden",
+    "incidentTypeSectionDesc": "Tambah tipe masalah kustom",
     "telegramSectionTitle": "Notifikasi Telegram",
-    "telegramSectionDesc": "Kirim notifikasi saat ada laporan baru",
+    "telegramSectionDesc": "Konfigurasi token bot untuk menerima peringatan insiden",
     "noFactoryForAccount": "Pabrik untuk akun ini tidak ditemukan.",
     "loading": "Memuat...",
     "name": "Nama",
@@ -474,7 +484,10 @@
     "role": "Peran",
     "createBtn": "Buat",
     "deactivate": "Nonaktifkan",
-    "activate": "Aktifkan"
+    "activate": "Aktifkan",
+    "pmSectionTitle": "Jadwal PM",
+    "pmSectionDesc": "Tambah rencana pemeliharaan preventif",
+    "pwdResetHint": "🔒 Demi keamanan, kata sandi lama tidak dapat ditampilkan. Ketik yang baru untuk mengubah, atau kosongkan untuk tetap."
   },
   "telegram": {
     "configured": "Bot Telegram terkonfigurasi (TELEGRAM_BOT_TOKEN aktif).",
@@ -621,21 +634,5 @@
     "testing": "Pengujian",
     "observation": "Menunggu Konfirmasi",
     "closed": "Selesai"
-  },
-  "settings": {
-    "userSectionTitle": "Manajemen Pengguna",
-    "userSectionDesc": "Buat akun, ubah peran, atur ulang kata sandi",
-    "assetSectionTitle": "Aset Mesin",
-    "assetSectionDesc": "Tambah mesin, ubah status",
-    "areaSectionTitle": "Manajemen Area",
-    "areaSectionDesc": "Tambah area produksi, zona pengemasan, dll.",
-    "factorySectionTitle": "Manajemen Pabrik",
-    "factorySectionDesc": "Tambah pabrik",
-    "incidentTypeSectionTitle": "Manajemen Tipe Insiden",
-    "incidentTypeSectionDesc": "Tambah tipe masalah kustom",
-    "pmSectionTitle": "Jadwal PM",
-    "pmSectionDesc": "Tambah rencana pemeliharaan preventif",
-    "telegramSectionTitle": "Notifikasi Telegram",
-    "telegramSectionDesc": "Konfigurasi token bot untuk menerima peringatan insiden"
   }
 }

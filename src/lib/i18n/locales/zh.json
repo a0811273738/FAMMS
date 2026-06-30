@@ -39,10 +39,14 @@
     "issueType": "問題類型",
     "otherPlaceholder": "請說明問題類型，例如：天花板漏水",
     "urgency": "緊急程度",
-    "urgencyCritical": "🔴 緊急", "urgencyCriticalDesc": "生產停線",
-    "urgencyHigh": "🟠 高", "urgencyHighDesc": "影響生產",
-    "urgencyMedium": "🟡 中", "urgencyMediumDesc": "部分影響",
-    "urgencyLow": "🟢 低", "urgencyLowDesc": "不影響生產",
+    "urgencyCritical": "🔴 緊急",
+    "urgencyCriticalDesc": "生產停線",
+    "urgencyHigh": "🟠 高",
+    "urgencyHighDesc": "影響生產",
+    "urgencyMedium": "🟡 中",
+    "urgencyMediumDesc": "部分影響",
+    "urgencyLow": "🟢 低",
+    "urgencyLowDesc": "不影響生產",
     "dueDate": "截止日",
     "dueDateHint": "留空則依緊急程度自動計算（緊急=當天、高=1天、中=3天、低=7天）",
     "location": "位置",
@@ -318,7 +322,13 @@
     "confirmSkip2": "確認跳過"
   },
   "weekdays": {
-    "0": "日", "1": "一", "2": "二", "3": "三", "4": "四", "5": "五", "6": "六"
+    "0": "日",
+    "1": "一",
+    "2": "二",
+    "3": "三",
+    "4": "四",
+    "5": "五",
+    "6": "六"
   },
   "pmCal": {
     "monthHeader": "{year}年{month}月"
@@ -376,18 +386,18 @@
     "users": "用戶",
     "language": "語言",
     "theme": "主題",
-    "userSectionTitle": "帳號管理",
-    "userSectionDesc": "建立員工帳號、設定角色與密碼（僅管理員）",
-    "assetSectionTitle": "機器/項目管理",
-    "assetSectionDesc": "依工廠、區域新增或刪除機器與項目",
+    "userSectionTitle": "使用者管理",
+    "userSectionDesc": "新增帳號、編輯角色、密碼重設",
+    "assetSectionTitle": "機器資產",
+    "assetSectionDesc": "新增機器、編輯狀態",
     "areaSectionTitle": "區域管理",
-    "areaSectionDesc": "為每個工廠新增、編輯或刪除區域",
+    "areaSectionDesc": "新增生產區、包裝區等工作區域",
     "factorySectionTitle": "工廠管理",
-    "factorySectionDesc": "新增、編輯或刪除工廠",
+    "factorySectionDesc": "新增工廠",
     "incidentTypeSectionTitle": "問題類型管理",
-    "incidentTypeSectionDesc": "新增、編輯或刪除報修時可選的問題類型",
+    "incidentTypeSectionDesc": "新增自訂問題類型",
     "telegramSectionTitle": "Telegram 通知",
-    "telegramSectionDesc": "有新報修時發送通知",
+    "telegramSectionDesc": "設定機器人 token，接收案件警報",
     "noFactoryForAccount": "找不到此帳戶的工廠。",
     "loading": "載入中...",
     "name": "名稱",
@@ -474,7 +484,10 @@
     "role": "角色",
     "createBtn": "建立",
     "deactivate": "停用",
-    "activate": "啟用"
+    "activate": "啟用",
+    "pmSectionTitle": "保養計畫",
+    "pmSectionDesc": "新增定期保養排程",
+    "pwdResetHint": "🔒 為安全考量，系統不會顯示原密碼。要修改直接輸入新密碼即可；留空則維持不變。"
   },
   "telegram": {
     "configured": "Telegram Bot 已設定（TELEGRAM_BOT_TOKEN 已啟用）。",
@@ -621,21 +634,5 @@
     "testing": "測試中",
     "observation": "待現場確認",
     "closed": "已結案"
-  },
-  "settings": {
-    "userSectionTitle": "使用者管理",
-    "userSectionDesc": "新增帳號、編輯角色、密碼重設",
-    "assetSectionTitle": "機器資產",
-    "assetSectionDesc": "新增機器、編輯狀態",
-    "areaSectionTitle": "區域管理",
-    "areaSectionDesc": "新增生產區、包裝區等工作區域",
-    "factorySectionTitle": "工廠管理",
-    "factorySectionDesc": "新增工廠",
-    "incidentTypeSectionTitle": "問題類型管理",
-    "incidentTypeSectionDesc": "新增自訂問題類型",
-    "pmSectionTitle": "保養計畫",
-    "pmSectionDesc": "新增定期保養排程",
-    "telegramSectionTitle": "Telegram 通知",
-    "telegramSectionDesc": "設定機器人 token，接收案件警報"
   }
 }

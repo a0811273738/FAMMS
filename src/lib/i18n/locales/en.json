@@ -39,10 +39,14 @@
     "issueType": "Issue Type",
     "otherPlaceholder": "Describe the issue type, e.g. ceiling leak",
     "urgency": "Urgency",
-    "urgencyCritical": "🔴 Critical", "urgencyCriticalDesc": "Production stopped",
-    "urgencyHigh": "🟠 High", "urgencyHighDesc": "Affects production",
-    "urgencyMedium": "🟡 Medium", "urgencyMediumDesc": "Partial impact",
-    "urgencyLow": "🟢 Low", "urgencyLowDesc": "No production impact",
+    "urgencyCritical": "🔴 Critical",
+    "urgencyCriticalDesc": "Production stopped",
+    "urgencyHigh": "🟠 High",
+    "urgencyHighDesc": "Affects production",
+    "urgencyMedium": "🟡 Medium",
+    "urgencyMediumDesc": "Partial impact",
+    "urgencyLow": "🟢 Low",
+    "urgencyLowDesc": "No production impact",
     "dueDate": "Due date",
     "dueDateHint": "Leave empty to auto-calculate from urgency (Critical=today, High=1d, Medium=3d, Low=7d)",
     "location": "Location",
@@ -319,7 +323,13 @@
     "confirmSkip2": "Confirm Skip"
   },
   "weekdays": {
-    "0": "Sun", "1": "Mon", "2": "Tue", "3": "Wed", "4": "Thu", "5": "Fri", "6": "Sat"
+    "0": "Sun",
+    "1": "Mon",
+    "2": "Tue",
+    "3": "Wed",
+    "4": "Thu",
+    "5": "Fri",
+    "6": "Sat"
   },
   "pmCal": {
     "monthHeader": "{month}/{year}"
@@ -378,17 +388,17 @@
     "language": "Language",
     "theme": "Theme",
     "userSectionTitle": "User Management",
-    "userSectionDesc": "Create staff accounts, set roles and passwords (admin only)",
-    "assetSectionTitle": "Machine / Item Management",
-    "assetSectionDesc": "Add or remove machines and items by factory and area",
+    "userSectionDesc": "Create accounts, edit roles, reset passwords",
+    "assetSectionTitle": "Machine Assets",
+    "assetSectionDesc": "Add machines, edit status",
     "areaSectionTitle": "Area Management",
-    "areaSectionDesc": "Add, edit or remove areas for each factory",
+    "areaSectionDesc": "Add production areas, packing zones, etc.",
     "factorySectionTitle": "Factory Management",
-    "factorySectionDesc": "Add, edit or remove factories",
-    "incidentTypeSectionTitle": "Issue Type Management",
-    "incidentTypeSectionDesc": "Add, edit, or remove issue types selectable when reporting",
+    "factorySectionDesc": "Add factories",
+    "incidentTypeSectionTitle": "Incident Type Management",
+    "incidentTypeSectionDesc": "Add custom issue types",
     "telegramSectionTitle": "Telegram Notifications",
-    "telegramSectionDesc": "Send a notification when a new issue is reported",
+    "telegramSectionDesc": "Configure bot token to receive incident alerts",
     "noFactoryForAccount": "No factory found for this account.",
     "loading": "Loading...",
     "name": "Name",
@@ -475,7 +485,10 @@
     "role": "Role",
     "createBtn": "Create",
     "deactivate": "Deactivate",
-    "activate": "Activate"
+    "activate": "Activate",
+    "pmSectionTitle": "PM Schedules",
+    "pmSectionDesc": "Add preventive maintenance plans",
+    "pwdResetHint": "🔒 For security the current password cannot be shown. Type a new one to change it, or leave blank to keep it."
   },
   "telegram": {
     "configured": "Telegram bot configured (TELEGRAM_BOT_TOKEN active).",
@@ -622,21 +635,5 @@
     "testing": "Testing",
     "observation": "Awaiting Confirmation",
     "closed": "Closed"
-  },
-  "settings": {
-    "userSectionTitle": "User Management",
-    "userSectionDesc": "Create accounts, edit roles, reset passwords",
-    "assetSectionTitle": "Machine Assets",
-    "assetSectionDesc": "Add machines, edit status",
-    "areaSectionTitle": "Area Management",
-    "areaSectionDesc": "Add production areas, packing zones, etc.",
-    "factorySectionTitle": "Factory Management",
-    "factorySectionDesc": "Add factories",
-    "incidentTypeSectionTitle": "Incident Type Management",
-    "incidentTypeSectionDesc": "Add custom issue types",
-    "pmSectionTitle": "PM Schedules",
-    "pmSectionDesc": "Add preventive maintenance plans",
-    "telegramSectionTitle": "Telegram Notifications",
-    "telegramSectionDesc": "Configure bot token to receive incident alerts"
   }
 }
