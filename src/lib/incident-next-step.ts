@@ -1,9 +1,9 @@
 // "Next step" guidance for the incident workflow.
 //
-// For every IncidentStatus the app shows a short hint of what should happen
-// next (site-wide: detail page banner + board cards). The hint text lives in
-// the i18n dictionaries under the `nextStep.<status>` key so it follows the
-// active language; this module only owns the small bits of logic around it.
+// For every IncidentStatus the app shows a "now → next" hint so staff always
+// know what to do next without memorizing the workflow (site-wide: detail page
+// banner + board cards). The wording lives in the i18n dictionaries under
+// `nextStep.*`; this module owns the small bits of workflow logic.
 import type { IncidentStatus } from '@/types'
 
 // Statuses that need no further action — the case is finished.
@@ -13,7 +13,29 @@ export function isTerminalStatus(status: IncidentStatus): boolean {
   return TERMINAL_STATUSES.includes(status)
 }
 
-// i18n key holding the guidance text for a status (e.g. 'nextStep.reported').
-export function nextStepKey(status: IncidentStatus): string {
-  return `nextStep.${status}`
+// The next *visible* status to switch to from the current one. Mirrors the
+// simplified board flow (新回報 → 已接收 → 處理中 → 測試中 → 待現場確認 → 已結案).
+// analyzing/repairing both display as "處理中", so their next milestone is
+// "測試中"; every "waiting" side-state resumes at "處理中" (repairing).
+const NEXT_STATUS: Partial<Record<IncidentStatus, IncidentStatus>> = {
+  reported: 'accepted',
+  accepted: 'analyzing',
+  analyzing: 'testing',
+  repairing: 'testing',
+  testing: 'observation',
+  observation: 'closed',
+  waiting_parts: 'repairing',
+  waiting_approval: 'repairing',
+  waiting_vendor: 'repairing',
+  waiting_shutdown: 'repairing',
+  // closed: terminal — no next status
+}
+
+export function nextStatusOf(status: IncidentStatus): IncidentStatus | null {
+  return NEXT_STATUS[status] ?? null
+}
+
+// i18n key for the short action hint shown next to the target status.
+export function nextHintKey(status: IncidentStatus): string {
+  return `nextStep.hint.${status}`
 }
