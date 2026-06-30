@@ -56,6 +56,7 @@
     "urgencyLowDesc": "No impact, SLA 7 days",
     "dueDate": "Due date",
     "dueDateHint": "Leave empty to auto-calculate from urgency (Critical=today, High=1d, Medium=3d, Low=7d)",
+    "advancedOptions": "Advanced (due date, optional)",
     "location": "Location",
     "selectFactory": "Select factory",
     "selectArea": "Select area (optional)",

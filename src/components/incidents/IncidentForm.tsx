@@ -342,19 +342,25 @@ export default function IncidentForm() {
         </div>
       </div>
 
-      {/* Deadline (optional — auto-derived from urgency if left empty) */}
-      <div>
-        <Label className="text-base">{t('report.dueDate', '截止日')}</Label>
-        <Input
-          type="date"
-          value={dueDate}
-          onChange={e => setDueDate(e.target.value)}
-          className="mt-1"
-        />
-        <p className="text-xs text-gray-400 mt-1">
-          {t('report.dueDateHint', '留空則依緊急程度自動計算（緊急=當天、高=1天、中=3天、低=7天）')}
-        </p>
-      </div>
+      {/* Deadline — advanced/optional. Collapsed by default so new users aren't
+          distracted: leaving it empty auto-derives the date from urgency. */}
+      <details className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
+        <summary className="text-sm text-gray-600 cursor-pointer select-none">
+          {t('report.advancedOptions', '進階選項（截止日，可不填）')}
+        </summary>
+        <div className="mt-2">
+          <Label className="text-sm">{t('report.dueDate', '截止日')}</Label>
+          <Input
+            type="date"
+            value={dueDate}
+            onChange={e => setDueDate(e.target.value)}
+            className="mt-1"
+          />
+          <p className="text-xs text-gray-400 mt-1">
+            {t('report.dueDateHint', '留空則依緊急程度自動計算（緊急=當天、高=1天、中=3天、低=7天）')}
+          </p>
+        </div>
+      </details>
       </div>
       {/* ---- Right column ---- */}
       <div className="space-y-5">

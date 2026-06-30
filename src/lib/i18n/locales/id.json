@@ -56,6 +56,7 @@
     "urgencyLowDesc": "Tidak berpengaruh, SLA 7 hari",
     "dueDate": "Tenggat waktu",
     "dueDateHint": "Kosongkan untuk dihitung otomatis dari urgensi (Kritis=hari ini, Tinggi=1 hari, Sedang=3 hari, Rendah=7 hari)",
+    "advancedOptions": "Opsi lanjutan (tenggat, opsional)",
     "location": "Lokasi",
     "selectFactory": "Pilih pabrik",
     "selectArea": "Pilih area (opsional)",

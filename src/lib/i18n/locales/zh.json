@@ -56,6 +56,7 @@
     "urgencyLowDesc": "不影響產能，SLA 7 天",
     "dueDate": "截止日",
     "dueDateHint": "留空則依緊急程度自動計算（緊急=當天、高=1天、中=3天、低=7天）",
+    "advancedOptions": "進階選項（截止日，可不填）",
     "location": "位置",
     "selectFactory": "選擇工廠",
     "selectArea": "選擇區域（可選）",
