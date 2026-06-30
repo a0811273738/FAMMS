@@ -616,6 +616,20 @@
     "C": "🟡 Reduced Capacity",
     "D": "🟢 No Impact"
   },
+  "nextStepLabel": "Next step",
+  "nextStep": {
+    "reported": "A supervisor accepts this case and assigns an owner",
+    "accepted": "The owner inspects on-site, then sets status to \"In Progress\"",
+    "analyzing": "Find the cause and start the repair; if parts are missing, set \"Waiting for Parts\"",
+    "waiting_parts": "When parts arrive, set back to \"In Progress\" and continue",
+    "waiting_approval": "Once approved, set back to \"In Progress\"",
+    "waiting_vendor": "Once the vendor finishes, set back to \"In Progress\"",
+    "waiting_shutdown": "Start the repair when the shutdown window opens",
+    "repairing": "After the repair, set \"Testing\" to verify the fix",
+    "testing": "Pass → go to \"Confirm\" observation; fail → back to \"In Progress\"",
+    "observation": "If stable through the observation period, a supervisor can close it",
+    "closed": "Closed. Consider a knowledge-base entry to capture lessons learned"
+  },
   "boardFilters": {
     "all": "All",
     "reported": "Reported",

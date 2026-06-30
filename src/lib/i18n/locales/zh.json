@@ -615,6 +615,20 @@
     "C": "🟡 產能下降",
     "D": "🟢 不影響"
   },
+  "nextStepLabel": "下一步",
+  "nextStep": {
+    "reported": "主管接收此案件，並指派負責人",
+    "accepted": "負責人到現場檢查，把狀態改為「處理中」",
+    "analyzing": "找出原因並開始維修；若缺料件改為「等待料件」",
+    "waiting_parts": "料件到貨後，改回「處理中」繼續維修",
+    "waiting_approval": "核准後改回「處理中」繼續",
+    "waiting_vendor": "外包完成後改回「處理中」繼續",
+    "waiting_shutdown": "停機時段到了就開始維修",
+    "repairing": "維修完成後，改為「測試中」確認是否修好",
+    "testing": "測試正常→進入「待確認」觀察；異常→退回「處理中」",
+    "observation": "觀察期間運作穩定，即可由主管結案",
+    "closed": "已結案。可建立知識庫記錄這次的處理經驗"
+  },
   "boardFilters": {
     "all": "全部",
     "reported": "新回報",

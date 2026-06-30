@@ -615,6 +615,20 @@
     "C": "🟡 Kapasitas Turun",
     "D": "🟢 Tidak Berpengaruh"
   },
+  "nextStepLabel": "Langkah berikutnya",
+  "nextStep": {
+    "reported": "Supervisor menerima kasus ini dan menetapkan penanggung jawab",
+    "accepted": "Penanggung jawab cek di lokasi, lalu ubah status ke \"Proses\"",
+    "analyzing": "Temukan penyebab dan mulai perbaikan; jika kurang parts ubah ke \"Menunggu Parts\"",
+    "waiting_parts": "Saat parts tiba, kembalikan ke \"Proses\" dan lanjutkan",
+    "waiting_approval": "Setelah disetujui, kembali ke \"Proses\"",
+    "waiting_vendor": "Setelah vendor selesai, kembali ke \"Proses\"",
+    "waiting_shutdown": "Mulai perbaikan saat jadwal shutdown tiba",
+    "repairing": "Setelah perbaikan, ubah ke \"Pengujian\" untuk verifikasi",
+    "testing": "Lulus uji → ke \"Konfirmasi\" observasi; gagal → kembali ke \"Proses\"",
+    "observation": "Jika stabil selama observasi, supervisor bisa menutup kasus",
+    "closed": "Kasus selesai. Buat entri knowledge base untuk catatan pengalaman"
+  },
   "boardFilters": {
     "all": "Semua",
     "reported": "Dilaporkan",

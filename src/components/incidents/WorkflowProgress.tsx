@@ -72,15 +72,21 @@ export default function WorkflowProgress({ status }: { status: IncidentStatus })
       </div>
 
       {/* Waiting state notice */}
-      {isWaiting && (
-        <div className="mt-3 flex items-center gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">
-          <span className="text-sm">⏸</span>
-          <span>
-            <span className="font-semibold">{stepLabel(status)}</span>
-            {' '}— menunggu sebelum melanjutkan ke Perbaikan
-          </span>
-        </div>
-      )}
+      {/* Next-step guidance — plain words telling whoever opens the case what to
+          do now. Green when closed, amber while waiting, blue otherwise. */}
+      <div className={`mt-3 flex items-start gap-2 rounded-lg border px-3 py-2 text-xs ${
+        isClosed
+          ? 'bg-green-50 border-green-200 text-green-800'
+          : isWaiting
+          ? 'bg-amber-50 border-amber-200 text-amber-800'
+          : 'bg-blue-50 border-blue-200 text-blue-800'
+      }`}>
+        <span className="shrink-0">{isClosed ? '✅' : isWaiting ? '⏸' : '👉'}</span>
+        <span>
+          <span className="font-semibold">{t('nextStepLabel', '下一步')}：</span>
+          {t(`nextStep.${status}`)}
+        </span>
+      </div>
     </div>
   )
 }
