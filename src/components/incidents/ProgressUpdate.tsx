@@ -195,11 +195,15 @@ export default function ProgressUpdate({
 
       <div>
         <Label>{t('progressUpdate.updater')}</Label>
+        {/* Auto-filled with the logged-in user's name and locked, so the
+            handler is recorded accurately. If the account has no name on file
+            we leave it editable as a fallback. */}
         <Input
           value={updaterName}
           onChange={e => setUpdaterName(e.target.value)}
           placeholder={t('progressUpdate.updaterPlaceholder')}
-          className="mt-1"
+          readOnly={!!userName}
+          className={`mt-1 ${userName ? 'bg-gray-50 text-gray-600 cursor-not-allowed' : ''}`}
         />
       </div>
 
