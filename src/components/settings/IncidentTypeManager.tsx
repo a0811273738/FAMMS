@@ -6,9 +6,16 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
-import { Loader2, Trash2, Plus } from 'lucide-react'
+import { Loader2, Trash2, Plus, Pencil } from 'lucide-react'
 import { useI18n } from '@/lib/i18n'
-import { useIncidentTypes, invalidateIncidentTypes } from '@/lib/useIncidentTypes'
+import { useIncidentTypes, invalidateIncidentTypes, type IncidentType } from '@/lib/useIncidentTypes'
+
+// Seeded types whose display label comes from i18n (issueTypes.<code>), not the
+// DB. We only let users rename the DB label for these; their `code` stays fixed
+// so the multi-language board labels keep working.
+const BUILT_IN_CODES = new Set([
+  'machine', 'pipe', 'electrical', 'facility', 'safety', 'cleanliness', 'other',
+])
 
 export default function IncidentTypeManager() {
   const { t: tr } = useI18n()
@@ -17,11 +24,35 @@ export default function IncidentTypeManager() {
   // the report/edit/search forms pick up changes without a reload.
   const { types, loading } = useIncidentTypes()
   const [showForm, setShowForm] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [label, setLabel] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
+  function startAdd() {
+    setEditingId(null)
+    setLabel('')
+    setShowForm(true)
+  }
+
+  function startEdit(t: IncidentType) {
+    if (t.code === 'other') {
+      toast.error(tr('settings.cannotEditOther'))
+      return
+    }
+    setEditingId(t.id)
+    setLabel(t.label)
+    setShowForm(true)
+  }
+
+  function closeForm() {
+    setShowForm(false)
+    setEditingId(null)
+    setLabel('')
+  }
+
   async function add() {
-    if (!label.trim()) {
+    const name = label.trim()
+    if (!name) {
       toast.error(tr('settings.incidentTypeNameRequired'))
       return
     }
@@ -30,18 +61,67 @@ export default function IncidentTypeManager() {
       const maxOrder = types.reduce((m, t) => Math.max(m, t.sort_order), 0)
       // code = label for user-added types, so the board shows the label directly.
       const { error } = await supabase.from('incident_types').insert([{
-        code: label.trim(),
-        label: label.trim(),
+        code: name,
+        label: name,
         sort_order: maxOrder + 1,
         is_active: true,
       }])
       if (error) throw error
       toast.success(tr('settings.incidentTypeAdded'))
-      setLabel('')
-      setShowForm(false)
+      closeForm()
       await invalidateIncidentTypes()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : tr('settings.addFailed'))
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function update() {
+    const orig = types.find(t => t.id === editingId)
+    if (!orig) return
+    const name = label.trim()
+    if (!name) {
+      toast.error(tr('settings.incidentTypeNameRequired'))
+      return
+    }
+    if (name === orig.label) {
+      closeForm()
+      return
+    }
+    setSubmitting(true)
+    try {
+      const isBuiltIn = BUILT_IN_CODES.has(orig.code)
+      if (isBuiltIn) {
+        // Built-in: board label comes from i18n; only the DB label changes.
+        const { error } = await supabase
+          .from('incident_types')
+          .update({ label: name })
+          .eq('id', orig.id)
+        if (error) throw error
+      } else {
+        // User-added: keep code === label and migrate existing incidents so the
+        // board (which shows the raw code as fallback) reflects the rename.
+        // A duplicate name trips the incident_types_code_key UNIQUE constraint,
+        // which surfaces via the catch below.
+        const newCode = name
+        const { error } = await supabase
+          .from('incident_types')
+          .update({ code: newCode, label: name })
+          .eq('id', orig.id)
+        if (error) throw error
+        // Re-point historical incidents from the old code to the new one.
+        const { error: migErr } = await supabase
+          .from('incidents')
+          .update({ incident_type: newCode })
+          .eq('incident_type', orig.code)
+        if (migErr) throw migErr
+      }
+      toast.success(tr('settings.incidentTypeUpdated'))
+      closeForm()
+      await invalidateIncidentTypes()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : tr('settings.operationFailed'))
     } finally {
       setSubmitting(false)
     }
@@ -72,13 +152,16 @@ export default function IncidentTypeManager() {
   return (
     <div className="space-y-4">
       {!showForm && (
-        <Button onClick={() => setShowForm(true)} className="gap-2">
+        <Button onClick={startAdd} className="gap-2">
           <Plus className="w-4 h-4" /> {tr('settings.addIncidentType')}
         </Button>
       )}
 
       {showForm && (
         <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+          <p className="text-sm font-medium text-gray-700">
+            {editingId ? tr('settings.editIncidentType') : tr('settings.addIncidentType')}
+          </p>
           <div>
             <Label>{tr('settings.incidentTypeName')}</Label>
             <Input
@@ -89,11 +172,11 @@ export default function IncidentTypeManager() {
             />
           </div>
           <div className="flex gap-2">
-            <Button onClick={add} disabled={submitting}>
+            <Button onClick={editingId ? update : add} disabled={submitting}>
               {submitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              {tr('settings.create')}
+              {editingId ? tr('settings.update') : tr('settings.create')}
             </Button>
-            <Button variant="outline" onClick={() => { setShowForm(false); setLabel('') }}>
+            <Button variant="outline" onClick={closeForm}>
               {tr('settings.cancel')}
             </Button>
           </div>
@@ -104,14 +187,24 @@ export default function IncidentTypeManager() {
         {types.map(t => (
           <div key={t.id} className="flex items-center justify-between p-3 border rounded-lg">
             <p className="font-medium text-sm">{t.label}</p>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => remove(t.id, t.code)}
-              disabled={t.code === 'other'}
-            >
-              <Trash2 className="w-4 h-4 text-red-600" />
-            </Button>
+            <div className="flex gap-1">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => startEdit(t)}
+                disabled={t.code === 'other'}
+              >
+                <Pencil className={`w-4 h-4 ${t.code === 'other' ? 'text-gray-300' : ''}`} />
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => remove(t.id, t.code)}
+                disabled={t.code === 'other'}
+              >
+                <Trash2 className={`w-4 h-4 ${t.code === 'other' ? 'text-gray-300' : 'text-red-600'}`} />
+              </Button>
+            </div>
           </div>
         ))}
       </div>
