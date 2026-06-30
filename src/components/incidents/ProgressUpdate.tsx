@@ -24,6 +24,29 @@ const SELECTABLE: IncidentStatus[] = [
   'accepted', 'analyzing', 'waiting_parts', 'repairing', 'testing', 'observation', 'closed',
 ]
 
+// Linear forward order of the main workflow. A case may only move to its
+// current status or a status further along this line — never backwards.
+const MAIN_ORDER: IncidentStatus[] = [
+  'reported', 'accepted', 'analyzing', 'repairing', 'testing', 'observation', 'closed',
+]
+
+// "Waiting" side-states are temporary blocks reachable any time before close.
+const WAITING_STATES: IncidentStatus[] = [
+  'waiting_parts', 'waiting_approval', 'waiting_vendor', 'waiting_shutdown',
+]
+
+// Compute which statuses the form may offer given the case's current status.
+// Forward-only on the main line; waiting states stay open until the case is
+// closed; always intersected with SELECTABLE (the form's allowed targets).
+function allowedStatuses(currentStatus: IncidentStatus): IncidentStatus[] {
+  const currentIndex = MAIN_ORDER.indexOf(currentStatus)
+  return SELECTABLE.filter(s => {
+    if (WAITING_STATES.includes(s)) return currentStatus !== 'closed'
+    const index = MAIN_ORDER.indexOf(s)
+    return index >= 0 && currentIndex >= 0 && index >= currentIndex
+  })
+}
+
 export default function ProgressUpdate({
   incidentId, currentStatus, userRole = 'technician', userName,
 }: {
@@ -38,8 +61,10 @@ export default function ProgressUpdate({
   const statusLabel = (s: IncidentStatus) => t(`boardStatus.${s}`, STATUS_ZH[s])
   const canClose = PERMISSIONS.closeIncident(userRole)
 
-  // Only supervisors+ may move a case to "closed".
-  const selectableStatuses = canClose ? SELECTABLE : SELECTABLE.filter(s => s !== 'closed')
+  // Forward-only options (current + later workflow states, plus open waiting
+  // states). Only supervisors+ may move a case to "closed".
+  const forwardStatuses = allowedStatuses(currentStatus)
+  const selectableStatuses = canClose ? forwardStatuses : forwardStatuses.filter(s => s !== 'closed')
 
   const [newStatus, setNewStatus] = useState<string>(currentStatus)
   const [note, setNote] = useState('')
