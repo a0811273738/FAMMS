@@ -38,7 +38,12 @@ const WAITING_STATES: IncidentStatus[] = [
 // Compute which statuses the form may offer given the case's current status.
 // Forward-only on the main line; waiting states stay open until the case is
 // closed; always intersected with SELECTABLE (the form's allowed targets).
-function allowedStatuses(currentStatus: IncidentStatus): IncidentStatus[] {
+function allowedStatuses(currentStatus: IncidentStatus, allowRollback: boolean = false): IncidentStatus[] {
+  if (allowRollback) {
+    // Rollback allowed: show all selectable statuses except 'reported'
+    return SELECTABLE.filter(s => s !== 'reported')
+  }
+
   const currentIndex = MAIN_ORDER.indexOf(currentStatus)
   return SELECTABLE.filter(s => {
     if (WAITING_STATES.includes(s)) return currentStatus !== 'closed'
@@ -61,15 +66,15 @@ export default function ProgressUpdate({
   const statusLabel = (s: IncidentStatus) => t(`boardStatus.${s}`, STATUS_ZH[s])
   const canClose = PERMISSIONS.closeIncident(userRole)
 
-  // Forward-only options (current + later workflow states, plus open waiting
-  // states). Only supervisors+ may move a case to "closed".
-  const forwardStatuses = allowedStatuses(currentStatus)
-  const selectableStatuses = canClose ? forwardStatuses : forwardStatuses.filter(s => s !== 'closed')
+  // Status options based on rollback setting. Only supervisors+ may move a case to "closed".
+  const availableStatuses = allowedStatuses(currentStatus, allowRollback)
+  const selectableStatuses = canClose ? availableStatuses : availableStatuses.filter(s => s !== 'closed')
 
   const [newStatus, setNewStatus] = useState<string>(currentStatus)
   const [note, setNote] = useState('')
   const [updaterName, setUpdaterName] = useState(userName ?? '')
   const [photos, setPhotos] = useState<File[]>([])
+  const [allowRollback, setAllowRollback] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [compressing, setCompressing] = useState(false)
 
@@ -82,17 +87,25 @@ export default function ProgressUpdate({
       const compressed: File[] = []
       for (const file of files) {
         if (!file.type.startsWith('image/')) continue
-        const options = {
-          maxSizeMB: 1,
-          maxWidthOrHeight: 2000,
-          useWebWorker: true,
+        try {
+          const options = {
+            maxSizeMB: 0.8,
+            maxWidthOrHeight: 1280,
+            useWebWorker: true,
+          }
+          const compressedFile = await imageCompression(file, options)
+          compressed.push(compressedFile)
+        } catch (fileErr) {
+          // Skip individual files that fail compression (e.g., very large images on low-end devices)
+          console.warn('Failed to compress individual file:', file.name, fileErr)
         }
-        const compressedFile = await imageCompression(file, options)
-        compressed.push(compressedFile)
       }
-      setPhotos(prev => [...prev, ...compressed].slice(0, 5))
       if (compressed.length > 0) {
+        setPhotos(prev => [...prev, ...compressed].slice(0, 5))
         toast.success(t('progressUpdate.compressedToast').replace('{count}', String(compressed.length)))
+      }
+      if (compressed.length < files.length) {
+        toast.warning(`${files.length - compressed.length} ${t('progressUpdate.compressSkipped')}`)
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t('progressUpdate.compressFailed'))
@@ -205,6 +218,19 @@ export default function ProgressUpdate({
           readOnly={!!userName}
           className={`mt-1 ${userName ? 'bg-gray-50 text-gray-600 cursor-not-allowed' : ''}`}
         />
+      </div>
+
+      <div className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          id="allowRollback"
+          checked={allowRollback}
+          onChange={e => setAllowRollback(e.target.checked)}
+          className="w-4 h-4 rounded border-gray-300"
+        />
+        <Label htmlFor="allowRollback" className="mb-0 text-sm cursor-pointer">
+          {t('progressUpdate.allowRollback')}
+        </Label>
       </div>
 
       <div>

@@ -199,12 +199,14 @@
     "photoCount": "{count} foto ({mb} MB)",
     "compressedToast": "{count} foto dikompres",
     "compressFailed": "Kompresi gambar gagal",
+    "compressSkipped": "berkas tidak dapat dikompres (kapasitas perangkat terbatas)",
     "needStatusOrNote": "Perbarui status atau isi catatan penanganan",
     "onlySupervisorClose": "Hanya supervisor yang bisa menutup kasus",
     "rcaRequired": "RCA harus diselesaikan sebelum menutup (kerusakan sama terjadi {count} kali dalam 90 hari)",
     "closeFailed": "Gagal menutup",
     "updated": "Kemajuan diperbarui",
-    "updateFailed": "Gagal memperbarui"
+    "updateFailed": "Gagal memperbarui",
+    "allowRollback": "Izinkan mundurkan status (mis. uji gagal)"
   },
   "pm": {
     "manageTitle": "Manajemen PM",

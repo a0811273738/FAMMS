@@ -199,12 +199,14 @@
     "photoCount": "共 {count} 張（{mb} MB）",
     "compressedToast": "壓縮 {count} 張圖片完成",
     "compressFailed": "圖片壓縮失敗",
+    "compressSkipped": "個檔案無法壓縮（裝置容量不足）",
     "needStatusOrNote": "請更新狀態或填寫處理說明",
     "onlySupervisorClose": "只有主管可以結案",
     "rcaRequired": "需先完成 RCA 才能結案（同故障在 90 天內已發生 {count} 次）",
     "closeFailed": "結案失敗",
     "updated": "進度已更新",
-    "updateFailed": "更新失敗"
+    "updateFailed": "更新失敗",
+    "allowRollback": "需要退回狀態（測試失敗、複發等）"
   },
   "pm": {
     "manageTitle": "保養管理",
