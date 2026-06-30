@@ -712,5 +712,25 @@
     "zoomOut": "縮小",
     "zoomIn": "放大",
     "download": "下載原圖"
+  },
+  "nextStep": {
+    "now": "現在",
+    "next": "接下來",
+    "doneLabel": "已完成",
+    "doneNote": "建議建立知識庫紀錄，供日後相同故障參考。",
+    "awaitClose": "待你確認結案",
+    "awaitCloseNote": "確認運轉穩定後即可結案。",
+    "hint": {
+      "reported": "技師接收案件",
+      "accepted": "現場檢查找原因",
+      "analyzing": "修好後切換",
+      "repairing": "修好後切換",
+      "testing": "測試通過後",
+      "observation": "運轉穩定，主管結案",
+      "waiting_parts": "料件到貨後繼續",
+      "waiting_approval": "核准後繼續",
+      "waiting_vendor": "外包完成後繼續",
+      "waiting_shutdown": "安排停機後維修"
+    }
   }
 }

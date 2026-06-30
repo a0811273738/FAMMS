@@ -713,5 +713,25 @@
     "zoomOut": "Zoom out",
     "zoomIn": "Zoom in",
     "download": "Download original"
+  },
+  "nextStep": {
+    "now": "Now",
+    "next": "Next",
+    "doneLabel": "Completed",
+    "doneNote": "Consider adding a knowledge base entry for future reference.",
+    "awaitClose": "Awaiting your close",
+    "awaitCloseNote": "Close it once the machine runs stably.",
+    "hint": {
+      "reported": "technician accepts it",
+      "accepted": "inspect and find the cause",
+      "analyzing": "after the fix",
+      "repairing": "after the fix",
+      "testing": "if the test passes",
+      "observation": "once stable, supervisor closes",
+      "waiting_parts": "after parts arrive",
+      "waiting_approval": "once approved",
+      "waiting_vendor": "after vendor finishes",
+      "waiting_shutdown": "after shutdown is arranged"
+    }
   }
 }

@@ -4,10 +4,11 @@ import Link from 'next/link'
 import { AlertTriangle, Clock, Factory, ChevronRight, CheckCircle2, Wrench } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { zhTW, enUS, id as idLocale } from 'date-fns/locale'
-import { IncidentStatus } from '@/types'
+import { IncidentStatus, UserRole } from '@/types'
 import { URGENCY_FROM_IMPACT, STATUS_ZH, STATUS_ZH_COLOR } from '@/lib/incident-display'
 import { useI18n } from '@/lib/i18n'
 import { useIncidentTypeLabel } from '@/lib/incident-type-label'
+import NextStepHint from '@/components/incidents/NextStepHint'
 
 export interface DashboardRow {
   id: string
@@ -38,6 +39,7 @@ interface DashboardViewProps {
   urgent: DashboardRow[]
   stale: DashboardRow[]
   overdue: OverdueRow[]
+  userRole: UserRole
 }
 
 const PM_TYPE_KEYS: Record<string, string> = {
@@ -46,7 +48,7 @@ const PM_TYPE_KEYS: Record<string, string> = {
 }
 
 export default function DashboardView({
-  openCount, urgentCount, staleCount, byFactory, urgent, stale, overdue,
+  openCount, urgentCount, staleCount, byFactory, urgent, stale, overdue, userRole,
 }: DashboardViewProps) {
   const { t, locale } = useI18n()
   const dateLocale = locale === 'en' ? enUS : locale === 'id' ? idLocale : zhTW
@@ -103,12 +105,12 @@ export default function DashboardView({
 
       {/* Urgent cases */}
       <Section icon={<AlertTriangle className="w-4 h-4 text-red-500" />} title={t('dash.urgentCases')}>
-        {urgent.length === 0 ? <Empty text={t('dash.noUrgent')} /> : <CaseList rows={urgent} t={t} dateLocale={dateLocale} />}
+        {urgent.length === 0 ? <Empty text={t('dash.noUrgent')} /> : <CaseList rows={urgent} t={t} dateLocale={dateLocale} userRole={userRole} />}
       </Section>
 
       {/* Stale cases */}
       <Section icon={<Clock className="w-4 h-4 text-amber-500" />} title={t('dash.staleCases')}>
-        {stale.length === 0 ? <Empty text={t('dash.noStale')} /> : <CaseList rows={stale} t={t} dateLocale={dateLocale} />}
+        {stale.length === 0 ? <Empty text={t('dash.noStale')} /> : <CaseList rows={stale} t={t} dateLocale={dateLocale} userRole={userRole} />}
       </Section>
 
       {/* Overdue maintenance */}
@@ -166,11 +168,12 @@ function Empty({ text }: { text: string }) {
 }
 
 function CaseList({
-  rows, t, dateLocale,
+  rows, t, dateLocale, userRole,
 }: {
   rows: DashboardRow[]
   t: (key: string, fallback?: string) => string
   dateLocale: Locale
+  userRole: UserRole
 }) {
   const typeLabel = useIncidentTypeLabel()
   return (
@@ -190,6 +193,11 @@ function CaseList({
             <p className="text-xs text-gray-400 mt-0.5">
               {r.factory?.name || ''} · {formatDistanceToNow(new Date(r.updated_at), { addSuffix: true, locale: dateLocale })}
             </p>
+            {r.status !== 'closed' && (
+              <div className="mt-1.5 pt-1.5 border-t border-gray-100">
+                <NextStepHint status={r.status} variant="inline" userRole={userRole} />
+              </div>
+            )}
           </Link>
         )
       })}
