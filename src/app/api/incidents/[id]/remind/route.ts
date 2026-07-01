@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
-import { notifyFactory } from '@/lib/telegram'
+import { notifyFactory, notifyAssignees } from '@/lib/telegram'
 import { PERMISSIONS } from '@/lib/permissions'
 import type { UserRole } from '@/types'
 
@@ -38,7 +38,7 @@ export async function POST(
   const { data: incident, error: loadErr } = await supabase
     .from('incidents')
     .select(`
-      id, incident_no, title, status, factory_id, assigned_to, due_date,
+      id, incident_no, title, status, factory_id, assigned_to, assigned_user_ids, due_date,
       machine:machines(machine_code, machine_name),
       factory:factories(name)
     `)
@@ -67,13 +67,29 @@ export async function POST(
     `<a href="${appUrl}/incidents/${incident.id}">更新進度 →</a>`,
   ].filter(Boolean).join('\n')
 
+  const assignedIds = Array.isArray(incident.assigned_user_ids) ? (incident.assigned_user_ids as string[]) : []
+
   try {
-    const result = await notifyFactory(supabase, {
-      factoryId: incident.factory_id,
-      type: 'status_update',
-      html,
+    // 1) Direct-message the assigned people (QC, technician, whoever) so the
+    //    nudge lands in their personal chat — the real "催". 2) Also broadcast
+    //    to the factory's groups so the team keeps visibility.
+    const [personal, group] = await Promise.all([
+      notifyAssignees(supabase, { profileIds: assignedIds, type: 'status_update', html }),
+      notifyFactory(supabase, { factoryId: incident.factory_id, type: 'status_update', html }),
+    ])
+
+    return NextResponse.json({
+      ok: true,
+      // Combined totals keep older callers working…
+      sent: personal.sent + group.sent,
+      failed: personal.failed + group.failed,
+      // …and the breakdown powers a clearer toast ("2 pinged, 1 not set up").
+      personalSent: personal.sent,
+      personalFailed: personal.failed,
+      unregistered: personal.unregistered,
+      groupSent: group.sent,
+      groupFailed: group.failed,
     })
-    return NextResponse.json({ ok: true, ...result })
   } catch (err) {
     return NextResponse.json({ ok: false, error: err instanceof Error ? err.message : 'notify failed' }, { status: 500 })
   }

@@ -35,6 +35,8 @@
     "cardButton": "Ingatkan",
     "notePlaceholder": "Opsional: pesan untuk penanggung jawab (mis. bos menanyakan, bisa selesai hari ini?)",
     "sent": "Pengingat dikirim via Telegram ({count} penerima)",
+    "sentPersonal": "Sudah DM {count} penanggung jawab & notifikasi group",
+    "unregistered": "{count} penanggung jawab belum set Telegram pribadi, hanya dapat notifikasi group",
     "noRecipients": "Terkirim, tetapi belum ada penerima Telegram yang berlangganan",
     "failed": "Gagal mengirim pengingat"
   },
@@ -646,7 +648,22 @@
     "flagNewIncident": "Incident Baru",
     "flagSlaAlert": "SLA Alert",
     "flagBlocking": "Blocking",
-    "flagDailySummary": "Ringkasan Harian"
+    "flagDailySummary": "Ringkasan Harian",
+    "personalTitle": "Notifikasi Pribadi",
+    "personalDesc": "Daftarkan Chat ID pribadi karyawan. Saat incident ditugaskan ke dia lalu diingatkan, dia akan di-DM langsung.",
+    "personalStep1": "1. Karyawan DM bot FAMMS di Telegram, kirim /start",
+    "personalStep2": "2. Bot membalas \"Chat ID Anda: angka\"",
+    "personalStep3": "3. Pilih akun di bawah, isi angka itu ke Chat ID lalu tambah",
+    "account": "Akun",
+    "selectAccount": "— Pilih akun —",
+    "personalChatId": "Chat ID Pribadi",
+    "addUserBtn": "Tambah Notifikasi Pribadi",
+    "fillUserAndId": "Pilih akun dan isi Chat ID",
+    "userAdded": "Notifikasi pribadi ditambahkan",
+    "addUserFailed": "Gagal menambah notifikasi pribadi",
+    "userDeleted": "Notifikasi pribadi dihapus",
+    "enabled": "Aktif",
+    "disabled": "Nonaktif"
   },
   "spareParts": {
     "title": "Manajemen Suku Cadang",

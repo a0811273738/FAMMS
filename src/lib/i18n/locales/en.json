@@ -35,6 +35,8 @@
     "cardButton": "Nudge",
     "notePlaceholder": "Optional: a message for the assignee (e.g. the boss is asking — can it be done today?)",
     "sent": "Reminder sent via Telegram ({count} recipients)",
+    "sentPersonal": "DM'd {count} assignee(s) directly & notified the group",
+    "unregistered": "{count} assignee(s) have no personal Telegram set up — only got the group notice",
     "noRecipients": "Sent, but no subscribed Telegram recipients yet",
     "failed": "Failed to send reminder"
   },
@@ -646,7 +648,22 @@
     "flagNewIncident": "New Incident",
     "flagSlaAlert": "SLA Alert",
     "flagBlocking": "Blocking",
-    "flagDailySummary": "Daily Summary"
+    "flagDailySummary": "Daily Summary",
+    "personalTitle": "Personal Notifications",
+    "personalDesc": "Register an employee's personal Chat ID. When a case is assigned to them and nudged, they get DM'd directly.",
+    "personalStep1": "1. The employee DMs the FAMMS bot on Telegram, sends /start",
+    "personalStep2": "2. The bot replies \"Chat ID Anda: number\"",
+    "personalStep3": "3. Pick the account below, put that number into Chat ID, then add",
+    "account": "Account",
+    "selectAccount": "— Select account —",
+    "personalChatId": "Personal Chat ID",
+    "addUserBtn": "Add Personal Notification",
+    "fillUserAndId": "Select an account and enter a Chat ID",
+    "userAdded": "Personal notification added",
+    "addUserFailed": "Failed to add personal notification",
+    "userDeleted": "Personal notification deleted",
+    "enabled": "Enabled",
+    "disabled": "Disabled"
   },
   "spareParts": {
     "title": "Spare Parts Management",
