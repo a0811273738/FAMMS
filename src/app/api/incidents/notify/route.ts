@@ -19,6 +19,13 @@ const URGENCY_LABELS: Record<string, string> = {
 // POST /api/incidents/notify — send Telegram alert for a new report
 export async function POST(req: Request) {
   const supabase = await createClient()
+
+  // Require a logged-in user — otherwise anyone could POST an incidentId and
+  // spam the factory's Telegram groups. Any authenticated user may trigger it
+  // (the reporter, right after creating the incident).
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   const { incidentId } = await req.json()
   if (!incidentId) {
     return NextResponse.json({ error: 'incidentId required' }, { status: 400 })
