@@ -1,5 +1,7 @@
 # TEMPLATES.md — Dispatch prompt templates
 
+verified: 2026-07-04
+
 Copy the matching template into the Agent tool's `prompt`, fill every ⟨blank⟩,
 delete lines that don't apply. Never dispatch a prompt missing the acceptance
 criteria or report format — those two are what make weak-model delegation work.
@@ -84,8 +86,8 @@ REPORT: counts (edited/skipped), skipped list with reasons, tsc status.
 ```text
 GOAL: Answer: ⟨precise question⟩. This feeds: ⟨the decision at stake⟩.
 
-SOURCES: prefer, in order: ⟨e.g. node_modules/next/dist/docs/ for Next.js;
-official docs sites⟩. This project runs: Next.js 16 / @base-ui/react 1.x /
+SOURCES: prefer, in order: ⟨e.g. node_modules/next/dist/docs/ for Next.js
+(npm install first if missing); official docs sites⟩. This project runs: Next.js 16 / @base-ui/react 1.x /
 Tailwind v4 / Supabase JS v2 — answers valid for other major versions are
 wrong answers here.
 
@@ -110,7 +112,8 @@ Constraints in /home/user/FAMMS/CLAUDE.md, and ⟨task-specific criteria⟩.
 ⟨For migrations: the mandatory checklist is in your agent definition.⟩
 
 YOU HAVE NO PRODUCER CONTEXT ON PURPOSE. Judge only what's on disk:
-⟨exact paths, or "the diff of git diff main...HEAD"⟩.
+⟨exact paths, or "the diff of git diff ⟨base commit hash⟩..HEAD" — note:
+remote containers have no main ref, so name an explicit base commit⟩.
 
 REPORT: verdict line (APPROVE / APPROVE-WITH-NITS / REQUEST-CHANGES) first,
 then findings ranked by severity, each with path:line + failure scenario +

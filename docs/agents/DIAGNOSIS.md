@@ -1,5 +1,7 @@
 # Harness Diagnosis — 2026-07-04 (written by Fable 5)
 
+verified: 2026-07-04
+
 Top three ways this environment wastes tokens, loses focus, or produces errors.
 Every other doc in `docs/agents/` exists to fix one of these. Evidence was
 verified against the repo on 2026-07-04; re-verify before citing it as current.

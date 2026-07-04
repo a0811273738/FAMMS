@@ -1,5 +1,7 @@
 # JUDGMENT.md — Decision rubrics
 
+verified: 2026-07-04
+
 Judgment calls, converted into checkable rules. Each rule has a YES example
 (apply the rule) and a NO example (don't). When a situation matches none of
 these, default to: state your uncertainty to the user in one paragraph and
@@ -29,12 +31,18 @@ Escalating here wastes money and teaches you nothing.
 All must hold; check them literally, one by one:
 - D1. Every acceptance criterion from the original request has a verifier
   verdict of PASS (or an explicit, user-visible CANNOT-VERIFY with reason).
+  *Exception:* for changes on DELEGATION.md §1's inline list (≤3 files, no
+  SQL, no auth/permissions), running tsc yourself plus the Q1–Q5 checklist
+  below substitutes for a verifier dispatch.
 - D2. `npx tsc --noEmit` exits 0 (run it; don't trust memory or a subagent's
   claim without the exit status).
 - D3. New user-facing strings exist in all of `src/lib/i18n/locales/{zh,en,id}.json`.
 - D4. Any new SQL migration passed a famms-reviewer (opus) verdict of APPROVE
   or APPROVE-WITH-NITS.
-- D5. Work is committed AND pushed to the designated branch.
+- D5. Work is committed AND pushed to the branch the session was started on
+  (or the branch the session instructions designate). Never create or push
+  `main` yourself — remote containers often have no main ref at all; if
+  unsure which branch, ask.
 - D6. The user got a zh-TW summary: what changed, what was verified, what
   wasn't, and any manual step they must do (e.g. run a migration).
 
@@ -69,11 +77,13 @@ choice in your summary. Asking would just burn a round-trip.
 ## 4. Signals that the DIRECTION is wrong (change approach, don't retry)
 
 Stop retrying and change approach when ANY of:
-- W1. Two retry rounds consumed (hard cap, DELEGATION.md §4).
+- W1. Two retry rounds consumed on the same model with the same approach
+  (hard cap, DELEGATION.md §4 — escalating models resets the count and
+  counts as changing approach).
 - W2. Each "fix" creates a new error in a different place — you're playing
   whack-a-mole, which means the mental model of the system is wrong. Go read
-  the actual source (or Next.js docs in node_modules/next/dist/docs/) before
-  writing more code.
+  the actual source (or Next.js docs in node_modules/next/dist/docs/ — run
+  `npm install` first if node_modules is missing) before writing more code.
 - W3. Your fix requires disabling or working around a safety mechanism
   (skipping tsc errors with `any`/`@ts-ignore`, loosening an RLS policy,
   deleting a failing check) — the mechanism is usually right and you are

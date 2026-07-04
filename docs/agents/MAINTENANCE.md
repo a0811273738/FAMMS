@@ -1,5 +1,7 @@
 # MAINTENANCE.md — How to update the governance files safely
 
+verified: 2026-07-04
+
 Applies to: `CLAUDE.md`, everything in `docs/agents/`, `.claude/agents/*.md`.
 These files are the environment's only durable memory (containers are
 ephemeral; `~/.claude` auto-memory does not survive them). Treat them like
@@ -64,17 +66,19 @@ session.
 
 ## Verified-date convention
 
-Any sentence in these files asserting repo state ("X exists", "there are no
-tests") is trustworthy only as of the file's last verification. When you catch
-a stale claim, fix it AND update the nearest `verified:`/dated marker. If you
-rely on a claim for something risky, re-verify it against the repo first —
-code is truth, docs are hints.
+Every governance file carries a `verified: YYYY-MM-DD` line under its title.
+Sentences asserting repo state ("X exists", "there are no tests") are
+trustworthy only as of that date. When you catch a stale claim, fix it AND
+bump that file's `verified:` line. If you rely on a claim for something risky,
+re-verify it against the repo first — code is truth, docs are hints.
 
 ## Editing mechanics
 
 1. Read the whole target file before editing (not just the section).
 2. For rule changes (user-approved): keep a dated note of the old wording in
    the commit message body.
-3. After editing, dispatch famms-verifier for a read-back against your
-   intended changes, then commit and push. Governance edits ride the current
-   working branch unless the user says otherwise.
+3. For rule changes and multi-section edits, dispatch famms-verifier for a
+   read-back against your intended changes before committing. Single lesson
+   appends and `verified:` date bumps may be self-checked (re-read your own
+   diff) — no verifier needed. Then commit and push; governance edits ride
+   the current working branch unless the user says otherwise.

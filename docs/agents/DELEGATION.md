@@ -1,5 +1,7 @@
 # DELEGATION.md — Model dispatch rules
 
+verified: 2026-07-04
+
 For the MAIN model in every session. Verified against Claude Code docs
 2026-07-04 (subagents: https://code.claude.com/docs/en/subagents.md).
 
@@ -17,8 +19,9 @@ criteria get silently lost. Therefore:
 - Reviews and verification (see §6 — these MUST be delegated, fresh context)
 
 **Do inline, don't delegate:**
-- Reading 1–5 specific files you will edit yourself
-- Small edits (≤3 files) where you already know exactly what to change
+- Reading 1–3 specific files you will edit yourself (up to ~5 reads total)
+- Small edits (≤3 files, no SQL, no auth/permissions) where you already know
+  exactly what to change
 - Anything where explaining the task costs more than doing it
 - Talking to the user
 
@@ -50,10 +53,14 @@ Mechanics (verified):
 
 | Agent type (this repo) | Model/effort | Use for |
 |---|---|---|
-| `famms-scout` | sonnet / medium, read-only | search, scans, "where is X / does Y exist" |
+| `famms-scout` | sonnet / medium, repo-read-only* | search, scans, "where is X / does Y exist" |
 | `famms-implementer` | sonnet / high | features, fixes, batch edits |
-| `famms-verifier` | sonnet / high, no Edit/Write | acceptance checks: read-back, tsc, build, run |
-| `famms-reviewer` | opus / high, read-only | SQL migrations, security/RLS, architecture, second opinions |
+| `famms-verifier` | sonnet / high, repo-read-only* | acceptance checks: read-back, tsc, build, run |
+| `famms-reviewer` | opus / high, repo-read-only* | SQL migrations, security/RLS, architecture, second opinions |
+
+\* "repo-read-only" is enforced by instruction, not by the harness (they keep
+Bash for checks, and scout/verifier may Write scratchpad files only). Don't
+hand them prompts that ask for repo edits.
 
 If a `famms-*` type is not offered by the Agent tool in your session, fall back
 to `general-purpose` (or read-only `Explore` for scout work) and pass `model`
@@ -76,9 +83,12 @@ Model choice rubric:
 - **Pattern solved** (e.g. opus figured out the fix for one file of a batch) →
   downgrade: extract the pattern into explicit instructions and have
   haiku/sonnet apply it to the remaining cases.
-- **Hard cap: two retry rounds per approach.** After two failed rounds the
-  problem is not effort, it's direction — stop, re-read
-  `docs/agents/JUDGMENT.md` §"wrong direction", change approach or ask the user.
+- **Hard cap: two retry rounds per approach *on the same model*.** Escalating
+  to a stronger model counts as changing approach and resets the count. The
+  cap forbids a third retry with the same model and the same approach — after
+  that, stop, re-read `docs/agents/JUDGMENT.md` §"wrong direction", change
+  approach or ask the user. The full ladder is: haiku ×1 → sonnet ×2 →
+  opus ×2 → user.
 - Count honestly: "failed" = did not meet the written acceptance criteria.
   A partial result that skipped the criteria is a failure, not a success.
 
@@ -92,7 +102,8 @@ Model choice rubric:
 > "done" costs 10× more than an honest "stuck".
 
 Where subagents write long artifacts: analysis/scratch → the session scratchpad
-dir; anything worth keeping across sessions → `docs/` in the repo (then commit).
+dir; anything worth keeping across sessions → `docs/` in the repo, committed by
+the MAIN model after it reviews the content (subagents never commit or push).
 
 ## 6. Verification is never self-verification
 

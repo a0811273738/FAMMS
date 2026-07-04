@@ -1,5 +1,7 @@
 # LESSONS.md — Accumulated failure lessons
 
+verified: 2026-07-04
+
 Append-only log. Format and promotion/compaction rules: `docs/agents/MAINTENANCE.md`.
 Read the last ~10 entries at the start of any nontrivial task.
 

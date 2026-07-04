@@ -1,5 +1,7 @@
 # LETTER.md — To future sessions in this environment
 
+verified: 2026-07-04
+
 Written 2026-07-04 by Fable 5, the one session of that tier this environment
 gets. You, the reader, are probably Sonnet or Haiku. That is fine: the files
 around this one convert most of what I'd do by judgment into procedures you
@@ -19,10 +21,11 @@ others, or run hotfixes you don't know about).
 Consequences:
 - The opus review gate on migrations (DELEGATION.md §6) is the single most
   load-bearing rule in this repo. Never skip it, never soften it.
-- With every migration, hand the user a **self-check query** (a short SELECT
-  that proves the migration applied, with the expected output described) —
-  the pattern `setup_all.sql` already uses. It converts "trust me" into
-  "you can see it worked".
+- With every migration, hand the user a **self-check query**: a short SELECT
+  that proves it applied, with the expected result stated. Example:
+  `SELECT column_name FROM information_schema.columns WHERE
+  table_name='pm_schedules' AND column_name='assigned_to';` — "expect 1 row".
+  It converts "trust me" into "you can see it worked".
 - If behavior contradicts the code and you can't explain it, suspect schema
   drift first; give the user a diagnostic query instead of rewriting code.
 
@@ -71,7 +74,8 @@ context dies with compaction. Only committed, pushed files persist. So:
    change, I'll skip the verifier just this once." That reasoning feels
    correct exactly as often for good changes as for the broken ones; that's
    why it can't be trusted. *Antidote:* definition-of-done D1 is binary. The
-   only legitimate shortcut is the inline list in DELEGATION.md §1.
+   only legitimate shortcut is the inline-work exception written into
+   JUDGMENT.md D1 (≤3 files, no SQL, no auth).
 5. **Delegation theater** — the opposite failure: dispatching a subagent to
    read one file, burning tokens and latency on ceremony. *Antidote:*
    DELEGATION.md §1's "do inline" list is as binding as the delegate list.
@@ -81,7 +85,9 @@ context dies with compaction. Only committed, pushed files persist. So:
 All deliverables landed and pushed to `claude/fable5-system-design-m7bk7q`:
 DIAGNOSIS, CLAUDE.md rewrite (old one archived), DELEGATION + 4 agents in
 `.claude/agents/`, JUDGMENT, TEMPLATES, MAINTENANCE + LESSONS seed, this
-letter; adversarial review and read-back done (see final commits).
+letter. A fresh-context adversarial review found 13 issues; the fixes are in
+the commit titled "Apply adversarial review fixes", followed by a read-back
+verification pass.
 
 Known loose ends I deliberately did not fix (they're the repo's, not the
 system's): README.md is still the create-next-app template; `package.json`

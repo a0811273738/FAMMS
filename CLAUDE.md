@@ -5,6 +5,8 @@ Olentia): machine master + QR codes, multi-action incident workflow, repeat-
 failure detection via a standardized fault tree, PM scheduling, KPI dashboard,
 knowledge base, Telegram notifications.
 
+verified: 2026-07-04
+
 **Rewritten 2026-07-04.** The previous CLAUDE.md contained another project's
 docs and stale status; it is archived at
 `docs/archive/CLAUDE.md.pre-fable5-2026-07-04.md`. Do not trust it.
@@ -22,11 +24,14 @@ docs and stale status; it is archived at
    zh-TW. Code, commits, and identifiers stay in English.
 4. **Next.js 16 differs from your training data.** Read the relevant guide in
    `node_modules/next/dist/docs/` before writing framework-touching code
-   (see `AGENTS.md`).
+   (see `AGENTS.md`). Fresh containers have no `node_modules` — run
+   `npm install` first; if the docs dir is still absent, say so instead of
+   writing from training-data memory.
 
 ## Commands
 
 ```bash
+npm install          # run FIRST in a fresh container (node_modules is not checked in)
 npm run dev          # http://localhost:3000
 npx tsc --noEmit     # type check — MUST exit 0 before every commit
 npm run lint         # eslint
