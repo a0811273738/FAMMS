@@ -33,9 +33,7 @@
    - ✅ KPI helpers (colors, labels, health score badges)
 
 4. **Clean Codebase**
-   - ✅ Removed all PDP (procurement) business logic
    - ✅ Kept auth framework, UI components, Supabase integration
-   - ✅ PDP retained in git history for reference
 
 ---
 
@@ -367,7 +365,7 @@ System designed to be:
 - ✅ Complete data model (schema.sql)
 - ✅ Standardized fault tree (100+ codes)
 - ✅ Core types (famms.ts)
-- ✅ Clean codebase (PDP removed)
+- ✅ Clean codebase
 - ✅ Dashboard skeleton
 
 **Next**: Build incident management pages + API routes

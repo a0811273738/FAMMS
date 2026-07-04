@@ -14,8 +14,8 @@ verified against the repo on 2026-07-04; re-verify before citing it as current.
 - The old CLAUDE.md (~26 KB; deleted at the user's request, recoverable via
   `git show 635a4b7:CLAUDE.md`)
   contained the **full documentation of a different project** — a purchase-request
-  approval system ("pdp": `purchase_requests`, `vendors`, approval thresholds,
-  `D:\Projects\pdp\`) — appended after the FAMMS docs, with duplicate
+  approval system (`purchase_requests`, `vendors`, approval thresholds, a
+  Windows project path) — appended after the FAMMS docs, with duplicate
   "Tech Stack", "Environment Variables", and "File Map" sections.
 - It stated wrong facts as current: "Project Location: /home/user/project"
   (actual: `/home/user/FAMMS`), "Not Yet Built: PM module, Knowledge Base, KPI
@@ -105,7 +105,7 @@ worse at this, not better.
 
 - `README.md` is still the default create-next-app template. Cosmetic, but
   confuses fresh agents for a few hundred tokens. (The `package.json` name
-  was `"pdp"` — renamed to `"famms"` on 2026-07-04.)
+  was inherited from the other project — renamed to `"famms"` on 2026-07-04.)
 - `docs/E2E_CHECKLIST.md` step 1 points at old branch `claude/brave-fermi-vubgj6`.
 - Auto memory (`~/.claude/projects/<project>/memory/MEMORY.md`) does **not**
   persist here: remote containers are ephemeral. Anything worth remembering
