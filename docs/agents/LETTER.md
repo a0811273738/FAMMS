@@ -90,10 +90,11 @@ the commit titled "Apply adversarial review fixes", followed by a read-back
 verification pass.
 
 Known loose ends I deliberately did not fix (they're the repo's, not the
-system's): README.md is still the create-next-app template; `package.json`
-name is "pdp"; `docs/E2E_CHECKLIST.md` points to old branch
-`claude/brave-fermi-vubgj6` and embeds a Supabase project URL. Fix
-opportunistically when touching those areas.
+system's): README.md is still the create-next-app template;
+`docs/E2E_CHECKLIST.md` points to old branch `claude/brave-fermi-vubgj6` and
+embeds a Supabase project URL. Fix opportunistically when touching those
+areas. (All "pdp" leftovers — the archived old CLAUDE.md and the package
+name — were removed on 2026-07-04 at the user's request.)
 
 One warning to end on: these files make you more effective, not more certain.
 When a task is genuinely ambiguous or a judgment call exceeds the rubrics,

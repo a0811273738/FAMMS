@@ -13,8 +13,8 @@ Read the last ~10 entries at the start of any nontrivial task.
 - Rule: never append a second "status" or "tech stack" section — reconcile the
   existing one. Before trusting any doc claim about repo state, verify with
   Glob/Grep.
-- Evidence: docs/archive/CLAUDE.md.pre-fable5-2026-07-04.md (duplicate Tech
-  Stack sections; "D:\Projects\pdp\" path).
+- Evidence: `git show 635a4b7:CLAUDE.md` (duplicate Tech Stack sections;
+  "D:\Projects\pdp\" path). File deleted from the tree at user request.
 
 ## L-2 · 2026-07-04 · SQL shipped without independent review
 - Situation: RLS Phase 2 migration needed three corrective commits; each

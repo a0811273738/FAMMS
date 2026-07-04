@@ -11,7 +11,8 @@ verified against the repo on 2026-07-04; re-verify before citing it as current.
 ## #1 — CLAUDE.md was contaminated and stale (worst token leak + worst error source)
 
 **Evidence (as of commit 635a4b7):**
-- The old CLAUDE.md (~26 KB, archived at `docs/archive/CLAUDE.md.pre-fable5-2026-07-04.md`)
+- The old CLAUDE.md (~26 KB; deleted at the user's request, recoverable via
+  `git show 635a4b7:CLAUDE.md`)
   contained the **full documentation of a different project** — a purchase-request
   approval system ("pdp": `purchase_requests`, `vendors`, approval thresholds,
   `D:\Projects\pdp\`) — appended after the FAMMS docs, with duplicate
@@ -30,7 +31,8 @@ file map edits phantom files, re-implements existing features, or reasons about
 another project's database schema.
 
 **Fix (done + standing rule):**
-- CLAUDE.md rewritten in this session as a thin, accurate router (~100 lines).
+- CLAUDE.md rewritten in this session as a thin, accurate router (~100 lines);
+  the old file was deleted entirely at the user's request (git history keeps it).
 - Standing rule now in CLAUDE.md: **code is truth, docs are hints** — before
   acting on any doc claim about what exists, confirm with Glob/Grep/Read.
 - Standing rule: status claims in docs must carry a `verified: YYYY-MM-DD` date;
@@ -101,9 +103,9 @@ worse at this, not better.
 
 ## Honorable mentions (lower value, fix opportunistically)
 
-- `README.md` is still the default create-next-app template; `package.json`
-  name is `"pdp"` (leftover from the other project). Cosmetic, but confuses
-  fresh agents for a few hundred tokens.
+- `README.md` is still the default create-next-app template. Cosmetic, but
+  confuses fresh agents for a few hundred tokens. (The `package.json` name
+  was `"pdp"` — renamed to `"famms"` on 2026-07-04.)
 - `docs/E2E_CHECKLIST.md` step 1 points at old branch `claude/brave-fermi-vubgj6`.
 - Auto memory (`~/.claude/projects/<project>/memory/MEMORY.md`) does **not**
   persist here: remote containers are ephemeral. Anything worth remembering

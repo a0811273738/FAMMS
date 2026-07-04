@@ -8,8 +8,8 @@ knowledge base, Telegram notifications.
 verified: 2026-07-04
 
 **Rewritten 2026-07-04.** The previous CLAUDE.md contained another project's
-docs and stale status; it is archived at
-`docs/archive/CLAUDE.md.pre-fable5-2026-07-04.md`. Do not trust it.
+docs ("pdp") and stale status; it was deleted at the user's request. If you
+ever need it: `git show 635a4b7:CLAUDE.md`. Do not trust its contents.
 
 ## Ground rules (read before touching anything)
 
