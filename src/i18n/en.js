@@ -1,0 +1,25 @@
+// English dictionary — key = original Traditional Chinese string
+export default {
+  // LoginScreen
+  '智慧雜貨店系統': 'Smart Retail POS System',
+  '簡潔流暢的收銀體驗': 'Fast, clean checkout',
+  '即時報表與營運洞察': 'Real-time reports & insights',
+  '會員點數與儲值系統': 'Member points & store credit',
+  '顧客掃碼點餐': 'Scan-to-order for customers',
+  '穩定強化': 'Stability release',
+  '歡迎回來': 'Welcome back',
+  '選擇身份並輸入密碼': 'Choose your account and enter password',
+  '身份': 'Account',
+  '全部權限': 'Full access',
+  '基本操作': 'Basic access',
+  '密碼': 'Password',
+  '輸入密碼': 'Enter password',
+  '驗證中...': 'Verifying...',
+  '登入系統': 'Log in',
+  '請先選擇身份': 'Please choose an account first',
+  '密碼錯誤': 'Wrong password',
+  '登入失敗，請稍後再試': 'Login failed, please try again',
+  '預設密碼：老闆 {a} · 員工 {b}': 'Default passwords: Boss {a} · Staff {b}',
+  '老闆': 'Boss',
+  '員工': 'Staff',
+}

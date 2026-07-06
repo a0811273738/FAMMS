@@ -3,6 +3,7 @@ import { Lock, Eye, EyeOff, AlertTriangle, Shield, Sparkles, ShoppingBag, Trendi
 import { hashPassword, verifyPassword, createSession, writeAuditLog } from '../utils/security'
 import { isElectron } from '../utils/dataAccess'
 import useIsMobile from '../hooks/useIsMobile'
+import { t, getLocale, getLang, setLang, LANGS } from '../i18n'
 
 // 簡化：只有老闆和員工
 const SEED_USERS = [
@@ -90,13 +91,13 @@ export default function LoginScreen({ onLogin }) {
     try {
       const user = users.find(u => u.username === username)
       if (!user) {
-        setError('請先選擇身份')
+        setError(t('請先選擇身份'))
         setLoading(false)
         return
       }
       const ok = await verifyPassword(password, user.password)
       if (!ok) {
-        setError('密碼錯誤')
+        setError(t('密碼錯誤'))
         setLoading(false)
         return
       }
@@ -104,7 +105,7 @@ export default function LoginScreen({ onLogin }) {
       writeAuditLog('LOGIN', session, { username })
       onLogin(session)
     } catch {
-      setError('登入失敗，請稍後再試')
+      setError(t('登入失敗，請稍後再試'))
       setLoading(false)
     }
   }
@@ -116,14 +117,14 @@ export default function LoginScreen({ onLogin }) {
     return () => clearInterval(t)
   }, [])
 
-  const timeStr = now.toLocaleTimeString('zh-TW', { hour:'2-digit', minute:'2-digit', second:'2-digit' })
-  const dateStr = now.toLocaleDateString('zh-TW', { year:'numeric', month:'long', day:'numeric', weekday:'long' })
+  const timeStr = now.toLocaleTimeString(getLocale(), { hour:'2-digit', minute:'2-digit', second:'2-digit' })
+  const dateStr = now.toLocaleDateString(getLocale(), { year:'numeric', month:'long', day:'numeric', weekday:'long' })
 
   const features = [
-    { Icon: ShoppingBag, label: '簡潔流暢的收銀體驗', color: 'green' },
-    { Icon: TrendingUp,  label: '即時報表與營運洞察', color: 'blue' },
-    { Icon: UsersIcon,   label: '會員點數與儲值系統', color: 'gold' },
-    { Icon: Smartphone,  label: '顧客掃碼點餐', color: 'teal' },
+    { Icon: ShoppingBag, label: t('簡潔流暢的收銀體驗'), color: 'green' },
+    { Icon: TrendingUp,  label: t('即時報表與營運洞察'), color: 'blue' },
+    { Icon: UsersIcon,   label: t('會員點數與儲值系統'), color: 'gold' },
+    { Icon: Smartphone,  label: t('顧客掃碼點餐'), color: 'teal' },
   ]
 
   return (
@@ -131,6 +132,22 @@ export default function LoginScreen({ onLogin }) {
       {/* 漸層裝飾球 */}
       <div style={ls.blob1}/>
       <div style={ls.blob2}/>
+
+      {/* 語言切換（首次啟用即可選） */}
+      <div style={{position:'absolute', top:14, right:16, zIndex:2, display:'flex', gap:6}}>
+        {LANGS.map(l => (
+          <button key={l.code} type="button" onClick={() => l.code !== getLang() && setLang(l.code)}
+            style={{
+              padding:'6px 12px', borderRadius:'var(--r-pill)', fontSize:12, fontWeight:600,
+              cursor:'pointer', transition:'all 200ms',
+              border: getLang() === l.code ? '1.5px solid var(--accent)' : '1.5px solid var(--border-dim)',
+              background: getLang() === l.code ? 'var(--accent-dim)' : 'var(--bg-raised)',
+              color: getLang() === l.code ? 'var(--accent-deep)' : 'var(--text-secondary)',
+            }}>
+            {l.label}
+          </button>
+        ))}
+      </div>
 
       {!isMobile && (
         <div style={ls.left}>
@@ -144,7 +161,7 @@ export default function LoginScreen({ onLogin }) {
                 <div style={{fontSize:24, fontWeight:800, letterSpacing:'-.02em'}}>
                   POS<span style={{background:'var(--accent-grad)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text'}}>Pro</span>
                 </div>
-                <div style={{fontSize:11, color:'var(--text-tertiary)', letterSpacing:'.06em', marginTop:1}}>智慧雜貨店系統</div>
+                <div style={{fontSize:11, color:'var(--text-tertiary)', letterSpacing:'.06em', marginTop:1}}>{t('智慧雜貨店系統')}</div>
               </div>
             </div>
 
@@ -163,7 +180,7 @@ export default function LoginScreen({ onLogin }) {
             </div>
 
             <div style={ls.tipBox}>
-              <span style={{fontSize:11, color:'var(--text-tertiary)', letterSpacing:'.04em'}}>v2.5.0 · 穩定強化</span>
+              <span style={{fontSize:11, color:'var(--text-tertiary)', letterSpacing:'.04em'}}>v2.5.0 · {t('穩定強化')}</span>
             </div>
           </div>
         </div>
@@ -175,8 +192,8 @@ export default function LoginScreen({ onLogin }) {
             <div style={ls.lockBubble}>
               <Lock size={26} color="#fff"/>
             </div>
-            <h2 style={{fontSize:22, fontWeight:800, color:'var(--text-primary)', letterSpacing:'-.01em'}}>歡迎回來</h2>
-            <div style={{fontSize:13.5, color:'var(--text-tertiary)', marginTop:6, fontWeight:500}}>選擇身份並輸入密碼</div>
+            <h2 style={{fontSize:22, fontWeight:800, color:'var(--text-primary)', letterSpacing:'-.01em'}}>{t('歡迎回來')}</h2>
+            <div style={{fontSize:13.5, color:'var(--text-tertiary)', marginTop:6, fontWeight:500}}>{t('選擇身份並輸入密碼')}</div>
           </div>
 
           {error && (
@@ -188,7 +205,7 @@ export default function LoginScreen({ onLogin }) {
 
           <form onSubmit={handleLogin} style={{display:'flex', flexDirection:'column', gap:18}}>
             <div>
-              <div className="section-title">身份</div>
+              <div className="section-title">{t('身份')}</div>
               <div style={{display:'flex', gap:10}}>
                 {users.map(u => {
                   const active = username === u.username
@@ -215,16 +232,16 @@ export default function LoginScreen({ onLogin }) {
                         boxShadow: active ? 'inset 0 1px 0 rgba(255,255,255,.2)' : 'none',
                         transition:'all 240ms var(--ease-spring)',
                       }}>
-                        {u.username[0]}
+                        {t(u.username)[0]}
                       </div>
                       <span style={{
                         fontSize:14.5, fontWeight: 600,
                         color: active ? 'var(--accent-deep)' : 'var(--text-primary)',
                       }}>
-                        {u.username}
+                        {t(u.username)}
                       </span>
                       <span style={{fontSize:10.5, color:'var(--text-tertiary)', fontWeight:500, letterSpacing:'.03em'}}>
-                        {u.role === 'owner' ? '全部權限' : '基本操作'}
+                        {u.role === 'owner' ? t('全部權限') : t('基本操作')}
                       </span>
                     </button>
                   )
@@ -233,11 +250,11 @@ export default function LoginScreen({ onLogin }) {
             </div>
 
             <div>
-              <div className="section-title">密碼</div>
+              <div className="section-title">{t('密碼')}</div>
               <div style={ls.pwWrap}>
                 <input type={showPw ? 'text' : 'password'} className="field"
                   value={password} onChange={e => setPassword(e.target.value)}
-                  placeholder="輸入密碼"
+                  placeholder={t('輸入密碼')}
                   style={{flex:1, fontSize:15, padding:'13px 16px', paddingRight:48, fontFamily:showPw?'inherit':'var(--font-mono)', letterSpacing: showPw?'normal':'.2em'}}
                   autoComplete="current-password"/>
                 <button type="button" onClick={() => setShowPw(v=>!v)}
@@ -250,13 +267,13 @@ export default function LoginScreen({ onLogin }) {
             <button type="submit" className="btn btn-primary btn-lg"
               disabled={loading || !username || !password}
               style={{width:'100%', marginTop:8}}>
-              {loading ? '驗證中...' : '登入系統'}
+              {loading ? t('驗證中...') : t('登入系統')}
             </button>
           </form>
 
           <div style={ls.secNote}>
             <Shield size={12} style={{flexShrink:0}}/>
-            <span>預設密碼：老闆 <code style={ls.code}>1234</code> · 員工 <code style={ls.code}>0000</code></span>
+            <span>{t('老闆')} <code style={ls.code}>1234</code> · {t('員工')} <code style={ls.code}>0000</code></span>
           </div>
         </div>
       </div>

@@ -1,0 +1,25 @@
+// Kamus Bahasa Indonesia — key = string asli bahasa Mandarin Tradisional
+export default {
+  // LoginScreen
+  '智慧雜貨店系統': 'Sistem Kasir Pintar',
+  '簡潔流暢的收銀體驗': 'Kasir cepat dan mudah',
+  '即時報表與營運洞察': 'Laporan real-time',
+  '會員點數與儲值系統': 'Poin member & saldo deposit',
+  '顧客掃碼點餐': 'Pesan mandiri via QR',
+  '穩定強化': 'Rilis stabil',
+  '歡迎回來': 'Selamat datang kembali',
+  '選擇身份並輸入密碼': 'Pilih akun dan masukkan password',
+  '身份': 'Akun',
+  '全部權限': 'Akses penuh',
+  '基本操作': 'Akses dasar',
+  '密碼': 'Password',
+  '輸入密碼': 'Masukkan password',
+  '驗證中...': 'Memverifikasi...',
+  '登入系統': 'Masuk',
+  '請先選擇身份': 'Silakan pilih akun dulu',
+  '密碼錯誤': 'Password salah',
+  '登入失敗，請稍後再試': 'Gagal masuk, coba lagi nanti',
+  '預設密碼：老闆 {a} · 員工 {b}': 'Password awal: Bos {a} · Karyawan {b}',
+  '老闆': 'Bos',
+  '員工': 'Karyawan',
+}
