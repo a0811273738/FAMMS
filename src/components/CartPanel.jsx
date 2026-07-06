@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Trash2, Plus, Minus, User, X, CreditCard, Banknote, Check, ChevronRight, Gift, Printer, Pause, Percent, Wallet, Receipt, ShoppingCart } from 'lucide-react'
+import { t, fmtMoney } from '../i18n'
 
 export default function CartPanel({
   cart, cartSubtotal, activeMember,
@@ -47,7 +48,7 @@ export default function CartPanel({
   function handleFindMember() {
     const m = onFindMember(memberQuery)
     if (m) { onSelectMember(m); setMemberError(''); setMemberQuery('') }
-    else setMemberError('查無此會員')
+    else setMemberError(t('查無此會員'))
   }
 
   function handleCheckout() {
@@ -109,41 +110,41 @@ export default function CartPanel({
     <div style={cs.panel}>
       <div style={cs.doneWrap}>
         <div style={cs.doneCheck}><Check size={28} strokeWidth={2.5} /></div>
-        <div style={{fontSize:16, fontWeight:600, color:'var(--text-primary)', marginBottom:6}}>結帳完成</div>
+        <div style={{fontSize:16, fontWeight:600, color:'var(--text-primary)', marginBottom:6}}>{t('結帳完成')}</div>
         <div style={{fontFamily:'var(--font-mono)', fontSize:32, fontWeight:500, letterSpacing:'-.02em', marginBottom:4}}>
-          NT$ {lastOrder.total.toLocaleString()}
+          {fmtMoney(lastOrder.total)}
         </div>
         {lastOrder.payMethod === 'cash' && lastOrder.change > 0 && (
           <div style={{fontSize:13, color:'var(--text-secondary)'}}>
-            找零 <span style={{color:'var(--gold)', fontFamily:'var(--font-mono)', fontWeight:500}}>NT$ {lastOrder.change.toLocaleString()}</span>
+            {t('找零')} <span style={{color:'var(--gold)', fontFamily:'var(--font-mono)', fontWeight:500}}>{fmtMoney(lastOrder.change)}</span>
           </div>
         )}
         {lastOrder.payMethod === 'mixed' && lastOrder.payments?.length > 0 && (
           <div style={{fontSize:12, color:'var(--text-secondary)', marginTop:6}}>
             {lastOrder.payments.map((p,i) => (
-              <span key={i}>{i>0?' · ':''}{p.method === 'cash' ? '現金' : '電子'} ${p.amount}</span>
+              <span key={i}>{i>0?' · ':''}{p.method === 'cash' ? t('現金') : t('電子')} {fmtMoney(p.amount)}</span>
             ))}
           </div>
         )}
         {lastOrder.taxId && (
-          <div style={{fontSize:11, color:'var(--text-tertiary)', marginTop:4}}>統編 {lastOrder.taxId}</div>
+          <div style={{fontSize:11, color:'var(--text-tertiary)', marginTop:4}}>{t('統編')} {lastOrder.taxId}</div>
         )}
         {lastOrder.pointsEarned > 0 && (
           <div style={{marginTop:12, background:'var(--gold-dim)', borderRadius:8, padding:'8px 14px', fontSize:12, color:'var(--gold-bright)', display:'flex', alignItems:'center', gap:6}}>
-            <Gift size={13}/> 獲得 {lastOrder.pointsEarned} 點
+            <Gift size={13}/> {t('獲得 {n} 點', {n: lastOrder.pointsEarned})}
           </div>
         )}
-        <div style={{fontSize:11, color:'var(--text-tertiary)', marginTop:12}}>訂單 {lastOrder.id}</div>
+        <div style={{fontSize:11, color:'var(--text-tertiary)', marginTop:12}}>{t('訂單')} {lastOrder.id}</div>
         {window.electronAPI && (
           <button className="btn btn-ghost btn-sm"
             style={{marginTop:12, display:'flex', alignItems:'center', gap:6, justifyContent:'center', width:'100%'}}
             onClick={() => window.electronAPI.printer.printReceipt(lastOrder).catch(() => {})}>
-            <Printer size={14}/> 列印收據
+            <Printer size={14}/> {t('列印收據')}
           </button>
         )}
       </div>
       <div style={cs.stageFooter}>
-        <button className="btn btn-primary" style={{width:'100%', padding:14}} onClick={reset}>繼續收銀</button>
+        <button className="btn btn-primary" style={{width:'100%', padding:14}} onClick={reset}>{t('繼續收銀')}</button>
       </div>
     </div>
   )
@@ -152,7 +153,7 @@ export default function CartPanel({
   if (stage === 'pay') return (
     <div style={cs.panel}>
       <div style={cs.panelHeader}>
-        <span style={{fontWeight:600}}>確認付款</span>
+        <span style={{fontWeight:600}}>{t('確認付款')}</span>
         <button className="btn-icon" onClick={() => setStage('cart')}><X size={16}/></button>
       </div>
       <div style={cs.stageContent}>
@@ -162,14 +163,14 @@ export default function CartPanel({
             <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8}}>
               <div style={{fontSize:12, color:'var(--text-secondary)'}}>
                 <Gift size={12} style={{marginRight:4, verticalAlign:'middle'}}/>
-                {activeMember.name}：{activeMember.points} 點
+                {t('{name}：{points} 點', {name: activeMember.name, points: activeMember.points})}
               </div>
               <button onClick={() => setPointsUsed(p => p > 0 ? 0 : maxPointsByCart)} style={{fontSize:11, color:'var(--gold)', background:'none'}}>
-                {pointsUsed > 0 ? '取消折抵' : '全部折抵'}
+                {pointsUsed > 0 ? t('取消折抵') : t('全部折抵')}
               </button>
             </div>
             {pointsUsed > 0 && (
-              <div style={{fontSize:12, color:'var(--gold)'}}>折抵 {pointsUsed} 點 = -NT$ {pointsDiscount}</div>
+              <div style={{fontSize:12, color:'var(--gold)'}}>{t('折抵 {points} 點 = -{amount}', {points: pointsUsed, amount: fmtMoney(pointsDiscount)})}</div>
             )}
           </div>
         )}
@@ -180,26 +181,26 @@ export default function CartPanel({
             <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8}}>
               <div style={{fontSize:12, color:'var(--text-secondary)'}}>
                 <Wallet size={12} style={{marginRight:4, verticalAlign:'middle'}}/>
-                儲值餘額 NT$ {memberBalance.toLocaleString()}
+                {t('儲值餘額')} {fmtMoney(memberBalance)}
               </div>
               <button onClick={() => {
                 const max = Math.min(memberBalance, cartSubtotal - pointsDiscount - manualDiscount)
                 setBalanceUsed(p => p > 0 ? 0 : Math.max(0, max))
               }} style={{fontSize:11, color:'var(--teal)', background:'none'}}>
-                {balanceUsed > 0 ? '取消使用' : '全額使用'}
+                {balanceUsed > 0 ? t('取消使用') : t('全額使用')}
               </button>
             </div>
             {balanceUsed > 0 && (
-              <div style={{fontSize:12, color:'var(--teal)'}}>使用儲值 NT$ {balanceUsed.toLocaleString()}</div>
+              <div style={{fontSize:12, color:'var(--teal)'}}>{t('使用儲值')} {fmtMoney(balanceUsed)}</div>
             )}
           </div>
         )}
 
         <div style={cs.totalDisplay}>
-          <div style={{fontSize:11, color:'var(--accent-deep)', fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', marginBottom:6}}>應付金額</div>
+          <div style={{fontSize:11, color:'var(--accent-deep)', fontWeight:700, letterSpacing:'.08em', textTransform:'uppercase', marginBottom:6}}>{t('應付金額')}</div>
           {totalDiscount > 0 && (
             <div style={{fontSize:13, color:'var(--text-tertiary)', textDecoration:'line-through', fontFamily:'var(--font-mono)', marginBottom:4}}>
-              NT$ {cartSubtotal.toLocaleString()}
+              {fmtMoney(cartSubtotal)}
             </div>
           )}
           <div style={{
@@ -210,11 +211,11 @@ export default function CartPanel({
             backgroundClip:'text',
             lineHeight:1.1,
           }}>
-            ${total.toLocaleString()}
+            {fmtMoney(total)}
           </div>
           {pointsEarned > 0 && (
             <div style={{fontSize:12, color:'var(--gold-bright)', marginTop:8, fontWeight:600, display:'inline-flex', alignItems:'center', gap:4, padding:'4px 10px', background:'var(--gold-dim)', borderRadius:'var(--r-pill)'}}>
-              <Gift size={11}/> +{pointsEarned} 點
+              <Gift size={11}/> {t('+{n} 點', {n: pointsEarned})}
             </div>
           )}
         </div>
@@ -227,7 +228,7 @@ export default function CartPanel({
               color: !splitMode && payMethod===k?'#fff':'var(--text-secondary)',
               border:`1px solid ${!splitMode && payMethod===k?'var(--gold)':'var(--border-subtle)'}`,
             }}>
-              <Icon size={15}/>{l}
+              <Icon size={15}/>{t(l)}
             </button>
           ))}
           <button onClick={()=>setSplitMode(v => !v)} style={{...cs.methodBtn,
@@ -235,7 +236,7 @@ export default function CartPanel({
             color: splitMode?'#fff':'var(--text-secondary)',
             border:`1px solid ${splitMode?'var(--gold)':'var(--border-subtle)'}`,
             flex:'0 0 auto', padding:'10px 12px',
-          }} title="混合付款">
+          }} title={t('混合付款')}>
             ＋
           </button>
         </div>
@@ -243,19 +244,19 @@ export default function CartPanel({
         {/* 混合付款 */}
         {splitMode && (
           <div style={{padding:'12px 14px', background:'var(--bg-overlay)', borderRadius:8, marginBottom:12}}>
-            <div style={{fontSize:11, color:'var(--text-tertiary)', marginBottom:6}}>分開付款</div>
+            <div style={{fontSize:11, color:'var(--text-tertiary)', marginBottom:6}}>{t('分開付款')}</div>
             <div style={{display:'flex', gap:6, marginBottom:6, alignItems:'center'}}>
               <Banknote size={14} style={{color:'var(--text-secondary)', flexShrink:0}}/>
-              <span style={{fontSize:12, color:'var(--text-secondary)', width:40}}>現金</span>
+              <span style={{fontSize:12, color:'var(--text-secondary)', width:40}}>{t('現金')}</span>
               <input className="field" type="number" value={splitCash} onChange={e=>setSplitCash(e.target.value)} placeholder="0" style={{flex:1, padding:'6px 10px'}}/>
             </div>
             <div style={{display:'flex', gap:6, marginBottom:6, alignItems:'center'}}>
               <CreditCard size={14} style={{color:'var(--text-secondary)', flexShrink:0}}/>
-              <span style={{fontSize:12, color:'var(--text-secondary)', width:40}}>電子</span>
+              <span style={{fontSize:12, color:'var(--text-secondary)', width:40}}>{t('電子')}</span>
               <input className="field" type="number" value={splitCard} onChange={e=>setSplitCard(e.target.value)} placeholder="0" style={{flex:1, padding:'6px 10px'}}/>
             </div>
             <div style={{fontSize:11, color: splitOK ? 'var(--green)' : 'var(--red)', marginTop:4}}>
-              {splitOK ? `✓ 合計 NT$ ${splitTotal}` : `差額 NT$ ${(total - splitTotal).toLocaleString()}`}
+              {splitOK ? t('✓ 合計 {amount}', {amount: fmtMoney(splitTotal)}) : t('差額 {amount}', {amount: fmtMoney(total - splitTotal)})}
             </div>
           </div>
         )}
@@ -263,23 +264,23 @@ export default function CartPanel({
         {/* 現金付款輸入 */}
         {!splitMode && payMethod === 'cash' && (
           <>
-            <div style={{fontSize:11, color:'var(--text-tertiary)', marginBottom:6}}>收款金額</div>
-            <input className="field" type="number" value={paidInput} onChange={e=>setPaidInput(e.target.value)} placeholder="輸入金額" style={{fontSize:22, fontFamily:'var(--font-mono)', marginBottom:10, width:'100%'}}/>
+            <div style={{fontSize:11, color:'var(--text-tertiary)', marginBottom:6}}>{t('收款金額')}</div>
+            <input className="field" type="number" value={paidInput} onChange={e=>setPaidInput(e.target.value)} placeholder={t('輸入金額')} style={{fontSize:22, fontFamily:'var(--font-mono)', marginBottom:10, width:'100%'}}/>
             <div style={{display:'flex', gap:6, flexWrap:'wrap', marginBottom:12}}>
               {quickAmounts.map(a => (
                 <button key={a} onClick={()=>setPaidInput(String(a))} style={{...cs.quickBtn,
                   background: parseFloat(paidInput)===a?'var(--bg-active)':'var(--bg-overlay)',
                   border: parseFloat(paidInput)===a?'1px solid var(--border-mid)':'1px solid var(--border-dim)',
                 }}>
-                  {a === total ? <span style={{color:'var(--green)'}}>剛好</span> : `${a}`}
+                  {a === total ? <span style={{color:'var(--green)'}}>{t('剛好')}</span> : `${a}`}
                 </button>
               ))}
             </div>
             {paid > 0 && (
               <div style={{...cs.changeRow, background: change>=0?'var(--green-dim)':'var(--red-dim)', borderColor: change>=0?'rgba(52,201,122,0.2)':'rgba(229,90,90,0.2)'}}>
-                <span style={{color:'var(--text-secondary)', fontSize:13}}>找零</span>
+                <span style={{color:'var(--text-secondary)', fontSize:13}}>{t('找零')}</span>
                 <span style={{fontFamily:'var(--font-mono)', fontWeight:600, color: change>=0?'var(--green)':'var(--red)'}}>
-                  NT$ {change.toLocaleString()}
+                  {fmtMoney(change)}
                 </span>
               </div>
             )}
@@ -290,9 +291,9 @@ export default function CartPanel({
         <details style={{marginTop:8}}>
           <summary style={{fontSize:12, color:'var(--text-secondary)', cursor:'pointer', padding:'4px 0'}}>
             <Receipt size={11} style={{verticalAlign:'middle', marginRight:4}}/>
-            開立統編 {taxId && <span style={{color:'var(--gold)'}}>· {taxId}</span>}
+            {t('開立統編')} {taxId && <span style={{color:'var(--gold)'}}>· {taxId}</span>}
           </summary>
-          <input className="field" value={taxId} onChange={e=>setTaxId(e.target.value.replace(/\D/g,'').slice(0,8))} placeholder="統一編號 (8 碼)" style={{marginTop:6, width:'100%'}}/>
+          <input className="field" value={taxId} onChange={e=>setTaxId(e.target.value.replace(/\D/g,'').slice(0,8))} placeholder={t('統一編號 (8 碼)')} style={{marginTop:6, width:'100%'}}/>
         </details>
       </div>
       <div style={cs.stageFooter}>
@@ -302,7 +303,7 @@ export default function CartPanel({
           }}
           disabled={splitMode ? !splitOK : (payMethod==='cash' && paid < total)}
           onClick={handleCheckout}>
-          確認收款
+          {t('確認收款')}
         </button>
       </div>
     </div>

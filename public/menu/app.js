@@ -1,4 +1,143 @@
 // 顧客點餐頁面 — vanilla JS
+
+// ===== i18n（自足式，不依賴 src/i18n）=====
+const EN = {
+  '線上點餐': 'Online Ordering',
+  '線上點餐系統': 'Online Ordering System',
+  '載入中...': 'Loading...',
+  '無法連線': 'Connection failed',
+  '無法載入菜單，請確認網路連線': 'Could not load the menu. Please check your connection.',
+  '搜尋商品...': 'Search items...',
+  '全部': 'All',
+  '售完': 'Sold out',
+  '加入購物車': 'Add to cart',
+  '最後 {n} {u}！': 'Only {n} {u} left!',
+  '剩 {n} {u}': '{n} {u} left',
+  '個': 'pc',
+  '沒有符合的商品': 'No matching items',
+  '購物車': 'Cart',
+  '購物車是空的': 'Your cart is empty',
+  '合計': 'Total',
+  '送出訂單': 'Place Order',
+  '確認訂單': 'Confirm Order',
+  '您的姓名（選填）': 'Your name (optional)',
+  '方便取餐時叫號': 'So we can call you at pickup',
+  '桌號 / 備註（選填）': 'Table number (optional)',
+  '例如: 3號桌': 'e.g. Table 3',
+  '備註': 'Notes',
+  '特殊需求...': 'Special requests...',
+  '取消': 'Cancel',
+  '確認送出': 'Confirm',
+  '送出中...': 'Sending...',
+  '訂單送出失敗': 'Failed to place order',
+  '無法連線到伺服器': 'Could not reach the server',
+  '訂單已送出!': 'Order placed!',
+  '訂單編號: ': 'Order no.: ',
+  '等待店家確認中...': 'Waiting for the store to confirm...',
+  '店家已接單，準備中！': 'Order accepted, preparing!',
+  '已完成，請取餐！': 'Ready, please pick up!',
+  '很抱歉，訂單已被取消': 'Sorry, your order was cancelled',
+  '繼續點餐': 'Order more',
+}
+const ID = {
+  '線上點餐': 'Pesan Online',
+  '線上點餐系統': 'Sistem Pemesanan Online',
+  '載入中...': 'Memuat...',
+  '無法連線': 'Tidak dapat terhubung',
+  '無法載入菜單，請確認網路連線': 'Menu gagal dimuat. Periksa koneksi internet Anda.',
+  '搜尋商品...': 'Cari menu...',
+  '全部': 'Semua',
+  '售完': 'Habis',
+  '加入購物車': 'Tambah ke Keranjang',
+  '最後 {n} {u}！': 'Sisa {n} {u} lagi!',
+  '剩 {n} {u}': 'Sisa {n} {u}',
+  '個': 'pcs',
+  '沒有符合的商品': 'Tidak ada menu yang cocok',
+  '購物車': 'Keranjang',
+  '購物車是空的': 'Keranjang masih kosong',
+  '合計': 'Total',
+  '送出訂單': 'Kirim Pesanan',
+  '確認訂單': 'Konfirmasi Pesanan',
+  '您的姓名（選填）': 'Nama Anda (opsional)',
+  '方便取餐時叫號': 'Agar mudah dipanggil saat pesanan siap',
+  '桌號 / 備註（選填）': 'Nomor meja (opsional)',
+  '例如: 3號桌': 'contoh: Meja 3',
+  '備註': 'Catatan',
+  '特殊需求...': 'Permintaan khusus...',
+  '取消': 'Batal',
+  '確認送出': 'Konfirmasi',
+  '送出中...': 'Mengirim...',
+  '訂單送出失敗': 'Pesanan gagal dikirim',
+  '無法連線到伺服器': 'Tidak dapat terhubung ke server',
+  '訂單已送出!': 'Pesanan terkirim!',
+  '訂單編號: ': 'No. pesanan: ',
+  '等待店家確認中...': 'Menunggu konfirmasi toko...',
+  '店家已接單，準備中！': 'Pesanan diterima, sedang disiapkan!',
+  '已完成，請取餐！': 'Sudah siap, silakan ambil!',
+  '很抱歉，訂單已被取消': 'Maaf, pesanan Anda dibatalkan',
+  '繼續點餐': 'Pesan Lagi',
+}
+
+const LANG = new URLSearchParams(location.search).get('lang') || localStorage.getItem('pos-lang') || 'id'
+
+function t(zh) {
+  const d = { en: EN, id: ID }[LANG]
+  return (d && d[zh]) || zh
+}
+
+// 金額顯示：zh 維持 $，en/id 用 Rp 15.000 樣式
+function fmtMoney(n) {
+  if (LANG === 'zh') return '$' + n
+  return 'Rp ' + Number(n).toLocaleString('id-ID')
+}
+
+function setLang(lang) {
+  try { localStorage.setItem('pos-lang', lang) } catch {}
+  const params = new URLSearchParams(location.search)
+  params.set('lang', lang)
+  location.search = params.toString()
+}
+
+// 語言切換器 + 靜態文字套用
+function applyI18n() {
+  document.documentElement.lang = { en: 'en', id: 'id' }[LANG] || 'zh-TW'
+  const sw = document.createElement('div')
+  sw.className = 'lang-switcher'
+  ;[['zh', '中文'], ['en', 'EN'], ['id', 'ID']].forEach(([code, label]) => {
+    const b = document.createElement('button')
+    b.type = 'button'
+    b.className = 'lang-btn' + (LANG === code ? ' active' : '')
+    b.textContent = label
+    b.onclick = () => setLang(code)
+    sw.appendChild(b)
+  })
+  document.getElementById('header').appendChild(sw)
+
+  const setText = (id, zh) => { const el = document.getElementById(id); if (el) el.textContent = t(zh) }
+  document.title = t('線上點餐')
+  setText('store-name', '載入中...')
+  setText('subtitle', '線上點餐系統')
+  document.getElementById('search-input').placeholder = t('搜尋商品...')
+  setText('cart-title', '購物車')
+  setText('cart-total-label', '合計')
+  setText('checkout-btn', '送出訂單')
+  setText('form-title', '確認訂單')
+  setText('label-name', '您的姓名（選填）')
+  document.getElementById('customer-name').placeholder = t('方便取餐時叫號')
+  setText('label-table', '桌號 / 備註（選填）')
+  document.getElementById('table-num').placeholder = t('例如: 3號桌')
+  setText('label-note', '備註')
+  document.getElementById('order-note').placeholder = t('特殊需求...')
+  setText('form-total-label', '合計')
+  setText('cancel-btn', '取消')
+  setText('confirm-btn', '確認送出')
+  setText('success-title', '訂單已送出!')
+  setText('success-status', '等待店家確認中...')
+  setText('continue-btn', '繼續點餐')
+  document.getElementById('cart-total-amount').textContent = fmtMoney(0)
+  document.getElementById('form-total').textContent = fmtMoney(0)
+}
+
 const API = window.location.origin
 let products = []
 let categories = []
