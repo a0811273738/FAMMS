@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Bell, Check, X, Clock, ChefHat, RefreshCw } from 'lucide-react'
 import { isElectron, loadCustomerOrders, updateOrderStatus } from '../utils/dataAccess'
+import { t, fmtMoney, getLocale } from '../i18n'
 
 const STATUS_MAP = {
   pending:   { label: '待處理', color: '#e67e22', icon: Clock },
@@ -60,13 +61,13 @@ export default function OrdersPage() {
     <div style={{ padding: 24, maxWidth: 900, margin: '0 auto' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
         <Bell size={22} />
-        <h2 style={{ flex: 1, fontSize: '1.3rem' }}>顧客點餐</h2>
+        <h2 style={{ flex: 1, fontSize: '1.3rem' }}>{t('顧客點餐')}</h2>
         {pendingCount > 0 && (
           <span style={{
             background: '#e74c3c', color: '#fff', padding: '4px 12px',
             borderRadius: 20, fontSize: '0.85rem', fontWeight: 700,
           }}>
-            {pendingCount} 筆待處理
+            {t('{n} 筆待處理', {n: pendingCount})}
           </span>
         )}
         <button
@@ -74,7 +75,7 @@ export default function OrdersPage() {
           className="btn btn-ghost btn-sm"
           style={{ display: 'flex', alignItems: 'center', gap: 6 }}
         >
-          <RefreshCw size={14} className={loading ? 'spin' : ''} /> 重新整理
+          <RefreshCw size={14} className={loading ? 'spin' : ''} /> {t('重新整理')}
         </button>
       </div>
 
@@ -97,7 +98,7 @@ export default function OrdersPage() {
               border: `1px solid ${filter === f.key ? 'var(--accent)' : 'var(--border-dim)'}`,
             }}
           >
-            {f.label}
+            {t(f.label)}
             {f.key === 'pending' && pendingCount > 0 && ` (${pendingCount})`}
           </button>
         ))}
@@ -106,13 +107,13 @@ export default function OrdersPage() {
       {/* 訂單列表 */}
       {!isElectron && (
         <div className="card" style={{ padding: 20, textAlign: 'center', color: 'var(--text-dim)' }}>
-          顧客點餐功能僅在桌面版本可用
+          {t('顧客點餐功能僅在桌面版本可用')}
         </div>
       )}
 
       {isElectron && !filtered.length && (
         <div className="card" style={{ padding: 40, textAlign: 'center', color: 'var(--text-dim)' }}>
-          {filter === 'pending' ? '目前沒有待處理的訂單' : '沒有符合條件的訂單'}
+          {filter === 'pending' ? t('目前沒有待處理的訂單') : t('沒有符合條件的訂單')}
         </div>
       )}
 
@@ -121,8 +122,8 @@ export default function OrdersPage() {
           const st = STATUS_MAP[order.status] || STATUS_MAP.pending
           const StIcon = st.icon
           const time = new Date(order.time)
-          const timeStr = time.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' })
-          const dateStr = time.toLocaleDateString('zh-TW', { month: 'short', day: 'numeric' })
+          const timeStr = time.toLocaleTimeString(getLocale(), { hour: '2-digit', minute: '2-digit' })
+          const dateStr = time.toLocaleDateString(getLocale(), { month: 'short', day: 'numeric' })
 
           return (
             <div key={order.id} className="card" style={{ padding: 16 }}>
@@ -132,7 +133,7 @@ export default function OrdersPage() {
                   background: st.color + '18', color: st.color,
                   padding: '3px 10px', borderRadius: 12, fontSize: '0.8rem', fontWeight: 600,
                 }}>
-                  <StIcon size={13} /> {st.label}
+                  <StIcon size={13} /> {t(st.label)}
                 </span>
                 <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>
                   {dateStr} {timeStr}
@@ -149,7 +150,7 @@ export default function OrdersPage() {
                   </span>
                 )}
                 <span style={{ marginLeft: 'auto', fontWeight: 700, fontSize: '1.1rem' }}>
-                  ${order.total}
+                  {fmtMoney(order.total)}
                 </span>
               </div>
 
@@ -161,14 +162,14 @@ export default function OrdersPage() {
                 {(order.items || []).map((item, idx) => (
                   <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', padding: '3px 0' }}>
                     <span>{item.name} x{item.qty}</span>
-                    <span style={{ color: 'var(--text-dim)' }}>${item.price * item.qty}</span>
+                    <span style={{ color: 'var(--text-dim)' }}>{fmtMoney(item.price * item.qty)}</span>
                   </div>
                 ))}
               </div>
 
               {order.note && (
                 <p style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginBottom: 10 }}>
-                  備註: {order.note}
+                  {t('備註')}: {order.note}
                 </p>
               )}
 
@@ -180,14 +181,14 @@ export default function OrdersPage() {
                     className="btn btn-sm"
                     style={{ flex: 1, background: '#27ae60', color: '#fff', border: 'none' }}
                   >
-                    <Check size={14} /> 接單
+                    <Check size={14} /> {t('接單')}
                   </button>
                   <button
                     onClick={() => handleReject(order.id)}
                     className="btn btn-sm"
                     style={{ flex: 1, background: '#e74c3c', color: '#fff', border: 'none' }}
                   >
-                    <X size={14} /> 拒絕
+                    <X size={14} /> {t('拒絕')}
                   </button>
                 </div>
               )}
@@ -197,7 +198,7 @@ export default function OrdersPage() {
                   className="btn btn-sm"
                   style={{ width: '100%', background: '#27ae60', color: '#fff', border: 'none' }}
                 >
-                  <Check size={14} /> 標記完成
+                  <Check size={14} /> {t('標記完成')}
                 </button>
               )}
             </div>

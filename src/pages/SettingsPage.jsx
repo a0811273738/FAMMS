@@ -526,7 +526,7 @@ function getPwScore(pw) {
   return Math.max(1, s)
 }
 const PW_COLORS = ['var(--red)', 'var(--amber)', 'var(--teal)', 'var(--green)']
-const PW_LABELS = ['強度：弱', '強度：普通', '強度：良好', '強度：強']
+const PW_LABELS = [t('強度：弱'), t('強度：普通'), t('強度：良好'), t('強度：強')]
 
 // ── 硬體設定 ────────────────────────────────────────────────
 function HardwareTab({ session }) {
@@ -583,29 +583,29 @@ function HardwareTab({ session }) {
       await window.electronAPI.settings.set(k, v)
     }
     setSaving(false)
-    setTestMsg('設定已儲存')
+    setTestMsg(t('設定已儲存'))
     setTimeout(() => setTestMsg(''), 2000)
   }
 
   async function handleTestPrint() {
     if (!isE) return
-    setTestMsg('列印中...')
+    setTestMsg(t('列印中...'))
     const result = await window.electronAPI.printer.testPrint()
-    setTestMsg(result.success ? '測試列印成功' : '列印失敗: ' + (result.error || '未知錯誤'))
+    setTestMsg(result.success ? t('測試列印成功') : t('列印失敗：{err}', {err: result.error || t('未知錯誤')}))
     setTimeout(() => setTestMsg(''), 4000)
   }
 
   async function handleTestDrawer() {
     if (!isE) return
-    setTestMsg('開啟中...')
+    setTestMsg(t('開啟中...'))
     const result = await window.electronAPI.printer.openCashDrawer()
-    setTestMsg(result.success ? '錢箱已開啟' : '開啟失敗: ' + (result.error || ''))
+    setTestMsg(result.success ? t('錢箱已開啟') : t('開啟失敗：{err}', {err: result.error || ''}))
     setTimeout(() => setTestMsg(''), 3000)
   }
 
   if (!isE) return (
     <div style={{padding:20, textAlign:'center', color:'var(--text-dim)'}}>
-      硬體設定僅在桌面版本可用
+      {t('硬體設定僅在桌面版本可用')}
     </div>
   )
 
@@ -618,69 +618,69 @@ function HardwareTab({ session }) {
         {/* 印表機設定 */}
         <div className="card" style={{padding:16}}>
           <h3 style={{fontSize:14, fontWeight:600, marginBottom:12, display:'flex', alignItems:'center', gap:6}}>
-            <Printer size={15}/> 印表機設定
+            <Printer size={15}/> {t('印表機設定')}
           </h3>
 
-          <label style={labelStyle}>連線方式</label>
+          <label style={labelStyle}>{t('連線方式')}</label>
           <div style={{display:'flex', gap:8, marginBottom:12}}>
             <button className={`btn btn-sm ${printerType==='network' ? 'btn-primary' : 'btn-ghost'}`}
-              onClick={() => setPrinterType('network')}>網路印表機</button>
+              onClick={() => setPrinterType('network')}>{t('網路印表機')}</button>
             <button className={`btn btn-sm ${printerType==='windows' ? 'btn-primary' : 'btn-ghost'}`}
-              onClick={() => setPrinterType('windows')}>Windows 共享</button>
+              onClick={() => setPrinterType('windows')}>{t('Windows 共享')}</button>
           </div>
 
           {printerType === 'network' ? (
             <>
-              <label style={labelStyle}>印表機 IP</label>
+              <label style={labelStyle}>{t('印表機 IP')}</label>
               <input style={{...fieldStyle, marginBottom:8}} value={printerIP} onChange={e=>setPrinterIP(e.target.value)} placeholder="192.168.1.100"/>
               <label style={labelStyle}>Port</label>
               <input style={{...fieldStyle, marginBottom:8}} value={printerPort} onChange={e=>setPrinterPort(e.target.value)} placeholder="9100"/>
             </>
           ) : (
             <>
-              <label style={labelStyle}>印表機共享路徑</label>
+              <label style={labelStyle}>{t('印表機共享路徑')}</label>
               <input style={{...fieldStyle, marginBottom:8}} value={printerName} onChange={e=>setPrinterName(e.target.value)} placeholder="\\\\server\\printer"/>
             </>
           )}
 
           <div style={{display:'flex', gap:8, marginTop:8}}>
-            <button className="btn btn-ghost btn-sm" onClick={handleTestPrint}>測試列印</button>
-            <button className="btn btn-ghost btn-sm" onClick={handleTestDrawer}>測試錢箱</button>
+            <button className="btn btn-ghost btn-sm" onClick={handleTestPrint}>{t('測試列印')}</button>
+            <button className="btn btn-ghost btn-sm" onClick={handleTestDrawer}>{t('測試錢箱')}</button>
           </div>
           {printerStatus && (
             <div style={{marginTop:8, fontSize:12, color: printerStatus.connected ? 'var(--green)' : 'var(--red)'}}>
-              {printerStatus.connected ? '印表機已連線' : '印表機未連線'}
+              {printerStatus.connected ? t('印表機已連線') : t('印表機未連線')}
             </div>
           )}
         </div>
 
         {/* 收據設定 */}
         <div className="card" style={{padding:16}}>
-          <h3 style={{fontSize:14, fontWeight:600, marginBottom:12}}>收據設定</h3>
+          <h3 style={{fontSize:14, fontWeight:600, marginBottom:12}}>{t('收據設定')}</h3>
 
-          <label style={labelStyle}>店名</label>
-          <input style={{...fieldStyle, marginBottom:8}} value={storeName} onChange={e=>setStoreName(e.target.value)} placeholder="我的雜貨店"/>
+          <label style={labelStyle}>{t('店名')}</label>
+          <input style={{...fieldStyle, marginBottom:8}} value={storeName} onChange={e=>setStoreName(e.target.value)} placeholder={t('我的雜貨店')}/>
 
-          <label style={labelStyle}>地址</label>
-          <input style={{...fieldStyle, marginBottom:8}} value={storeAddress} onChange={e=>setStoreAddress(e.target.value)} placeholder="台北市..."/>
+          <label style={labelStyle}>{t('地址')}</label>
+          <input style={{...fieldStyle, marginBottom:8}} value={storeAddress} onChange={e=>setStoreAddress(e.target.value)} placeholder={t('台北市...')}/>
 
-          <label style={labelStyle}>電話</label>
+          <label style={labelStyle}>{t('電話')}</label>
           <input style={{...fieldStyle, marginBottom:8}} value={storePhone} onChange={e=>setStorePhone(e.target.value)} placeholder="02-1234-5678"/>
 
-          <label style={labelStyle}>收據底部文字</label>
-          <input style={{...fieldStyle, marginBottom:8}} value={receiptFooter} onChange={e=>setReceiptFooter(e.target.value)} placeholder="感謝您的光臨！"/>
+          <label style={labelStyle}>{t('收據底部文字')}</label>
+          <input style={{...fieldStyle, marginBottom:8}} value={receiptFooter} onChange={e=>setReceiptFooter(e.target.value)} placeholder={t('感謝您的光臨！')}/>
         </div>
 
         {/* 點餐系統 */}
         <div className="card" style={{padding:16}}>
           <h3 style={{fontSize:14, fontWeight:600, marginBottom:12, display:'flex', alignItems:'center', gap:6}}>
-            <Wifi size={15}/> 點餐系統
+            <Wifi size={15}/> {t('點餐系統')}
           </h3>
           {serverInfo && (
             <>
               <div style={{fontSize:13, marginBottom:8}}>
-                狀態: <span style={{color: serverInfo.running ? 'var(--green)' : 'var(--red)', fontWeight:600}}>
-                  {serverInfo.running ? '運行中' : '未啟動'}
+                {t('狀態')}: <span style={{color: serverInfo.running ? 'var(--green)' : 'var(--red)', fontWeight:600}}>
+                  {serverInfo.running ? t('運行中') : t('未啟動')}
                 </span>
               </div>
               {serverInfo.running && (
@@ -688,9 +688,9 @@ function HardwareTab({ session }) {
                   {/* 外網 QR Code */}
                   {serverInfo.tunnelUrl ? (
                     <div style={{marginBottom:12, padding:'12px', background:'var(--green-dim)', borderRadius:8, border:'1px solid rgba(90,158,111,0.2)', textAlign:'center'}}>
-                      <div style={{fontSize:11, color:'var(--green)', fontWeight:600, marginBottom:8}}>外網點餐 QR Code（任何網路皆可掃）</div>
+                      <div style={{fontSize:11, color:'var(--green)', fontWeight:600, marginBottom:8}}>{t('外網點餐 QR Code（任何網路皆可掃）')}</div>
                       {tunnelQr && (
-                        <img src={tunnelQr} alt="外網點餐QR Code"
+                        <img src={tunnelQr} alt={t('外網點餐QR Code')}
                           style={{width:180, height:180, borderRadius:8, border:'4px solid #fff', boxShadow:'0 2px 8px rgba(0,0,0,0.15)', display:'block', margin:'0 auto 8px'}}/>
                       )}
                       <code style={{fontFamily:'var(--font-mono)', fontSize:10, color:'var(--text-secondary)', wordBreak:'break-all', display:'block'}}>
@@ -699,15 +699,15 @@ function HardwareTab({ session }) {
                     </div>
                   ) : (
                     <div style={{marginBottom:12, padding:'10px 12px', background:'var(--amber-dim)', borderRadius:8, fontSize:11, color:'var(--amber)'}}>
-                      外網穿透連線中...（如果一直無法連線，請檢查網路）
+                      {t('外網穿透連線中...（如果一直無法連線，請檢查網路）')}
                     </div>
                   )}
 
                   {/* 區域網路 QR Code */}
                   <div style={{padding:'12px', background:'var(--bg-overlay)', borderRadius:8, border:'1px solid var(--border-dim)', textAlign:'center'}}>
-                    <div style={{fontSize:11, color:'var(--text-secondary)', fontWeight:600, marginBottom:8}}>區域網路 QR Code（同一 WiFi）</div>
+                    <div style={{fontSize:11, color:'var(--text-secondary)', fontWeight:600, marginBottom:8}}>{t('區域網路 QR Code（同一 WiFi）')}</div>
                     {lanQr && (
-                      <img src={lanQr} alt="區域網路QR Code"
+                      <img src={lanQr} alt={t('區域網路QR Code')}
                         style={{width:140, height:140, borderRadius:6, border:'3px solid #fff', boxShadow:'0 2px 6px rgba(0,0,0,0.1)', display:'block', margin:'0 auto 8px'}}/>
                     )}
                     <code style={{fontFamily:'var(--font-mono)', fontSize:10, color:'var(--text-tertiary)'}}>
@@ -720,13 +720,13 @@ function HardwareTab({ session }) {
           )}
           <button className="btn btn-ghost btn-sm" style={{marginTop:10}} onClick={() => {
             window.electronAPI.server.getStatus().then(setServerInfo)
-          }}>重新整理狀態</button>
+          }}>{t('重新整理狀態')}</button>
         </div>
 
         {/* 儲存 */}
         <div className="card" style={{padding:16, display:'flex', flexDirection:'column', justifyContent:'center', alignItems:'center', gap:10}}>
           <button className="btn btn-primary" style={{width:'100%', padding:12}} onClick={handleSave} disabled={saving}>
-            {saving ? '儲存中...' : '儲存所有設定'}
+            {saving ? t('儲存中...') : t('儲存所有設定')}
           </button>
           {testMsg && (
             <div style={{fontSize:12, color:'var(--accent)', textAlign:'center'}}>{testMsg}</div>
@@ -740,20 +740,20 @@ function HardwareTab({ session }) {
 // ── 資安設定說明 ──────────────────────────────────────────────
 function SecurityTab({ session }) {
   const items = [
-    { icon:'🔐', title:'PBKDF2 密碼加密', desc:'密碼以 PBKDF2（200,000次迭代 + 隨機 salt）儲存，即使資料庫外洩也無法破解', status:'已啟用', ok:true },
-    { icon:'⏱', title:'閒置自動鎖定', desc:'30 分鐘無操作自動回到登入畫面，防止員工離開後他人存取', status:'30分鐘', ok:true },
-    { icon:'🚫', title:'暴力破解防護', desc:'同一帳號連續 5 次輸入錯誤密碼，鎖定 30 分鐘', status:'已啟用', ok:true },
-    { icon:'📋', title:'稽核日誌', desc:'所有登入、結帳、刪除、匯出操作均記錄時間戳、操作人，最多保留 2000 筆', status:'已啟用', ok:true },
-    { icon:'🧹', title:'XSS / Injection 防護', desc:'所有輸入資料在儲存前清洗，過濾 script 標籤、SQL 注入等惡意字串', status:'已啟用', ok:true },
-    { icon:'👁', title:'個資遮罩', desc:'顯示顧客資料時自動遮罩（09xx****xxx），防止員工截圖外洩', status:'顯示層', ok:true },
-    { icon:'💾', title:'自動備份', desc:'每次重要操作前自動快照，最多保留 10 份，可匯出 JSON 檔案離線保存', status:'已啟用', ok:true },
-    { icon:'🔒', title:'Session 管理', desc:'登入 Token 存於 sessionStorage（關閉分頁即失效），包含到期時間，不存密碼', status:'8小時', ok:true },
+    { icon:'🔐', title:t('PBKDF2 密碼加密'), desc:t('密碼以 PBKDF2（200,000次迭代 + 隨機 salt）儲存，即使資料庫外洩也無法破解'), status:t('已啟用'), ok:true },
+    { icon:'⏱', title:t('閒置自動鎖定'), desc:t('30 分鐘無操作自動回到登入畫面，防止員工離開後他人存取'), status:t('30分鐘'), ok:true },
+    { icon:'🚫', title:t('暴力破解防護'), desc:t('同一帳號連續 5 次輸入錯誤密碼，鎖定 30 分鐘'), status:t('已啟用'), ok:true },
+    { icon:'📋', title:t('稽核日誌'), desc:t('所有登入、結帳、刪除、匯出操作均記錄時間戳、操作人，最多保留 2000 筆'), status:t('已啟用'), ok:true },
+    { icon:'🧹', title:t('XSS / Injection 防護'), desc:t('所有輸入資料在儲存前清洗，過濾 script 標籤、SQL 注入等惡意字串'), status:t('已啟用'), ok:true },
+    { icon:'👁', title:t('個資遮罩'), desc:t('顯示顧客資料時自動遮罩（09xx****xxx），防止員工截圖外洩'), status:t('顯示層'), ok:true },
+    { icon:'💾', title:t('自動備份'), desc:t('每次重要操作前自動快照，最多保留 10 份，可匯出 JSON 檔案離線保存'), status:t('已啟用'), ok:true },
+    { icon:'🔒', title:t('Session 管理'), desc:t('登入 Token 存於 sessionStorage（關閉分頁即失效），包含到期時間，不存密碼'), status:t('8小時'), ok:true },
   ]
 
   return (
     <div style={{overflowY:'auto',height:'100%',display:'flex',flexDirection:'column',gap:10}}>
       <div style={{fontSize:12,color:'var(--text-tertiary)',padding:'4px 0',flexShrink:0}}>
-        以下為系統內建的資安防護，所有措施均在瀏覽器端實作，無需額外設定。
+        {t('以下為系統內建的資安防護，所有措施均在瀏覽器端實作，無需額外設定。')}
       </div>
       {items.map(item=>(
         <div key={item.title} className="card" style={{padding:'13px 16px',display:'flex',gap:14,alignItems:'flex-start'}}>
@@ -770,7 +770,7 @@ function SecurityTab({ session }) {
         </div>
       ))}
       <div style={{background:'var(--gold-dim)',border:'1px solid var(--gold-dim)',borderRadius:10,padding:'12px 16px',fontSize:12,color:'var(--gold-bright)',lineHeight:1.7,flexShrink:0}}>
-        <strong>升級至雲端版後額外獲得：</strong> HTTPS 加密傳輸 · Row Level Security（每店資料隔離）· 異地備份 · WAF 防火牆 · DDoS 防護
+        <strong>{t('升級至雲端版後額外獲得：')}</strong> {t('HTTPS 加密傳輸 · Row Level Security（每店資料隔離）· 異地備份 · WAF 防火牆 · DDoS 防護')}
       </div>
     </div>
   )
@@ -783,22 +783,22 @@ function BackupTab({ session }) {
   const [msg,      setMsg]      = useState('')
 
   function doBackup() {
-    createBackup(session, `手動備份 ${new Date().toLocaleString('zh-TW')}`)
+    createBackup(session, t('手動備份 {time}', {time: new Date().toLocaleString(getLocale())}))
     setBackups(getBackupList())
-    setMsg('備份建立成功')
+    setMsg(t('備份建立成功'))
     setTimeout(()=>setMsg(''),2500)
   }
 
   function doRestore(id) {
     const ok = restoreBackup(id, session)
     setRestoring(null)
-    setMsg(ok ? '✓ 還原成功，請重新整理頁面' : '還原失敗')
+    setMsg(ok ? t('✓ 還原成功，請重新整理頁面') : t('還原失敗'))
     setTimeout(()=>setMsg(''),4000)
   }
 
   function doExport() {
     exportBackupFile(session)
-    setMsg('匯出完成')
+    setMsg(t('匯出完成'))
     setTimeout(()=>setMsg(''),2000)
   }
 
@@ -806,17 +806,17 @@ function BackupTab({ session }) {
     const file = e.target.files?.[0]
     if (!file) return
     importBackupFile(file, session).then(()=>{
-      setMsg('匯入成功，請重新整理頁面')
-    }).catch(()=>setMsg('匯入失敗，格式錯誤'))
+      setMsg(t('匯入成功，請重新整理頁面'))
+    }).catch(()=>setMsg(t('匯入失敗，格式錯誤')))
   }
 
   return (
     <div style={{display:'flex',flexDirection:'column',gap:14,height:'100%'}}>
       <div style={{display:'flex',gap:10,flexShrink:0,flexWrap:'wrap'}}>
-        <button className="btn btn-primary btn-sm" onClick={doBackup}><Database size={14}/>立即備份</button>
-        <button className="btn btn-ghost btn-sm"  onClick={doExport}><Download size={14}/>匯出 JSON 檔</button>
+        <button className="btn btn-primary btn-sm" onClick={doBackup}><Database size={14}/>{t('立即備份')}</button>
+        <button className="btn btn-ghost btn-sm"  onClick={doExport}><Download size={14}/>{t('匯出 JSON 檔')}</button>
         <label className="btn btn-ghost btn-sm" style={{cursor:'pointer'}}>
-          <Upload size={14}/>匯入備份
+          <Upload size={14}/>{t('匯入備份')}
           <input type="file" accept=".json" style={{display:'none'}} onChange={handleImport}/>
         </label>
       </div>
@@ -824,18 +824,18 @@ function BackupTab({ session }) {
 
       <div style={{flex:1,overflowY:'auto',display:'flex',flexDirection:'column',gap:8}}>
         {backups.length===0 ? (
-          <div style={{textAlign:'center',padding:'40px',color:'var(--text-tertiary)',fontSize:13}}>尚無備份記錄</div>
+          <div style={{textAlign:'center',padding:'40px',color:'var(--text-tertiary)',fontSize:13}}>{t('尚無備份記錄')}</div>
         ) : backups.map(b=>(
           <div key={b.id} className="card" style={{padding:'12px 16px',display:'flex',alignItems:'center',gap:14}}>
             <div style={{flex:1}}>
               <div style={{fontWeight:500,fontSize:13}}>{b.label}</div>
               <div style={{fontSize:11,color:'var(--text-tertiary)',marginTop:3,fontFamily:'var(--font-mono)'}}>
-                {new Date(b.createdAt).toLocaleString('zh-TW')} · {b.createdBy}
+                {new Date(b.createdAt).toLocaleString(getLocale())} · {b.createdBy}
                 · {Math.round(b.size/1024)}KB
               </div>
             </div>
             <button className="btn btn-ghost btn-sm" style={{color:'var(--amber)'}} onClick={()=>setRestoring(b.id)}>
-              <RefreshCw size={13}/>還原
+              <RefreshCw size={13}/>{t('還原')}
             </button>
           </div>
         ))}

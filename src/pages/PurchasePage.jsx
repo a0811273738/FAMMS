@@ -607,21 +607,21 @@ function ReceiveModal({ po, products, onConfirm, onClose }) {
       <div style={ps.modal} className="animate-scale">
         <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:18}}>
           <div>
-            <div style={{fontWeight:700, fontSize:15, fontFamily:'var(--font-serif)'}}>確認到貨</div>
+            <div style={{fontWeight:700, fontSize:15, fontFamily:'var(--font-serif)'}}>{t('確認到貨')}</div>
             <div style={{fontSize:12, color:'var(--text-tertiary)', marginTop:2}}>{po.supplierName} · {po.id}</div>
           </div>
           <button className="btn-icon" onClick={onClose}><X size={16}/></button>
         </div>
-        <p style={{fontSize:13, color:'var(--text-secondary)', marginBottom:16}}>請核對實際到貨數量，系統將自動更新庫存：</p>
+        <p style={{fontSize:13, color:'var(--text-secondary)', marginBottom:16}}>{t('請核對實際到貨數量，系統將自動更新庫存：')}</p>
         {po.items.map(item => {
           const current = products.find(p=>p.id===item.productId)?.stock || 0
           return (
             <div key={item.productId} style={{display:'grid', gridTemplateColumns:'1fr 70px 80px', gap:12, padding:'10px 0', borderBottom:'1px solid var(--border-dim)', alignItems:'center'}}>
               <div>
                 <div style={{fontSize:13, fontWeight:500}}>{item.name}</div>
-                <div style={{fontSize:11, color:'var(--text-tertiary)'}}>現有庫存：{current}</div>
+                <div style={{fontSize:11, color:'var(--text-tertiary)'}}>{t('現有庫存：{n}', { n: current })}</div>
               </div>
-              <div style={{textAlign:'right', fontSize:12, color:'var(--text-secondary)'}}>叫貨 {item.qty}</div>
+              <div style={{textAlign:'right', fontSize:12, color:'var(--text-secondary)'}}>{t('叫貨 {n}', { n: item.qty })}</div>
               <input
                 type="number" min={0} max={item.qty * 2}
                 className="field"
@@ -633,13 +633,13 @@ function ReceiveModal({ po, products, onConfirm, onClose }) {
           )
         })}
         <div style={{marginTop:16, padding:'10px 12px', background:'var(--green-dim)', borderRadius:8, fontSize:12, color:'var(--green)'}}>
-          ✓ 確認後庫存將自動增加，並記錄稽核日誌
+          {t('✓ 確認後庫存將自動增加，並記錄稽核日誌')}
         </div>
         <div style={{display:'flex', gap:10, marginTop:16}}>
           <button className="btn btn-primary" style={{flex:1, padding:12}} onClick={()=>onConfirm(qtys)}>
-            <CheckCircle size={15}/>確認到貨
+            <CheckCircle size={15}/>{t('確認到貨')}
           </button>
-          <button className="btn btn-ghost" style={{flex:1}} onClick={onClose}>取消</button>
+          <button className="btn btn-ghost" style={{flex:1}} onClick={onClose}>{t('取消')}</button>
         </div>
       </div>
     </div>

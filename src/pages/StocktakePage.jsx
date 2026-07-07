@@ -246,7 +246,7 @@ export default function StocktakePage({ store, session }) {
 
       <div style={st.table}>
         <div style={{display:'grid', gridTemplateColumns:'1fr 80px 90px 100px', gap:8, padding:'9px 14px', background:'var(--bg-overlay)', fontSize:11, color:'var(--text-tertiary)', letterSpacing:'.05em', flexShrink:0}}>
-          <span>商品名稱</span><span style={{textAlign:'right'}}>系統庫存</span><span style={{textAlign:'right'}}>實盤數量</span><span style={{textAlign:'right'}}>差異</span>
+          <span>{t('商品名稱')}</span><span style={{textAlign:'right'}}>{t('系統庫存')}</span><span style={{textAlign:'right'}}>{t('實盤數量')}</span><span style={{textAlign:'right'}}>{t('差異')}</span>
         </div>
         <div style={{flex:1, overflowY:'auto'}}>
           {filtered.map((p, idx) => {

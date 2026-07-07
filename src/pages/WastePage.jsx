@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { Trash2, Plus, AlertTriangle, Calendar, Package } from 'lucide-react'
 import { exportXLS } from '../utils/exportXLS'
+import { t, fmtMoney, getLocale } from '../i18n'
 
 const REASONS = ['過期', '破損', '腐壞', '自用', '試吃樣品', '盤虧', '其他']
 
@@ -53,7 +54,7 @@ export default function WastePage({ store, session }) {
   }
 
   async function handleQuickAdd(p) {
-    if (!confirm(`記錄 1 件「${p.name}」過期？`)) return
+    if (!confirm(t('記錄 1 件「{name}」過期？', { name: p.name }))) return
     await recordWaste({
       productId: p.id, productName: p.name, qty: 1,
       cost: p.cost || 0, reason: '過期',
@@ -62,35 +63,35 @@ export default function WastePage({ store, session }) {
   }
 
   function exportExcel() {
-    const rows = [['日期','時間','商品','數量','成本','損失','原因','記錄者']]
+    const rows = [[t('日期'),t('時間'),t('商品'),t('數量'),t('成本'),t('損失'),t('原因'),t('記錄者')]]
     filtered.forEach(w => {
-      const t = new Date(w.time)
+      const d = new Date(w.time)
       rows.push([
-        t.toLocaleDateString('zh-TW'),
-        t.toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'}),
+        d.toLocaleDateString(getLocale()),
+        d.toLocaleTimeString(getLocale(),{hour:'2-digit',minute:'2-digit'}),
         w.productName,
         Math.abs(w.qty),
         w.cost || 0,
         (w.cost || 0) * Math.abs(w.qty),
-        w.reason,
+        t(w.reason),
         w.cashier || '',
       ])
     })
-    rows.push(['','','合計', totalQty, '', totalLoss, '', ''])
-    exportXLS(rows, `損耗紀錄_${filterMonth}.xls`)
+    rows.push(['','',t('合計'), totalQty, '', totalLoss, '', ''])
+    exportXLS(rows, `${t('損耗紀錄')}_${filterMonth}.xls`)
   }
 
   return (
     <div style={ws.root}>
       <div style={ws.header}>
         <div>
-          <h2 style={{fontSize:20, fontWeight:600}}>損耗管理</h2>
+          <h2 style={{fontSize:20, fontWeight:600}}>{t('損耗管理')}</h2>
           <div style={{fontSize:13, color:'var(--text-tertiary)', marginTop:4}}>
-            記錄過期、破損、自用等庫存損耗
+            {t('記錄過期、破損、自用等庫存損耗')}
           </div>
         </div>
         <button className="btn btn-primary" onClick={()=>setShowAdd(true)} style={{display:'flex',alignItems:'center',gap:6}}>
-          <Plus size={16}/> 新增損耗
+          <Plus size={16}/> {t('新增損耗')}
         </button>
       </div>
 
@@ -98,7 +99,7 @@ export default function WastePage({ store, session }) {
         <div style={ws.card}>
           <div style={{display:'flex', alignItems:'center', gap:8, marginBottom:12}}>
             <AlertTriangle size={16} color="var(--amber)"/>
-            <span style={{fontWeight:600}}>近 7 天到期 ({expiringSoon.length})</span>
+            <span style={{fontWeight:600}}>{t('近 7 天到期')} ({expiringSoon.length})</span>
           </div>
           <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(220px, 1fr))', gap:8}}>
             {expiringSoon.map(p => (
@@ -109,13 +110,13 @@ export default function WastePage({ store, session }) {
               }}>
                 <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:4}}>
                   <div style={{fontSize:13, fontWeight:500, flex:1, minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>{p.name}</div>
-                  <button onClick={()=>handleQuickAdd(p)} style={{padding:'2px 8px', fontSize:10, color:'var(--red)', background:'none', border:'1px solid var(--red)', borderRadius:4}}>報廢</button>
+                  <button onClick={()=>handleQuickAdd(p)} style={{padding:'2px 8px', fontSize:10, color:'var(--red)', background:'none', border:'1px solid var(--red)', borderRadius:4}}>{t('報廢')}</button>
                 </div>
                 <div style={{fontSize:11, color:'var(--text-secondary)'}}>
-                  庫存 {p.stock} · 到期 {p.expiryDate}
+                  {t('庫存 {stock} · 到期 {date}', { stock: p.stock, date: p.expiryDate })}
                 </div>
                 <div style={{fontSize:11, color: p.daysLeft <= 0 ? 'var(--red)' : 'var(--amber)', fontWeight:600, marginTop:2}}>
-                  {p.daysLeft <= 0 ? `已過期 ${-p.daysLeft} 天` : `剩 ${p.daysLeft} 天`}
+                  {p.daysLeft <= 0 ? t('已過期 {n} 天', { n: -p.daysLeft }) : t('剩 {n} 天', { n: p.daysLeft })}
                 </div>
               </div>
             ))}
@@ -126,56 +127,56 @@ export default function WastePage({ store, session }) {
       <div style={ws.card}>
         <div style={{display:'flex', gap:10, marginBottom:14, flexWrap:'wrap', alignItems:'center'}}>
           <input className="field" type="month" value={filterMonth} onChange={e=>setFilterMonth(e.target.value)} style={{width:160}}/>
-          <input className="field" placeholder="搜尋商品/原因" value={search} onChange={e=>setSearch(e.target.value)} style={{flex:1, minWidth:200}}/>
-          <button className="btn btn-ghost btn-sm" onClick={exportExcel}>匯出 Excel</button>
+          <input className="field" placeholder={t('搜尋商品/原因')} value={search} onChange={e=>setSearch(e.target.value)} style={{flex:1, minWidth:200}}/>
+          <button className="btn btn-ghost btn-sm" onClick={exportExcel}>{t('匯出 Excel')}</button>
         </div>
 
         <div style={{display:'flex', gap:12, marginBottom:14}}>
           <div style={ws.statBox}>
-            <div style={{fontSize:11, color:'var(--text-tertiary)'}}>合計筆數</div>
+            <div style={{fontSize:11, color:'var(--text-tertiary)'}}>{t('合計筆數')}</div>
             <div style={{fontSize:20, fontWeight:600, fontFamily:'var(--font-mono)'}}>{filtered.length}</div>
           </div>
           <div style={ws.statBox}>
-            <div style={{fontSize:11, color:'var(--text-tertiary)'}}>合計件數</div>
+            <div style={{fontSize:11, color:'var(--text-tertiary)'}}>{t('合計件數')}</div>
             <div style={{fontSize:20, fontWeight:600, fontFamily:'var(--font-mono)'}}>{totalQty}</div>
           </div>
           <div style={ws.statBox}>
-            <div style={{fontSize:11, color:'var(--text-tertiary)'}}>合計損失</div>
-            <div style={{fontSize:20, fontWeight:600, fontFamily:'var(--font-mono)', color:'var(--red)'}}>NT$ {totalLoss.toLocaleString()}</div>
+            <div style={{fontSize:11, color:'var(--text-tertiary)'}}>{t('合計損失')}</div>
+            <div style={{fontSize:20, fontWeight:600, fontFamily:'var(--font-mono)', color:'var(--red)'}}>{fmtMoney(totalLoss)}</div>
           </div>
         </div>
 
         {filtered.length === 0 ? (
           <div style={{textAlign:'center', color:'var(--text-tertiary)', padding:'40px 0', fontSize:13}}>
             <Package size={32} color="var(--text-tertiary)" style={{margin:'0 auto 12px', opacity:0.5}}/>
-            <div>無損耗紀錄</div>
+            <div>{t('無損耗紀錄')}</div>
           </div>
         ) : (
           <table style={{width:'100%', fontSize:13, borderCollapse:'collapse'}}>
             <thead>
               <tr>
-                <th style={ws.th}>時間</th>
-                <th style={ws.th}>商品</th>
-                <th style={{...ws.th, textAlign:'right'}}>數量</th>
-                <th style={{...ws.th, textAlign:'right'}}>單位成本</th>
-                <th style={{...ws.th, textAlign:'right'}}>損失</th>
-                <th style={ws.th}>原因</th>
-                <th style={ws.th}>記錄者</th>
+                <th style={ws.th}>{t('時間')}</th>
+                <th style={ws.th}>{t('商品')}</th>
+                <th style={{...ws.th, textAlign:'right'}}>{t('數量')}</th>
+                <th style={{...ws.th, textAlign:'right'}}>{t('單位成本')}</th>
+                <th style={{...ws.th, textAlign:'right'}}>{t('損失')}</th>
+                <th style={ws.th}>{t('原因')}</th>
+                <th style={ws.th}>{t('記錄者')}</th>
                 <th style={ws.th}></th>
               </tr>
             </thead>
             <tbody>
               {filtered.map(w => (
                 <tr key={w.id} style={{borderBottom:'1px solid var(--border-dim)'}}>
-                  <td style={ws.td}>{new Date(w.time).toLocaleString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})}</td>
+                  <td style={ws.td}>{new Date(w.time).toLocaleString(getLocale(),{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})}</td>
                   <td style={ws.td}>{w.productName}</td>
                   <td style={{...ws.td, textAlign:'right', fontFamily:'var(--font-mono)'}}>{Math.abs(w.qty)}</td>
                   <td style={{...ws.td, textAlign:'right', fontFamily:'var(--font-mono)', color:'var(--text-secondary)'}}>{(w.cost||0).toLocaleString()}</td>
                   <td style={{...ws.td, textAlign:'right', fontFamily:'var(--font-mono)', color:'var(--red)', fontWeight:500}}>{((w.cost||0)*Math.abs(w.qty)).toLocaleString()}</td>
-                  <td style={ws.td}><span className="badge badge-amber">{w.reason}</span></td>
+                  <td style={ws.td}><span className="badge badge-amber">{t(w.reason)}</span></td>
                   <td style={ws.td}>{w.cashier}</td>
                   <td style={ws.td}>
-                    <button onClick={()=>{ if(confirm('確定刪除？')) removeWaste(w.id) }} style={{color:'var(--red)', padding:4}}>
+                    <button onClick={()=>{ if(confirm(t('確定刪除？'))) removeWaste(w.id) }} style={{color:'var(--red)', padding:4}}>
                       <Trash2 size={13}/>
                     </button>
                   </td>
@@ -190,21 +191,21 @@ export default function WastePage({ store, session }) {
         <>
           <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.4)',zIndex:998}} onClick={()=>setShowAdd(false)}/>
           <div style={{position:'fixed', top:'50%', left:'50%', transform:'translate(-50%,-50%)', background:'var(--bg-raised)', borderRadius:12, width:420, maxWidth:'90vw', boxShadow:'var(--shadow-lg)', zIndex:999}}>
-            <div style={{padding:'14px 18px', borderBottom:'1px solid var(--border-dim)', fontSize:15, fontWeight:600}}>記錄損耗</div>
+            <div style={{padding:'14px 18px', borderBottom:'1px solid var(--border-dim)', fontSize:15, fontWeight:600}}>{t('記錄損耗')}</div>
             <div style={{padding:18}}>
               <div style={{marginBottom:10}}>
-                <div style={{fontSize:11, color:'var(--text-tertiary)', marginBottom:4}}>商品</div>
+                <div style={{fontSize:11, color:'var(--text-tertiary)', marginBottom:4}}>{t('商品')}</div>
                 <select className="field" value={productId} onChange={e=>setProductId(e.target.value)} autoFocus>
-                  <option value="">— 請選擇 —</option>
-                  {products.map(p => <option key={p.id} value={p.id}>{p.name} (庫存 {p.stock})</option>)}
+                  <option value="">{t('— 請選擇 —')}</option>
+                  {products.map(p => <option key={p.id} value={p.id}>{t('{name}（庫存 {stock}）', { name: p.name, stock: p.stock })}</option>)}
                 </select>
               </div>
               <div style={{marginBottom:10}}>
-                <div style={{fontSize:11, color:'var(--text-tertiary)', marginBottom:4}}>數量</div>
+                <div style={{fontSize:11, color:'var(--text-tertiary)', marginBottom:4}}>{t('數量')}</div>
                 <input className="field" type="number" value={qty} onChange={e=>setQty(e.target.value)} placeholder="0"/>
               </div>
               <div style={{marginBottom:10}}>
-                <div style={{fontSize:11, color:'var(--text-tertiary)', marginBottom:4}}>原因</div>
+                <div style={{fontSize:11, color:'var(--text-tertiary)', marginBottom:4}}>{t('原因')}</div>
                 <div style={{display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:6}}>
                   {REASONS.map(r => (
                     <button key={r} onClick={()=>setReason(r)} style={{
@@ -212,11 +213,11 @@ export default function WastePage({ store, session }) {
                       background: reason===r?'var(--gold)':'var(--bg-overlay)',
                       color: reason===r?'#fff':'var(--text-secondary)',
                       border:`1px solid ${reason===r?'var(--gold)':'var(--border-subtle)'}`,
-                    }}>{r}</button>
+                    }}>{t(r)}</button>
                   ))}
                 </div>
               </div>
-              <button className="btn btn-primary" style={{width:'100%', padding:12, marginTop:8}} disabled={!productId || !qty} onClick={handleAdd}>記錄</button>
+              <button className="btn btn-primary" style={{width:'100%', padding:12, marginTop:8}} disabled={!productId || !qty} onClick={handleAdd}>{t('記錄')}</button>
             </div>
           </div>
         </>

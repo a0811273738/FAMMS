@@ -363,13 +363,13 @@ function ExpenseView({ addManualEntry }) {
 
   return (
     <div style={{maxWidth:560,margin:'0 auto',display:'flex',flexDirection:'column',gap:16}}>
-      <div style={ac.cardTitle}>記錄費用 / 進貨</div>
+      <div style={ac.cardTitle}>{t('記錄費用 / 進貨')}</div>
 
       {/* Presets */}
       <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
         {EXPENSE_PRESETS.map(p=>(
           <button key={p.label} className="btn btn-ghost btn-sm" onClick={()=>applyPreset(p)} style={{fontSize:12}}>
-            {p.label}
+            {t(p.label)}
           </button>
         ))}
       </div>
@@ -377,55 +377,55 @@ function ExpenseView({ addManualEntry }) {
       <div className="card" style={{padding:'20px 22px',display:'flex',flexDirection:'column',gap:14}}>
         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
           <div>
-            <FieldLabel>日期</FieldLabel>
+            <FieldLabel>{t('日期')}</FieldLabel>
             <input type="date" className="field" value={form.date} onChange={e=>setForm(f=>({...f,date:e.target.value}))}/>
           </div>
           <div>
-            <FieldLabel>金額 (NT$) *</FieldLabel>
+            <FieldLabel>{t('金額 (NT$) *')}</FieldLabel>
             <input type="number" className="field" value={form.amount} onChange={e=>setForm(f=>({...f,amount:e.target.value}))} placeholder="0" style={{fontFamily:'var(--font-mono)'}}/>
           </div>
         </div>
 
         <div>
-          <FieldLabel>摘要 *</FieldLabel>
-          <input className="field" value={form.description} onChange={e=>setForm(f=>({...f,description:e.target.value}))} placeholder="例：三月份租金、水電費"/>
+          <FieldLabel>{t('摘要 *')}</FieldLabel>
+          <input className="field" value={form.description} onChange={e=>setForm(f=>({...f,description:e.target.value}))} placeholder={t('例：三月份租金、水電費')}/>
         </div>
 
         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
           <div>
-            <FieldLabel>費用科目</FieldLabel>
+            <FieldLabel>{t('費用科目')}</FieldLabel>
             <select className="field" value={form.expenseAccount} onChange={e=>setForm(f=>({...f,expenseAccount:e.target.value}))} style={{cursor:'pointer'}}>
               {Object.entries(ACCOUNTS).filter(([,v])=>v.type==='expense'||v.code==='1211').map(([k,v])=>(
-                <option key={k} value={k}>{k} {v.name}</option>
+                <option key={k} value={k}>{k} {t(v.name)}</option>
               ))}
-              <option value="1211">1211 存貨（進貨）</option>
+              <option value="1211">1211 {t('存貨（進貨）')}</option>
             </select>
           </div>
           <div>
-            <FieldLabel>付款方式</FieldLabel>
+            <FieldLabel>{t('付款方式')}</FieldLabel>
             <select className="field" value={form.payAccount} onChange={e=>setForm(f=>({...f,payAccount:e.target.value}))} style={{cursor:'pointer'}}>
-              <option value="1101">1101 現金</option>
-              <option value="1103">1103 銀行存款</option>
-              <option value="2101">2101 應付帳款（賒帳）</option>
+              <option value="1101">1101 {t('現金')}</option>
+              <option value="1103">1103 {t('銀行存款')}</option>
+              <option value="2101">2101 {t('應付帳款（賒帳）')}</option>
             </select>
           </div>
         </div>
 
         <div>
-          <FieldLabel>備註</FieldLabel>
-          <input className="field" value={form.note} onChange={e=>setForm(f=>({...f,note:e.target.value}))} placeholder="（選填）"/>
+          <FieldLabel>{t('備註')}</FieldLabel>
+          <input className="field" value={form.note} onChange={e=>setForm(f=>({...f,note:e.target.value}))} placeholder={t('（選填）')}/>
         </div>
 
         <button className="btn btn-primary" onClick={handleSave} style={{width:'100%',padding:13}}>
-          {saved ? <><Check size={16}/>已記帳</> : '記帳'}
+          {saved ? <><Check size={16}/>{t('已記帳')}</> : t('記帳')}
         </button>
       </div>
 
       <div className="card" style={{padding:'14px 16px'}}>
         <div style={{fontSize:11,color:'var(--text-tertiary)',lineHeight:1.8}}>
-          <div>📒 每筆結帳自動產生 <strong style={{color:'var(--text-secondary)'}}>銷售收入</strong> + <strong style={{color:'var(--text-secondary)'}}>銷貨成本</strong> + <strong style={{color:'var(--text-secondary)'}}>銷項稅額</strong> 三筆分錄</div>
-          <div>💰 此頁面補登 <strong style={{color:'var(--text-secondary)'}}>費用、進貨、薪資</strong> 等非銷售支出</div>
-          <div>📊 所有資料自動彙整至損益表與資產負債表</div>
+          <div>📒 {t('每筆結帳自動產生')} <strong style={{color:'var(--text-secondary)'}}>{t('銷售收入')}</strong> + <strong style={{color:'var(--text-secondary)'}}>{t('銷貨成本')}</strong> + <strong style={{color:'var(--text-secondary)'}}>{t('銷項稅額')}</strong> {t('三筆分錄')}</div>
+          <div>💰 {t('此頁面補登')} <strong style={{color:'var(--text-secondary)'}}>{t('費用、進貨、薪資')}</strong> {t('等非銷售支出')}</div>
+          <div>📊 {t('所有資料自動彙整至損益表與資產負債表')}</div>
         </div>
       </div>
     </div>
