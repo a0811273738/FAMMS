@@ -1,5 +1,6 @@
 // English dictionary — key = original Traditional Chinese string
 export default {
+  '，': ', ',
   ' / 安全 {n}': ' / Safety {n}',
   '+10 = 漲 10%': '+10 = up 10%',
   '+{n} 點': '+{n} points',

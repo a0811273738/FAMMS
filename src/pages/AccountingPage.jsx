@@ -5,6 +5,7 @@ import {
   ACCOUNTS,
 } from '../utils/accounting'
 import { Download, Plus, Trash2, X, Check, ChevronDown, ChevronRight, BookOpen, TrendingUp, Scale, FileText } from 'lucide-react'
+import { t, fmtMoney } from '../i18n'
 
 const TABS = [
   { key: 'pnl',      label: '損益表',   Icon: TrendingUp },
@@ -38,8 +39,8 @@ export default function AccountingPage({ store }) {
   ), [allJournal, from, to])
 
   function handleExport() {
-    if (tab === 'journal') downloadCSV(exportJournalCSV(allJournal.filter(j=>j.date>=from&&j.date<=to)), `日記帳_${from}_${to}.csv`)
-    else if (tab === 'pnl') downloadCSV(exportPnLCSV(pnl, from, to), `損益表_${from}_${to}.csv`)
+    if (tab === 'journal') downloadCSV(exportJournalCSV(allJournal.filter(j=>j.date>=from&&j.date<=to)), `${t('日記帳')}_${from}_${to}.csv`)
+    else if (tab === 'pnl') downloadCSV(exportPnLCSV(pnl, from, to), `${t('損益表')}_${from}_${to}.csv`)
   }
 
   const canExport = tab === 'journal' || tab === 'pnl'

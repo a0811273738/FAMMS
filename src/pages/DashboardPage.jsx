@@ -107,7 +107,7 @@ export default function DashboardPage({ store, session }) {
             {new Date().toLocaleDateString(getLocale(), { year:'numeric', month:'long', day:'numeric', weekday:'long' })}
           </div>
           <h1 style={{fontSize:32, fontWeight:800, letterSpacing:'-.02em', color:'var(--text-primary)'}}>
-            {greet()}，<span style={{background:'var(--accent-grad)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent'}}>{t(session?.username || '使用者')}</span>
+            {greet()}{t('，')}<span style={{background:'var(--accent-grad)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent'}}>{t(session?.username || '使用者')}</span>
           </h1>
           <div style={{fontSize:14, color:'var(--text-secondary)', marginTop:6}}>
             {t('今天有')} <strong style={{color:'var(--accent-deep)'}}>{stats.ordersToday.length}</strong> {t('筆訂單，營收')} <strong style={{color:'var(--accent-deep)', fontFamily:'var(--font-mono)'}}>{fmtMoney(todayRevenue)}</strong>

@@ -1,5 +1,6 @@
 // Kamus Bahasa Indonesia — key = string asli bahasa Mandarin Tradisional
 export default {
+  '，': ', ',
   ' / 安全 {n}': ' / Stok Aman {n}',
   '+10 = 漲 10%': '+10 = naik 10%',
   '+{n} 點': '+{n} poin',
