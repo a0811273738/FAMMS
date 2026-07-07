@@ -457,3 +457,12 @@ body {
   padding: 14px 40px;
   font-size: 1rem;
 }
+
+/* 語言切換器 */
+.lang-switcher { display:flex; gap:6px; justify-content:center; margin-top:8px; }
+.lang-btn {
+  padding:4px 12px; border-radius:999px; font-size:12px; font-weight:600;
+  border:1px solid rgba(255,255,255,0.35); background:transparent; color:inherit;
+  cursor:pointer; opacity:.75;
+}
+.lang-btn.active { background:rgba(255,255,255,0.22); opacity:1; }

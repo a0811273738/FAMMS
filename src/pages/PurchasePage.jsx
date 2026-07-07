@@ -5,6 +5,7 @@ import { isElectron, loadSuppliers, saveSuppliers as dbSaveSuppliers, dbAddSuppl
 import { DEFAULT_CATEGORIES, CATEGORY_META, groupByCategory } from '../utils/categories'
 import { computeSalesVelocity, suggestReorderQty } from '../utils/analytics'
 import useIsMobile from '../hooks/useIsMobile'
+import { t, fmtMoney } from '../i18n'
 const BarcodeScannerModal = lazy(() => import('../components/BarcodeScannerModal'))
 
 const STATUS = {
@@ -109,14 +110,14 @@ export default function PurchasePage({ store, session }) {
     <div style={ps.root}>
       <div style={ps.header}>
         <div>
-          <h2 style={ps.title}>進貨管理</h2>
+          <h2 style={ps.title}>{t('進貨管理')}</h2>
           <div style={{fontSize:12, color:'var(--text-tertiary)', marginTop:2}}>
-            {pending.length} 張待處理 · 待付款 NT$ {totalOwed.toLocaleString()}
+            {t('{n} 張待處理 · 待付款 {amt}', { n: pending.length, amt: fmtMoney(totalOwed) })}
           </div>
         </div>
         <div style={{display:'flex', gap:8}}>
           {[['list','進貨單'],['new','+ 新增'],['suppliers','供應商'],['payable','應付帳款']].map(([k,l])=>(
-            <button key={k} onClick={()=>{setTab(k);setSelected(null)}} className={`btn btn-sm ${tab===k?'btn-primary':'btn-ghost'}`}>{l}</button>
+            <button key={k} onClick={()=>{setTab(k);setSelected(null)}} className={`btn btn-sm ${tab===k?'btn-primary':'btn-ghost'}`}>{t(l)}</button>
           ))}
         </div>
       </div>
@@ -153,7 +154,7 @@ function PurchaseList({ purchases, selected, onSelect, onReceive }) {
       {showList && (
       <div style={{width: isMobile ? '100%' : 300, flexShrink:0, display:'flex', flexDirection:'column', gap:8, overflowY:'auto'}}>
         {purchases.length === 0 && (
-          <div style={{textAlign:'center', padding:'40px', color:'var(--text-tertiary)', fontSize:13}}>尚無進貨單</div>
+          <div style={{textAlign:'center', padding:'40px', color:'var(--text-tertiary)', fontSize:13}}>{t('尚無進貨單')}</div>
         )}
         {purchases.map(po => {
           const st = STATUS[po.status]
@@ -165,12 +166,12 @@ function PurchaseList({ purchases, selected, onSelect, onReceive }) {
             }}>
               <div style={{display:'flex', justifyContent:'space-between', marginBottom:6}}>
                 <span style={{fontFamily:'var(--font-mono)', fontSize:12, color:'var(--text-secondary)'}}>{po.id}</span>
-                <span style={{...ps.statusBadge, background:st.bg, color:st.color}}>{st.label}</span>
+                <span style={{...ps.statusBadge, background:st.bg, color:st.color}}>{t(st.label)}</span>
               </div>
               <div style={{fontWeight:600, fontSize:14, marginBottom:4}}>{po.supplierName}</div>
               <div style={{display:'flex', justifyContent:'space-between', fontSize:12, color:'var(--text-tertiary)'}}>
                 <span>{po.date}</span>
-                <span style={{fontFamily:'var(--font-mono)', color:'var(--text-primary)'}}>NT$ {po.total.toLocaleString()}</span>
+                <span style={{fontFamily:'var(--font-mono)', color:'var(--text-primary)'}}>{fmtMoney(po.total)}</span>
               </div>
             </button>
           )
@@ -183,26 +184,26 @@ function PurchaseList({ purchases, selected, onSelect, onReceive }) {
           <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16, gap:10, flexWrap:'wrap'}}>
             <div style={{display:'flex', alignItems:'center', gap:10, flex:1, minWidth:0}}>
               {isMobile && (
-                <button className="btn-icon btn-sm" onClick={()=>onSelect(null)} aria-label="返回">
+                <button className="btn-icon btn-sm" onClick={()=>onSelect(null)} aria-label={t('返回')}>
                   <ChevronLeft size={16}/>
                 </button>
               )}
               <div style={{minWidth:0}}>
                 <div style={{fontWeight:700, fontSize:16, fontFamily:'var(--font-serif)'}}>{selected.supplierName}</div>
                 <div style={{fontSize:12, color:'var(--text-tertiary)', marginTop:2}}>
-                  進貨單 {selected.id} · 叫貨日 {selected.date}
+                  {t('進貨單 {id} · 叫貨日 {date}', { id: selected.id, date: selected.date })}
                 </div>
               </div>
             </div>
             {selected.status === 'ordered' && (
               <button className="btn btn-primary btn-sm" onClick={()=>onReceive(selected)}>
-                <Truck size={14}/>確認到貨
+                <Truck size={14}/>{t('確認到貨')}
               </button>
             )}
           </div>
           <div className="card" style={{overflow:'hidden', marginBottom:14}}>
             <div style={{display:'grid', gridTemplateColumns:'1fr 70px 70px 70px 70px', gap:8, padding:'9px 14px', background:'var(--bg-overlay)', fontSize:11, color:'var(--text-tertiary)', letterSpacing:'.05em'}}>
-              <span>商品</span><span style={{textAlign:'right'}}>叫貨量</span><span style={{textAlign:'right'}}>單價</span><span style={{textAlign:'right'}}>到貨量</span><span style={{textAlign:'right'}}>小計</span>
+              <span>{t('商品')}</span><span style={{textAlign:'right'}}>{t('叫貨量')}</span><span style={{textAlign:'right'}}>{t('單價')}</span><span style={{textAlign:'right'}}>{t('到貨量')}</span><span style={{textAlign:'right'}}>{t('小計')}</span>
             </div>
             {selected.items.map((item,i) => (
               <div key={i} style={{display:'grid', gridTemplateColumns:'1fr 70px 70px 70px 70px', gap:8, padding:'10px 14px', borderTop:'1px solid var(--border-dim)', fontSize:13, alignItems:'center'}}>
@@ -214,16 +215,16 @@ function PurchaseList({ purchases, selected, onSelect, onReceive }) {
               </div>
             ))}
             <div style={{display:'flex', justifyContent:'space-between', padding:'12px 14px', borderTop:'1px solid var(--border-mid)', fontWeight:600}}>
-              <span>總計</span>
-              <span style={{fontFamily:'var(--font-mono)', color:'var(--gold-bright)'}}>NT$ {selected.total.toLocaleString()}</span>
+              <span>{t('總計')}</span>
+              <span style={{fontFamily:'var(--font-mono)', color:'var(--gold-bright)'}}>{fmtMoney(selected.total)}</span>
             </div>
           </div>
-          {selected.note && <div style={{fontSize:13, color:'var(--text-secondary)', padding:'10px 14px', background:'var(--bg-overlay)', borderRadius:8}}>備註：{selected.note}</div>}
+          {selected.note && <div style={{fontSize:13, color:'var(--text-secondary)', padding:'10px 14px', background:'var(--bg-overlay)', borderRadius:8}}>{t('備註：')}{selected.note}</div>}
         </div>
       ) : !isMobile && (
         <div style={ps.emptyDetail}>
           <Package size={32} style={{opacity:.2, marginBottom:12}}/>
-          <span style={{color:'var(--text-tertiary)', fontSize:13}}>選擇進貨單查看詳情</span>
+          <span style={{color:'var(--text-tertiary)', fontSize:13}}>{t('選擇進貨單查看詳情')}</span>
         </div>
       ))}
     </div>
@@ -376,14 +377,14 @@ function NewPurchase({ products, suppliers, purchases, orders = [], onSave }) {
     <div style={{maxWidth:780, display:'flex', flexDirection:'column', gap:16, overflowY:'auto', height:'100%'}}>
       <div style={np.topGrid}>
         <div>
-          <FL>供應商 *</FL>
+          <FL>{t('供應商 *')}</FL>
           <select className="field" value={supplierId} onChange={e=>{setSupplierId(e.target.value);setAddProdId('')}} style={{cursor:'pointer'}}>
-            <option value="">— 選擇供應商 —</option>
+            <option value="">{t('— 選擇供應商 —')}</option>
             {suppliers.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
         </div>
         <div>
-          <FL>叫貨日期</FL>
+          <FL>{t('叫貨日期')}</FL>
           <input type="date" className="field" value={date} onChange={e=>setDate(e.target.value)}/>
         </div>
       </div>
@@ -392,10 +393,10 @@ function NewPurchase({ products, suppliers, purchases, orders = [], onSave }) {
         <div style={{fontSize:12, color:'var(--text-secondary)', background:'var(--bg-overlay)', borderRadius:8, padding:'10px 14px'}}>
           📞 {supplier.contact} · {supplier.payTerms}{supplier.note ? ` · ${supplier.note}` : ''}
           <div style={{marginTop:4, color:'var(--text-tertiary)', fontSize:11}}>
-            該供應商商品 {products.filter(p=>p.supplierId===supplierId).length} 項
+            {t('該供應商商品 {n} 項', { n: products.filter(p=>p.supplierId===supplierId).length })}
             {lowStockForSupplier.length > 0 && (
               <span style={{color:'var(--amber)', marginLeft:8}}>
-                · {lowStockForSupplier.length} 項低於安全庫存
+                · {t('{n} 項低於安全庫存', { n: lowStockForSupplier.length })}
               </span>
             )}
           </div>
@@ -405,7 +406,7 @@ function NewPurchase({ products, suppliers, purchases, orders = [], onSave }) {
       {/* 分類篩選 chips（只在選了供應商且有多個分類時顯示）*/}
       {supplierId && availableCategories.length > 0 && (
         <div>
-          <FL>分類篩選</FL>
+          <FL>{t('分類篩選')}</FL>
           <div style={{display:'flex', flexWrap:'wrap', gap:6}}>
             <button
               onClick={()=>setCatFilter('all')}
@@ -417,7 +418,7 @@ function NewPurchase({ products, suppliers, purchases, orders = [], onSave }) {
                 fontWeight: catFilter==='all' ? 600 : 400,
               }}
             >
-              全部
+              {t('全部')}
             </button>
             {availableCategories.map(c => (
               <button
@@ -454,9 +455,9 @@ function NewPurchase({ products, suppliers, purchases, orders = [], onSave }) {
             <Zap size={18} style={{color:'var(--amber)'}}/>
             <div>
               <div style={{fontWeight:600, fontSize:14, color:'var(--text-primary)'}}>
-                一鍵帶入低庫存補貨清單{catFilter !== 'all' && `（${catFilter}）`}
+                {t('一鍵帶入低庫存補貨清單')}{catFilter !== 'all' && `（${catFilter}）`}
               </div>
-              <div style={{fontSize:12, color:'var(--text-secondary)', marginTop:2}}>{unaddedLow} 項商品低於安全庫存，自動計算建議叫貨量</div>
+              <div style={{fontSize:12, color:'var(--text-secondary)', marginTop:2}}>{t('{n} 項商品低於安全庫存，自動計算建議叫貨量', { n: unaddedLow })}</div>
             </div>
           </div>
           <ChevronRight size={18} style={{color:'var(--amber)'}}/>
@@ -464,15 +465,15 @@ function NewPurchase({ products, suppliers, purchases, orders = [], onSave }) {
       )}
 
       <div>
-        <FL>加入商品 {supplierId && `（限 ${supplier?.name} 供應）`}</FL>
+        <FL>{t('加入商品')} {supplierId && t('（限 {name} 供應）', { name: supplier?.name })}</FL>
         <div style={{display:'flex', gap:8, flexWrap:'wrap'}}>
           <button
             className="btn btn-ghost btn-sm"
             onClick={()=>setShowCamera(true)}
             disabled={!supplierId}
-            title="用相機掃條碼加入"
+            title={t('用相機掃條碼加入')}
           >
-            <Camera size={14}/>掃條碼
+            <Camera size={14}/>{t('掃條碼')}
           </button>
           <select
             className="field"
@@ -481,7 +482,7 @@ function NewPurchase({ products, suppliers, purchases, orders = [], onSave }) {
             disabled={!supplierId}
             style={{cursor:'pointer', flex:1, minWidth:200}}
           >
-            <option value="">— {supplierId ? '選擇商品' : '請先選供應商'} —</option>
+            <option value="">— {supplierId ? t('選擇商品') : t('請先選供應商')} —</option>
             {/* 依分類分組，用 optgroup */}
             {groupByCategory(filteredProducts.filter(p=>!items.find(i=>i.productId===p.id))).map(g => (
               <optgroup key={g.category} label={`${CATEGORY_META[g.category]?.icon || '📦'} ${g.category}（${g.products.length}）`}>
@@ -489,7 +490,7 @@ function NewPurchase({ products, suppliers, purchases, orders = [], onSave }) {
                   const low = (Number(p.reorderLevel) || 0) > 0 && (Number(p.stock) || 0) <= (Number(p.reorderLevel) || 0)
                   return (
                     <option key={p.id} value={p.id}>
-                      {low ? '⚠ ' : ''}{p.name}（庫存：{p.stock}{p.reorderLevel ? ` / 安全 ${p.reorderLevel}` : ''}）
+                      {low ? '⚠ ' : ''}{p.name}{t('（庫存：{stock}{safe}）', { stock: p.stock, safe: p.reorderLevel ? t(' / 安全 {n}', { n: p.reorderLevel }) : '' })}
                     </option>
                   )
                 })}
@@ -497,7 +498,7 @@ function NewPurchase({ products, suppliers, purchases, orders = [], onSave }) {
             ))}
           </select>
           <button className="btn btn-ghost btn-sm" onClick={()=>addItem()} disabled={!addProdId}>
-            <Plus size={14}/>加入
+            <Plus size={14}/>{t('加入')}
           </button>
         </div>
       </div>
@@ -505,7 +506,7 @@ function NewPurchase({ products, suppliers, purchases, orders = [], onSave }) {
       {items.length > 0 && (
         <div className="card" style={{overflow:'auto'}}>
           <div style={np.itemsHead}>
-            <span>商品</span><span style={{textAlign:'right'}}>數量</span><span style={{textAlign:'right'}}>單價</span><span style={{textAlign:'right'}}>小計</span><span/>
+            <span>{t('商品')}</span><span style={{textAlign:'right'}}>{t('數量')}</span><span style={{textAlign:'right'}}>{t('單價')}</span><span style={{textAlign:'right'}}>{t('小計')}</span><span/>
           </div>
           {items.map((item,i)=>{
             const daysOfStock = item._dailyAvg > 0 ? (item.qty / item._dailyAvg).toFixed(0) : null
@@ -514,10 +515,10 @@ function NewPurchase({ products, suppliers, purchases, orders = [], onSave }) {
               <div>
                 <div style={{fontSize:13, fontWeight:500}}>{item.name}</div>
                 <div style={{display:'flex', gap:6, marginTop:2, flexWrap:'wrap'}}>
-                  {item._fromHistory && <span style={{fontSize:10, color:'var(--blue)', background:'var(--blue-dim)', padding:'1px 6px', borderRadius:4}}>歷史單價</span>}
-                  {item._autoFilled && <span style={{fontSize:10, color:'var(--amber)', background:'var(--amber-dim)', padding:'1px 6px', borderRadius:4}}>自動補貨</span>}
-                  {item._aiSuggested && <span style={{fontSize:10, color:'var(--purple)', background:'var(--purple-dim)', padding:'1px 6px', borderRadius:4}}>🤖 AI 建議</span>}
-                  {daysOfStock && <span style={{fontSize:10, color:'var(--text-tertiary)'}}>可賣 ~{daysOfStock} 天</span>}
+                  {item._fromHistory && <span style={{fontSize:10, color:'var(--blue)', background:'var(--blue-dim)', padding:'1px 6px', borderRadius:4}}>{t('歷史單價')}</span>}
+                  {item._autoFilled && <span style={{fontSize:10, color:'var(--amber)', background:'var(--amber-dim)', padding:'1px 6px', borderRadius:4}}>{t('自動補貨')}</span>}
+                  {item._aiSuggested && <span style={{fontSize:10, color:'var(--purple)', background:'var(--purple-dim)', padding:'1px 6px', borderRadius:4}}>{t('🤖 AI 建議')}</span>}
+                  {daysOfStock && <span style={{fontSize:10, color:'var(--text-tertiary)'}}>{t('可賣 ~{n} 天', { n: daysOfStock })}</span>}
                 </div>
               </div>
               <input type="number" className="field" value={item.qty} min={1} onChange={e=>updateItem(i,'qty',e.target.value)} style={{textAlign:'right', padding:'6px 8px', fontFamily:'var(--font-mono)', fontSize:13}}/>
@@ -527,19 +528,19 @@ function NewPurchase({ products, suppliers, purchases, orders = [], onSave }) {
             </div>
           )})}
           <div style={{display:'flex', justifyContent:'space-between', padding:'12px 14px', borderTop:'1px solid var(--border-mid)', fontWeight:600}}>
-            <span>總計</span>
-            <span style={{fontFamily:'var(--font-mono)', color:'var(--gold-bright)'}}>NT$ {total.toLocaleString()}</span>
+            <span>{t('總計')}</span>
+            <span style={{fontFamily:'var(--font-mono)', color:'var(--gold-bright)'}}>{fmtMoney(total)}</span>
           </div>
         </div>
       )}
 
       <div>
-        <FL>備註</FL>
-        <input className="field" value={note} onChange={e=>setNote(e.target.value)} placeholder="（選填）"/>
+        <FL>{t('備註')}</FL>
+        <input className="field" value={note} onChange={e=>setNote(e.target.value)} placeholder={t('（選填）')}/>
       </div>
 
       <button className="btn btn-primary" style={{width:'100%', padding:13}} disabled={!supplierId||items.length===0} onClick={handleSave}>
-        <Check size={16}/>建立進貨單
+        <Check size={16}/>{t('建立進貨單')}
       </button>
 
       {camMsg && (
@@ -555,27 +556,27 @@ function NewPurchase({ products, suppliers, purchases, orders = [], onSave }) {
       {showCamera && (
         <Suspense fallback={null}>
         <BarcodeScannerModal
-          title="掃條碼加入進貨單"
+          title={t('掃條碼加入進貨單')}
           mode="continuous"
           onScan={(code) => {
             const p = products.find(x => x.barcode === code)
             if (!p) {
-              setCamMsg(`✗ 條碼 ${code} 查無商品`)
+              setCamMsg(t('✗ 條碼 {code} 查無商品', { code }))
               setTimeout(()=>setCamMsg(''), 2500)
               return 'keep'
             }
             if (p.supplierId && p.supplierId !== supplierId) {
-              setCamMsg(`✗ ${p.name} 屬於其他供應商`)
+              setCamMsg(t('✗ {name} 屬於其他供應商', { name: p.name }))
               setTimeout(()=>setCamMsg(''), 2500)
               return 'keep'
             }
             if (items.find(i => i.productId === p.id)) {
-              setCamMsg(`已在清單：${p.name}`)
+              setCamMsg(t('已在清單：{name}', { name: p.name }))
               setTimeout(()=>setCamMsg(''), 1500)
               return 'keep'
             }
             addItem(p.id)
-            setCamMsg(`✓ 已加入 ${p.name}`)
+            setCamMsg(t('✓ 已加入 {name}', { name: p.name }))
             setTimeout(()=>setCamMsg(''), 1500)
             return 'keep'
           }}

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Clock, Plus, Minus, LogIn, LogOut, FileText, AlertCircle } from 'lucide-react'
 import { loadShifts, loadCashLog } from '../utils/dataAccess'
+import { t, getLocale, fmtMoney } from '../i18n'
 
 export default function ShiftPage({ store, session }) {
   const { openShift, startShift, endShift, logCash, orders } = store
@@ -69,7 +70,11 @@ export default function ShiftPage({ store, session }) {
     setShowClose(false); setCloseCash(''); setCloseNote('')
     if (r) {
       const diff = (r.diff != null ? r.diff : (cash - shiftStats.expected))
-      alert(`交班完成\n預期現金：NT$ ${shiftStats.expected.toLocaleString()}\n實際現金：NT$ ${cash.toLocaleString()}\n差額：${diff >= 0 ? '+' : ''}${diff.toLocaleString()}`)
+      alert(t('交班完成\n預期現金：{expected}\n實際現金：{actual}\n差額：{diff}', {
+        expected: fmtMoney(shiftStats.expected),
+        actual: fmtMoney(cash),
+        diff: `${diff >= 0 ? '+' : ''}${diff.toLocaleString(getLocale())}`,
+      }))
     }
     reload()
   }
@@ -86,22 +91,22 @@ export default function ShiftPage({ store, session }) {
     <div style={sh.root}>
       <div style={sh.header}>
         <div>
-          <h2 style={{fontSize:20, fontWeight:600}}>班別管理</h2>
+          <h2 style={{fontSize:20, fontWeight:600}}>{t('班別管理')}</h2>
           <div style={{fontSize:13, color:'var(--text-tertiary)', marginTop:4}}>
-            開班 / 交班 / 現金流水
+            {t('開班 / 交班 / 現金流水')}
           </div>
         </div>
         {!openShift ? (
           <button className="btn btn-primary" onClick={()=>setShowOpen(true)} style={{display:'flex',alignItems:'center',gap:6}}>
-            <LogIn size={16}/> 開班
+            <LogIn size={16}/> {t('開班')}
           </button>
         ) : (
           <div style={{display:'flex', gap:8}}>
             <button className="btn btn-ghost" onClick={()=>setShowCash(true)} style={{display:'flex',alignItems:'center',gap:6}}>
-              <Plus size={16}/> 現金流水
+              <Plus size={16}/> {t('現金流水')}
             </button>
             <button className="btn btn-primary" onClick={()=>{setShowClose(true);setCloseCash(String(shiftStats?.expected||0))}} style={{display:'flex',alignItems:'center',gap:6}}>
-              <LogOut size={16}/> 交班
+              <LogOut size={16}/> {t('交班')}
             </button>
           </div>
         )}
@@ -111,45 +116,45 @@ export default function ShiftPage({ store, session }) {
         <div style={sh.card}>
           <div style={{display:'flex',justifyContent:'space-between', alignItems:'center', marginBottom:16}}>
             <div>
-              <div style={{fontSize:11, color:'var(--text-tertiary)'}}>當班</div>
+              <div style={{fontSize:11, color:'var(--text-tertiary)'}}>{t('當班')}</div>
               <div style={{fontSize:18, fontWeight:600}}>{openShift.cashier}</div>
               <div style={{fontSize:12, color:'var(--text-secondary)', marginTop:2}}>
                 <Clock size={11} style={{verticalAlign:'middle', marginRight:4}}/>
-                開班 {new Date(openShift.openTime).toLocaleString('zh-TW')}
+                {t('開班')} {new Date(openShift.openTime).toLocaleString(getLocale())}
               </div>
             </div>
-            <span className="badge badge-green">營業中</span>
+            <span className="badge badge-green">{t('營業中')}</span>
           </div>
 
           <div style={sh.kpiGrid}>
-            <KPI label="開班現金" value={`NT$ ${(openShift.openCash||0).toLocaleString()}`}/>
-            <KPI label="現金銷售" value={`NT$ ${(shiftStats?.cash||0).toLocaleString()}`} accent="green"/>
-            <KPI label="電子支付" value={`NT$ ${(shiftStats?.card||0).toLocaleString()}`} accent="blue"/>
-            <KPI label="現金進" value={`+NT$ ${(shiftStats?.cashIn||0).toLocaleString()}`}/>
-            <KPI label="現金出" value={`-NT$ ${(shiftStats?.cashOut||0).toLocaleString()}`}/>
-            <KPI label="退貨" value={`${shiftStats?.refundCount||0} 筆 / NT$ ${(shiftStats?.refundAmt||0).toLocaleString()}`} accent="red"/>
-            <KPI label="訂單" value={`${shiftStats?.orderCount||0} 筆`}/>
-            <KPI label="預期現金" value={`NT$ ${(shiftStats?.expected||0).toLocaleString()}`} accent="gold"/>
+            <KPI label={t('開班現金')} value={fmtMoney(openShift.openCash||0)}/>
+            <KPI label={t('現金銷售')} value={fmtMoney(shiftStats?.cash||0)} accent="green"/>
+            <KPI label={t('電子支付')} value={fmtMoney(shiftStats?.card||0)} accent="blue"/>
+            <KPI label={t('現金進')} value={`+${fmtMoney(shiftStats?.cashIn||0)}`}/>
+            <KPI label={t('現金出')} value={`-${fmtMoney(shiftStats?.cashOut||0)}`}/>
+            <KPI label={t('退貨')} value={`${t('{n} 筆', {n: shiftStats?.refundCount||0})} / ${fmtMoney(shiftStats?.refundAmt||0)}`} accent="red"/>
+            <KPI label={t('訂單')} value={t('{n} 筆', {n: shiftStats?.orderCount||0})}/>
+            <KPI label={t('預期現金')} value={fmtMoney(shiftStats?.expected||0)} accent="gold"/>
           </div>
 
           {cashLog.length > 0 && (
             <>
-              <div style={{fontWeight:600, fontSize:14, margin:'20px 0 10px'}}>現金流水</div>
+              <div style={{fontWeight:600, fontSize:14, margin:'20px 0 10px'}}>{t('現金流水')}</div>
               <table style={sh.table}>
                 <thead>
                   <tr>
-                    <th>時間</th><th>類型</th><th style={{textAlign:'right'}}>金額</th><th>說明</th>
+                    <th>{t('時間')}</th><th>{t('類型')}</th><th style={{textAlign:'right'}}>{t('金額')}</th><th>{t('說明')}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {cashLog.map(c => (
                     <tr key={c.id}>
-                      <td>{new Date(c.time).toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'})}</td>
+                      <td>{new Date(c.time).toLocaleTimeString(getLocale(),{hour:'2-digit',minute:'2-digit'})}</td>
                       <td>
-                        <span className={`badge badge-${c.type==='in'?'green':'red'}`}>{c.type==='in'?'進':'出'}</span>
+                        <span className={`badge badge-${c.type==='in'?'green':'red'}`}>{c.type==='in'?t('進'):t('出')}</span>
                       </td>
                       <td style={{textAlign:'right', fontFamily:'var(--font-mono)', color: c.type==='in'?'var(--green)':'var(--red)', fontWeight:500}}>
-                        {c.type==='in'?'+':'-'} NT$ {c.amount.toLocaleString()}
+                        {c.type==='in'?'+':'-'} {fmtMoney(c.amount)}
                       </td>
                       <td style={{color:'var(--text-secondary)'}}>{c.reason}</td>
                     </tr>
@@ -162,30 +167,30 @@ export default function ShiftPage({ store, session }) {
       ) : (
         <div style={{...sh.card, textAlign:'center', padding:'40px 20px'}}>
           <AlertCircle size={32} color="var(--text-tertiary)" style={{margin:'0 auto 12px'}}/>
-          <div style={{fontSize:15, fontWeight:500, marginBottom:6}}>目前未開班</div>
-          <div style={{fontSize:13, color:'var(--text-tertiary)'}}>開班後才能使用收銀台功能</div>
+          <div style={{fontSize:15, fontWeight:500, marginBottom:6}}>{t('目前未開班')}</div>
+          <div style={{fontSize:13, color:'var(--text-tertiary)'}}>{t('開班後才能使用收銀台功能')}</div>
         </div>
       )}
 
       <div style={{...sh.card, marginTop:12}}>
-        <div style={{fontWeight:600, fontSize:14, marginBottom:12}}>歷史班別</div>
+        <div style={{fontWeight:600, fontSize:14, marginBottom:12}}>{t('歷史班別')}</div>
         {shifts.length === 0 ? (
-          <div style={{textAlign:'center', color:'var(--text-tertiary)', padding:'20px 0', fontSize:13}}>無紀錄</div>
+          <div style={{textAlign:'center', color:'var(--text-tertiary)', padding:'20px 0', fontSize:13}}>{t('無紀錄')}</div>
         ) : (
           <table style={sh.table}>
             <thead>
               <tr>
-                <th>收銀員</th><th>開班</th><th>交班</th>
-                <th style={{textAlign:'right'}}>現金</th><th style={{textAlign:'right'}}>電子</th>
-                <th style={{textAlign:'right'}}>差額</th><th>狀態</th>
+                <th>{t('收銀員')}</th><th>{t('開班')}</th><th>{t('交班')}</th>
+                <th style={{textAlign:'right'}}>{t('現金')}</th><th style={{textAlign:'right'}}>{t('電子')}</th>
+                <th style={{textAlign:'right'}}>{t('差額')}</th><th>{t('狀態')}</th>
               </tr>
             </thead>
             <tbody>
               {shifts.map(s => (
                 <tr key={s.id}>
                   <td>{s.cashier}</td>
-                  <td>{new Date(s.openTime).toLocaleString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})}</td>
-                  <td>{s.closeTime ? new Date(s.closeTime).toLocaleString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '-'}</td>
+                  <td>{new Date(s.openTime).toLocaleString(getLocale(),{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})}</td>
+                  <td>{s.closeTime ? new Date(s.closeTime).toLocaleString(getLocale(),{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '-'}</td>
                   <td style={{textAlign:'right', fontFamily:'var(--font-mono)'}}>{s.cashSales?.toLocaleString() || 0}</td>
                   <td style={{textAlign:'right', fontFamily:'var(--font-mono)'}}>{s.cardSales?.toLocaleString() || 0}</td>
                   <td style={{textAlign:'right', fontFamily:'var(--font-mono)', color: s.diff > 0 ? 'var(--green)' : s.diff < 0 ? 'var(--red)' : 'inherit'}}>
@@ -193,7 +198,7 @@ export default function ShiftPage({ store, session }) {
                   </td>
                   <td>
                     <span className={`badge badge-${s.status==='open' ? 'green' : 'blue'}`}>
-                      {s.status === 'open' ? '營業中' : '已交班'}
+                      {s.status === 'open' ? t('營業中') : t('已交班')}
                     </span>
                   </td>
                 </tr>
@@ -204,24 +209,24 @@ export default function ShiftPage({ store, session }) {
       </div>
 
       {showOpen && (
-        <Modal title="開班" onClose={()=>setShowOpen(false)}>
-          <Field label="收銀員"><div style={{padding:'10px 14px', fontSize:14}}>{session?.username}</div></Field>
-          <Field label="開班零用金">
+        <Modal title={t('開班')} onClose={()=>setShowOpen(false)}>
+          <Field label={t('收銀員')}><div style={{padding:'10px 14px', fontSize:14}}>{session?.username}</div></Field>
+          <Field label={t('開班零用金')}>
             <input className="field" type="number" value={openCash} onChange={e=>setOpenCash(e.target.value)} placeholder="0" autoFocus/>
           </Field>
-          <button className="btn btn-primary" style={{width:'100%', padding:12, marginTop:12}} onClick={handleOpen}>確認開班</button>
+          <button className="btn btn-primary" style={{width:'100%', padding:12, marginTop:12}} onClick={handleOpen}>{t('確認開班')}</button>
         </Modal>
       )}
 
       {showClose && (
-        <Modal title="交班" onClose={()=>setShowClose(false)}>
+        <Modal title={t('交班')} onClose={()=>setShowClose(false)}>
           <div style={{background:'var(--bg-overlay)', padding:'12px 14px', borderRadius:8, marginBottom:12}}>
             <div style={{display:'flex', justifyContent:'space-between', fontSize:13, marginBottom:4}}>
-              <span style={{color:'var(--text-secondary)'}}>預期現金</span>
-              <span style={{fontFamily:'var(--font-mono)', fontWeight:600}}>NT$ {(shiftStats?.expected||0).toLocaleString()}</span>
+              <span style={{color:'var(--text-secondary)'}}>{t('預期現金')}</span>
+              <span style={{fontFamily:'var(--font-mono)', fontWeight:600}}>{fmtMoney(shiftStats?.expected||0)}</span>
             </div>
           </div>
-          <Field label="實際現金">
+          <Field label={t('實際現金')}>
             <input className="field" type="number" value={closeCash} onChange={e=>setCloseCash(e.target.value)} autoFocus/>
           </Field>
           {closeCash !== '' && (
@@ -229,22 +234,22 @@ export default function ShiftPage({ store, session }) {
               background: parseFloat(closeCash) - (shiftStats?.expected||0) >= 0 ? 'var(--green-dim)' : 'var(--red-dim)',
               color: parseFloat(closeCash) - (shiftStats?.expected||0) >= 0 ? 'var(--green)' : 'var(--red)',
               fontSize:13, marginBottom:12}}>
-              差額：{parseFloat(closeCash) - (shiftStats?.expected||0) >= 0 ? '+' : ''}
-              NT$ {(parseFloat(closeCash) - (shiftStats?.expected||0)).toLocaleString()}
+              {t('差額：')}{parseFloat(closeCash) - (shiftStats?.expected||0) >= 0 ? '+' : ''}
+              {fmtMoney(parseFloat(closeCash) - (shiftStats?.expected||0))}
             </div>
           )}
-          <Field label="備註">
-            <input className="field" value={closeNote} onChange={e=>setCloseNote(e.target.value)} placeholder="差額原因..."/>
+          <Field label={t('備註')}>
+            <input className="field" value={closeNote} onChange={e=>setCloseNote(e.target.value)} placeholder={t('差額原因...')}/>
           </Field>
-          <button className="btn btn-primary" style={{width:'100%', padding:12, marginTop:12}} onClick={handleClose}>確認交班</button>
+          <button className="btn btn-primary" style={{width:'100%', padding:12, marginTop:12}} onClick={handleClose}>{t('確認交班')}</button>
         </Modal>
       )}
 
       {showCash && (
-        <Modal title="現金進出" onClose={()=>setShowCash(false)}>
-          <Field label="類型">
+        <Modal title={t('現金進出')} onClose={()=>setShowCash(false)}>
+          <Field label={t('類型')}>
             <div style={{display:'flex', gap:8}}>
-              {[['in','現金進'],['out','現金出']].map(([k,l]) => (
+              {[['in',t('現金進')],['out',t('現金出')]].map(([k,l]) => (
                 <button key={k} onClick={()=>setCashType(k)} style={{
                   flex:1, padding:10, borderRadius:8, fontSize:13,
                   background: cashType===k?'var(--gold)':'var(--bg-overlay)',
@@ -254,13 +259,13 @@ export default function ShiftPage({ store, session }) {
               ))}
             </div>
           </Field>
-          <Field label="金額">
+          <Field label={t('金額')}>
             <input className="field" type="number" value={cashAmount} onChange={e=>setCashAmount(e.target.value)} autoFocus/>
           </Field>
-          <Field label="說明">
-            <input className="field" value={cashReason} onChange={e=>setCashReason(e.target.value)} placeholder="補零、付水電、貨款..."/>
+          <Field label={t('說明')}>
+            <input className="field" value={cashReason} onChange={e=>setCashReason(e.target.value)} placeholder={t('補零、付水電、貨款...')}/>
           </Field>
-          <button className="btn btn-primary" style={{width:'100%', padding:12, marginTop:12}} onClick={handleCash}>記錄</button>
+          <button className="btn btn-primary" style={{width:'100%', padding:12, marginTop:12}} onClick={handleCash}>{t('記錄')}</button>
         </Modal>
       )}
     </div>

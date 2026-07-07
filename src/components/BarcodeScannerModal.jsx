@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Html5Qrcode } from 'html5-qrcode'
 import { X, Camera, RefreshCw, AlertTriangle } from 'lucide-react'
+import { t } from '../i18n'
 
 // 模組層級序號：React 18 StrictMode 會把 effect 掛載兩次，用遞增序號當容器 id，
 // 避免兩次 Date.now() 撞同毫秒造成兩個實例共用同一個 id。
@@ -9,7 +10,7 @@ let scannerSeq = 0
 // 通用相機條碼掃描 modal
 // 用法：<BarcodeScannerModal onScan={(code)=>...} onClose={()=>...} />
 // onScan 可以回傳 'keep' 字串表示掃完不關閉（連續掃，例如盤點）；其他狀況預設關閉
-export default function BarcodeScannerModal({ onScan, onClose, title = '掃描條碼', mode = 'single' }) {
+export default function BarcodeScannerModal({ onScan, onClose, title = t('掃描條碼'), mode = 'single' }) {
   const containerRef = useRef(null)
   const scannerRef = useRef(null)
   const [status, setStatus] = useState('initializing') // initializing | scanning | error
@@ -57,7 +58,7 @@ export default function BarcodeScannerModal({ onScan, onClose, title = '掃描�
         setStatus('scanning')
       } catch (e) {
         if (cancelled) return
-        setError(e?.message || '無法啟動相機，請確認權限')
+        setError(e?.message || t('無法啟動相機，請確認權限'))
         setStatus('error')
       }
     }
@@ -83,14 +84,14 @@ export default function BarcodeScannerModal({ onScan, onClose, title = '掃描�
         {status === 'error' ? (
           <div style={styles.errorBox}>
             <AlertTriangle size={32} style={{color:'var(--red)', marginBottom:10}}/>
-            <div style={{fontWeight:600, marginBottom:6}}>無法開啟相機</div>
+            <div style={{fontWeight:600, marginBottom:6}}>{t('無法開啟相機')}</div>
             <div style={{fontSize:13, color:'var(--text-secondary)', lineHeight:1.5}}>
               {error}
             </div>
             <div style={{fontSize:11, color:'var(--text-tertiary)', marginTop:12, lineHeight:1.6}}>
-              · iOS Safari：需手動到 設定 → Safari → 相機 允許<br/>
-              · 必須是 HTTPS 網站（PWA 部署時自動 HTTPS）<br/>
-              · 桌機 Electron：請改用 USB 條碼槍
+              {t('· iOS Safari：需手動到 設定 → Safari → 相機 允許')}<br/>
+              {t('· 必須是 HTTPS 網站（PWA 部署時自動 HTTPS）')}<br/>
+              {t('· 桌機 Electron：請改用 USB 條碼槍')}
             </div>
           </div>
         ) : (
@@ -98,18 +99,18 @@ export default function BarcodeScannerModal({ onScan, onClose, title = '掃描�
             <div ref={containerRef} style={styles.reader}/>
             <div style={styles.statusBar}>
               {status === 'initializing' ? (
-                <span><RefreshCw size={12} className="spin" style={{verticalAlign:-1}}/> 啟動相機中...</span>
+                <span><RefreshCw size={12} className="spin" style={{verticalAlign:-1}}/> {t('啟動相機中...')}</span>
               ) : lastCode ? (
-                <span style={{color:'var(--green)'}}>✓ 已掃到 {lastCode}</span>
+                <span style={{color:'var(--green)'}}>✓ {t('已掃到')} {lastCode}</span>
               ) : (
-                <span>請對準條碼或 QR Code</span>
+                <span>{t('請對準條碼或 QR Code')}</span>
               )}
             </div>
           </>
         )}
 
         <div style={{padding:'12px 16px', display:'flex', gap:8}}>
-          <button className="btn btn-ghost" style={{flex:1}} onClick={onClose}>關閉</button>
+          <button className="btn btn-ghost" style={{flex:1}} onClick={onClose}>{t('關閉')}</button>
         </div>
       </div>
     </div>

@@ -12,7 +12,7 @@
   <div id="app">
     <header id="header">
       <h1 id="store-name">載入中...</h1>
-      <p class="subtitle">線上點餐系統</p>
+      <p class="subtitle" id="subtitle">線上點餐系統</p>
     </header>
 
     <!-- 搜尋 -->
@@ -39,13 +39,13 @@
     <div id="cart-overlay" class="cart-overlay" onclick="toggleCart()"></div>
     <div id="cart-panel" class="cart-panel">
       <div class="cart-header">
-        <h2>購物車</h2>
+        <h2 id="cart-title">購物車</h2>
         <button onclick="toggleCart()" class="close-btn">&times;</button>
       </div>
       <div id="cart-items" class="cart-items"></div>
       <div id="cart-footer" class="cart-footer">
         <div class="cart-total">
-          <span>合計</span>
+          <span id="cart-total-label">合計</span>
           <span id="cart-total-amount">$0</span>
         </div>
         <button id="checkout-btn" class="checkout-btn" onclick="submitOrder()" disabled>
@@ -57,25 +57,25 @@
     <!-- 訂單提交表單 -->
     <div id="order-form-overlay" class="order-form-overlay" style="display:none">
       <div class="order-form">
-        <h2>確認訂單</h2>
+        <h2 id="form-title">確認訂單</h2>
         <div class="form-group">
-          <label>您的姓名（選填）</label>
+          <label id="label-name">您的姓名（選填）</label>
           <input type="text" id="customer-name" placeholder="方便取餐時叫號">
         </div>
         <div class="form-group">
-          <label>桌號 / 備註（選填）</label>
+          <label id="label-table">桌號 / 備註（選填）</label>
           <input type="text" id="table-num" placeholder="例如: 3號桌">
         </div>
         <div class="form-group">
-          <label>備註</label>
+          <label id="label-note">備註</label>
           <textarea id="order-note" placeholder="特殊需求..." rows="2"></textarea>
         </div>
         <div class="form-total">
-          合計: <strong id="form-total">$0</strong>
+          <span id="form-total-label">合計</span>: <strong id="form-total">$0</strong>
         </div>
         <div class="form-actions">
-          <button onclick="closeOrderForm()" class="btn-secondary">取消</button>
-          <button onclick="confirmOrder()" class="btn-primary">確認送出</button>
+          <button onclick="closeOrderForm()" class="btn-secondary" id="cancel-btn">取消</button>
+          <button onclick="confirmOrder()" class="btn-primary" id="confirm-btn">確認送出</button>
         </div>
       </div>
     </div>
@@ -84,10 +84,10 @@
     <div id="order-success" class="order-success" style="display:none">
       <div class="success-content">
         <div class="success-icon">&#10003;</div>
-        <h2>訂單已送出!</h2>
+        <h2 id="success-title">訂單已送出!</h2>
         <p id="success-order-id"></p>
         <p id="success-status" class="status-text">等待店家確認中...</p>
-        <button onclick="resetApp()" class="btn-primary">繼續點餐</button>
+        <button onclick="resetApp()" class="btn-primary" id="continue-btn">繼續點餐</button>
       </div>
     </div>
   </div>

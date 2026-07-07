@@ -80,9 +80,11 @@ const ID = {
 
 const LANG = new URLSearchParams(location.search).get('lang') || localStorage.getItem('pos-lang') || 'id'
 
-function t(zh) {
+function t(zh, params) {
   const d = { en: EN, id: ID }[LANG]
-  return (d && d[zh]) || zh
+  let s = (d && d[zh]) || zh
+  if (params) for (const k in params) s = s.replaceAll('{' + k + '}', params[k])
+  return s
 }
 
 // 金額顯示：zh 維持 $，en/id 用 Rp 15.000 樣式
@@ -163,14 +165,14 @@ async function init() {
       products = data.products
       categories = data.categories
       document.getElementById('store-name').textContent = data.storeName
-      document.title = data.storeName + ' - 線上點餐'
+      document.title = data.storeName + ' - ' + t('線上點餐')
       renderCategories()
       renderProducts()
     }
   } catch (err) {
-    document.getElementById('store-name').textContent = '無法連線'
+    document.getElementById('store-name').textContent = t('無法連線')
     document.getElementById('product-list').innerHTML =
-      '<p style="text-align:center;color:#888;padding:40px;grid-column:1/-1">無法載入菜單，請確認網路連線</p>'
+      '<p style="text-align:center;color:#888;padding:40px;grid-column:1/-1">' + t('無法載入菜單，請確認網路連線') + '</p>'
   }
   connectWebSocket()
 }
@@ -196,7 +198,7 @@ function connectWebSocket() {
 // ===== 分類 =====
 function renderCategories() {
   const nav = document.getElementById('categories')
-  const allBtn = createCatBtn('全部', null)
+  const allBtn = createCatBtn(t('全部'), null)
   nav.appendChild(allBtn)
   categories.forEach(cat => nav.appendChild(createCatBtn(cat, cat)))
 }
@@ -239,23 +241,23 @@ function renderProducts() {
     const lastFew = stock > 0 && stock <= 3
     const low = stock > 0 && stock <= 5
     let stockNote = ''
-    if (soldOut) stockNote = `<span class="p-soldout">售完</span>`
-    else if (lastFew) stockNote = `<span class="p-stock-last">最後 ${stock} ${esc(p.unit || '個')}！</span>`
-    else if (low) stockNote = `<span class="p-stock-low">剩 ${stock} ${esc(p.unit || '個')}</span>`
+    if (soldOut) stockNote = `<span class="p-soldout">${t('售完')}</span>`
+    else if (lastFew) stockNote = `<span class="p-stock-last">${t('最後 {n} {u}！', {n: stock, u: esc(t(p.unit || '個'))})}</span>`
+    else if (low) stockNote = `<span class="p-stock-low">${t('剩 {n} {u}', {n: stock, u: esc(t(p.unit || '個'))})}</span>`
     return `
       <div class="product-card${soldOut ? ' sold-out' : ''}">
         ${qtyBadge}
         <span class="p-category">${esc(p.category)}</span>
         <span class="p-name">${esc(p.name)}</span>
-        <span class="p-price">$${p.price} <span class="p-unit">/ ${esc(p.unit || '個')}</span></span>
+        <span class="p-price">${fmtMoney(p.price)} <span class="p-unit">/ ${esc(t(p.unit || '個'))}</span></span>
         ${stockNote}
-        <button class="add-btn" data-pid="${esc(p.id)}" ${soldOut ? 'disabled' : ''}>${soldOut ? '售完' : '加入購物車'}</button>
+        <button class="add-btn" data-pid="${esc(p.id)}" ${soldOut ? 'disabled' : ''}>${soldOut ? t('售完') : t('加入購物車')}</button>
       </div>
     `
   }).join('')
 
   if (!filtered.length) {
-    list.innerHTML = '<p style="text-align:center;color:#888;padding:40px;grid-column:1/-1">沒有符合的商品</p>'
+    list.innerHTML = '<p style="text-align:center;color:#888;padding:40px;grid-column:1/-1">' + t('沒有符合的商品') + '</p>'
   }
 
   // 用 event delegation 取代 inline onclick — 修 audit #23 邊界 case，安全處理含特殊字元的 id
@@ -318,7 +320,7 @@ function updateCartUI() {
   const checkoutBtn = document.getElementById('checkout-btn')
 
   if (!cart.length) {
-    itemsDiv.innerHTML = '<div class="cart-empty">購物車是空的</div>'
+    itemsDiv.innerHTML = '<div class="cart-empty">' + t('購物車是空的') + '</div>'
     totalEl.textContent = '$0'
     checkoutBtn.disabled = true
     return
@@ -328,18 +330,18 @@ function updateCartUI() {
     <div class="cart-item">
       <div class="ci-info">
         <div class="ci-name">${esc(item.name)}</div>
-        <div class="ci-price">$${item.price} / ${esc(item.unit || '個')}</div>
+        <div class="ci-price">${fmtMoney(item.price)} / ${esc(t(item.unit || '個'))}</div>
       </div>
       <div class="ci-controls">
         <button onclick="removeFromCart('${esc(item.id)}')">-</button>
         <span class="ci-qty">${item.qty}</span>
         <button onclick="addToCart('${esc(item.id)}')">+</button>
       </div>
-      <span class="ci-subtotal">$${item.price * item.qty}</span>
+      <span class="ci-subtotal">${fmtMoney(item.price * item.qty)}</span>
     </div>
   `).join('')
 
-  totalEl.textContent = '$' + getCartTotal()
+  totalEl.textContent = fmtMoney(getCartTotal())
   checkoutBtn.disabled = false
 }
 
@@ -361,7 +363,7 @@ function toggleCart() {
 function submitOrder() {
   if (!cart.length) return
   toggleCart()
-  document.getElementById('form-total').textContent = '$' + getCartTotal()
+  document.getElementById('form-total').textContent = fmtMoney(getCartTotal())
   document.getElementById('order-form-overlay').style.display = 'flex'
 }
 
@@ -373,7 +375,7 @@ async function confirmOrder() {
   if (submitting) return
   submitting = true
   const btn = document.querySelector('.order-form .btn-primary')
-  if (btn) { btn.disabled = true; btn.textContent = '送出中...' }
+  if (btn) { btn.disabled = true; btn.textContent = t('送出中...') }
 
   const customerName = document.getElementById('customer-name').value.trim()
   const tableNum = document.getElementById('table-num').value.trim()
@@ -395,18 +397,18 @@ async function confirmOrder() {
       cart = []
       updateCartUI()
     } else {
-      alert(data.error || '訂單送出失敗')
+      alert(data.error || t('訂單送出失敗'))
     }
   } catch (err) {
-    alert('無法連線到伺服器')
+    alert(t('無法連線到伺服器'))
   }
   submitting = false
-  if (btn) { btn.disabled = false; btn.textContent = '確認送出' }
+  if (btn) { btn.disabled = false; btn.textContent = t('確認送出') }
 }
 
 function showSuccess(orderId, total) {
-  document.getElementById('success-order-id').textContent = '訂單編號: ' + orderId
-  document.getElementById('success-status').textContent = '等待店家確認中...'
+  document.getElementById('success-order-id').textContent = t('訂單編號: ') + orderId
+  document.getElementById('success-status').textContent = t('等待店家確認中...')
   document.getElementById('order-success').style.display = 'flex'
 }
 
@@ -415,9 +417,9 @@ function updateOrderStatus(status) {
   if (!statusEl) return
   const labels = {
     pending: '等待店家確認中...',
-    accepted: '店家已接單，準備中！',
-    completed: '已完成，請取餐！',
-    rejected: '很抱歉，訂單已被取消',
+    accepted: t('店家已接單，準備中！'),
+    completed: t('已完成，請取餐！'),
+    rejected: t('很抱歉，訂單已被取消'),
   }
   statusEl.textContent = labels[status] || status
 }
@@ -432,4 +434,5 @@ function resetApp() {
 }
 
 // 啟動
+applyI18n()
 init()

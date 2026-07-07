@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { TrendingUp, ShoppingCart, Users, Package, ArrowUp, ArrowDown, Download, Zap, AlertTriangle, Trophy } from 'lucide-react'
 import { exportXLS } from '../utils/exportXLS'
 import { productPerformance } from '../utils/analytics'
+import { t, fmtMoney, getLocale } from '../i18n'
 
 export default function ReportsPage({ store }) {
   const { orders: rawOrders, products, members } = store
@@ -134,26 +135,26 @@ export default function ReportsPage({ store }) {
   }, [filtered])
 
   function exportReport() {
-    const rangeLabel = { today:'今日', week:'本週', month:'本月', all:'全部' }[range]
+    const rangeLabel = { today:t('今日'), week:t('本週'), month:t('本月'), all:t('全部') }[range]
     const rows = [
-      [`銷售報表 - ${rangeLabel}`],
-      [`匯出時間：${new Date().toLocaleString('zh-TW')}`],
+      [t('銷售報表 - {range}', { range: rangeLabel })],
+      [t('匯出時間：{time}', { time: new Date().toLocaleString(getLocale()) })],
       [],
-      ['指標', '數值'],
-      ['營業額', revenue],
-      ['毛利', profit],
-      ['毛利率(%)', revenue > 0 ? (profit/revenue*100).toFixed(1) : 0],
-      ['訂單數', filtered.length],
-      ['客單價', avgOrder],
-      ['現金收入', payBreakdown.cash],
-      ['電子支付', payBreakdown.card],
+      [t('指標'), t('數值')],
+      [t('營業額'), revenue],
+      [t('毛利'), profit],
+      [t('毛利率(%)'), revenue > 0 ? (profit/revenue*100).toFixed(1) : 0],
+      [t('訂單數'), filtered.length],
+      [t('客單價'), avgOrder],
+      [t('現金收入'), payBreakdown.cash],
+      [t('電子支付'), payBreakdown.card],
       [],
-      ['暢銷商品 Top 8'],
-      ['排名', '商品', '數量', '營收'],
+      [t('暢銷商品 Top 8')],
+      [t('排名'), t('商品'), t('數量'), t('營收')],
       ...topProducts.map((p,i) => [i+1, p.name, p.qty, p.revenue]),
       [],
-      ['ABC 分析'],
-      ['商品', '銷量', '營收', '營收佔比%', '累計%', '類別'],
+      [t('ABC 分析')],
+      [t('商品'), t('銷量'), t('營收'), t('營收佔比%'), t('累計%'), t('類別')],
       ...abcAnalysis.items.map(p => [
         p.name, p.qty, p.revenue,
         ((p.revenue/abcAnalysis.total)*100).toFixed(2),
@@ -161,33 +162,33 @@ export default function ReportsPage({ store }) {
         p.cls,
       ]),
       [],
-      ['訂單明細'],
-      ['訂單編號','時間','付款方式','金額','會員','點數獲得','統編'],
+      [t('訂單明細')],
+      [t('訂單編號'),t('時間'),t('付款方式'),t('金額'),t('會員'),t('點數獲得'),t('統編')],
       ...filtered.map(o => [
         o.id,
-        new Date(o.time).toLocaleString('zh-TW'),
-        o.payMethod === 'cash' ? '現金' : o.payMethod === 'card' ? '電子' : '混合',
+        new Date(o.time).toLocaleString(getLocale()),
+        o.payMethod === 'cash' ? t('現金') : o.payMethod === 'card' ? t('電子') : t('混合'),
         o.total,
         o.memberId ? (members.find(m=>m.id===o.memberId)?.name || '') : '',
         o.pointsEarned || 0,
         o.taxId || '',
       ]),
     ]
-    exportXLS(rows, `銷售報表_${rangeLabel}_${new Date().toISOString().slice(0,10)}.xls`)
+    exportXLS(rows, `${t('銷售報表')}_${rangeLabel}_${new Date().toISOString().slice(0,10)}.xls`)
   }
 
-  const RANGES = [['today','今日'],['week','本週'],['month','本月'],['all','全部']]
+  const RANGES = [['today',t('今日')],['week',t('本週')],['month',t('本月')],['all',t('全部')]]
   const KPIS = [
-    { label:'營業額', value:`NT$ ${revenue.toLocaleString()}`, delta:revDelta, icon:<TrendingUp size={16}/>, color:'var(--gold)' },
-    { label:'毛利',   value:`NT$ ${profit.toLocaleString()}`,  delta:null,     icon:<ArrowUp size={16}/>,   color:'var(--green)' },
-    { label:'訂單數', value:`${filtered.length} 筆`,           delta:null,     icon:<ShoppingCart size={16}/>, color:'var(--blue)' },
-    { label:'客單價', value:`NT$ ${avgOrder.toLocaleString()}`, delta:null,    icon:<Package size={16}/>,   color:'var(--teal)' },
+    { label:t('營業額'), value:fmtMoney(revenue), delta:revDelta, icon:<TrendingUp size={16}/>, color:'var(--gold)' },
+    { label:t('毛利'),   value:fmtMoney(profit),  delta:null,     icon:<ArrowUp size={16}/>,   color:'var(--green)' },
+    { label:t('訂單數'), value:t('{n} 筆', { n: filtered.length }), delta:null,     icon:<ShoppingCart size={16}/>, color:'var(--blue)' },
+    { label:t('客單價'), value:fmtMoney(avgOrder), delta:null,    icon:<Package size={16}/>,   color:'var(--teal)' },
   ]
 
   return (
     <div style={rs.root}>
       <div style={rs.topBar}>
-        <h2 style={rs.title}>報表分析</h2>
+        <h2 style={rs.title}>{t('報表分析')}</h2>
         <div style={{display:'flex', gap:8, alignItems:'center'}}>
           <div style={{display:'flex', gap:4}}>
             {RANGES.map(([k,l])=>(
@@ -199,7 +200,7 @@ export default function ReportsPage({ store }) {
             ))}
           </div>
           <button className="btn btn-ghost btn-sm" onClick={exportReport} style={{display:'flex', alignItems:'center', gap:4}}>
-            <Download size={14}/> 匯出 Excel
+            <Download size={14}/> {t('匯出 Excel')}
           </button>
         </div>
       </div>
@@ -216,7 +217,7 @@ export default function ReportsPage({ store }) {
             {kpi.delta !== null && (
               <div style={{fontSize:11, marginTop:6, display:'flex', alignItems:'center', gap:3, color: parseFloat(kpi.delta)>=0?'var(--green)':'var(--red)'}}>
                 {parseFloat(kpi.delta)>=0 ? <ArrowUp size={11}/> : <ArrowDown size={11}/>}
-                {Math.abs(parseFloat(kpi.delta))}% vs 上期
+                {t('{n}% vs 上期', { n: Math.abs(parseFloat(kpi.delta)) })}
               </div>
             )}
           </div>
@@ -226,7 +227,7 @@ export default function ReportsPage({ store }) {
       <div style={rs.twoCol}>
         {/* Hourly bars */}
         <div className="card" style={{padding:'18px 20px'}}>
-          <div style={rs.cardTitle}>今日各時段銷售</div>
+          <div style={rs.cardTitle}>{t('今日各時段銷售')}</div>
           <div style={{display:'flex', alignItems:'flex-end', gap:3, height:100, marginTop:14}}>
             {hourly.map((v,h)=>{
               const h24 = h < 6 || h > 21
@@ -248,18 +249,18 @@ export default function ReportsPage({ store }) {
 
         {/* Pay breakdown */}
         <div className="card" style={{padding:'18px 20px'}}>
-          <div style={rs.cardTitle}>付款方式</div>
+          <div style={rs.cardTitle}>{t('付款方式')}</div>
           <div style={{marginTop:20, display:'flex', flexDirection:'column', gap:14}}>
             {[
-              ['現金', payBreakdown.cash, 'var(--green)'],
-              ['電子支付', payBreakdown.card, 'var(--blue)'],
+              [t('現金'), payBreakdown.cash, 'var(--green)'],
+              [t('電子支付'), payBreakdown.card, 'var(--blue)'],
             ].map(([label, val, color])=>{
               const pct = payBreakdown.total ? (val/payBreakdown.total*100).toFixed(0) : 0
               return (
                 <div key={label}>
                   <div style={{display:'flex', justifyContent:'space-between', marginBottom:6, fontSize:13}}>
                     <span style={{color:'var(--text-secondary)'}}>{label}</span>
-                    <span style={{fontFamily:'var(--font-mono)', fontSize:12}}>NT$ {val.toLocaleString()} <span style={{color:'var(--text-tertiary)'}}>({pct}%)</span></span>
+                    <span style={{fontFamily:'var(--font-mono)', fontSize:12}}>{fmtMoney(val)} <span style={{color:'var(--text-tertiary)'}}>({pct}%)</span></span>
                   </div>
                   <div style={{height:6, background:'var(--border-dim)', borderRadius:3}}>
                     <div style={{height:'100%', width:`${pct}%`, background:color, borderRadius:3, transition:'width .6s var(--ease)'}}/>
@@ -275,18 +276,18 @@ export default function ReportsPage({ store }) {
       {abcAnalysis.items.length > 0 && (
         <div className="card" style={{padding:'18px 20px', flexShrink:0}}>
           <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
-            <div style={rs.cardTitle}>ABC 商品分類</div>
-            <span style={{fontSize:11, color:'var(--text-tertiary)'}}>依營收貢獻</span>
+            <div style={rs.cardTitle}>{t('ABC 商品分類')}</div>
+            <span style={{fontSize:11, color:'var(--text-tertiary)'}}>{t('依營收貢獻')}</span>
           </div>
           <div style={{display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10, marginTop:12}}>
             {[
-              { cls:'A', label:'A 類（佔 70%）', color:'var(--green)', items:abcAnalysis.a, desc:'核心商品，重點維護庫存' },
-              { cls:'B', label:'B 類（佔 90%）', color:'var(--gold)', items:abcAnalysis.b, desc:'次要商品，定期檢視' },
-              { cls:'C', label:'C 類（佔 10%）', color:'var(--text-tertiary)', items:abcAnalysis.c, desc:'長尾商品，可考慮汰除' },
+              { cls:'A', label:t('A 類（佔 70%）'), color:'var(--green)', items:abcAnalysis.a, desc:t('核心商品，重點維護庫存') },
+              { cls:'B', label:t('B 類（佔 90%）'), color:'var(--gold)', items:abcAnalysis.b, desc:t('次要商品，定期檢視') },
+              { cls:'C', label:t('C 類（佔 10%）'), color:'var(--text-tertiary)', items:abcAnalysis.c, desc:t('長尾商品，可考慮汰除') },
             ].map(g => (
               <div key={g.cls} style={{padding:'12px 14px', background:'var(--bg-overlay)', borderRadius:8, borderTop:`2px solid ${g.color}`}}>
                 <div style={{fontSize:12, fontWeight:600, color:g.color, marginBottom:6}}>{g.label}</div>
-                <div style={{fontSize:20, fontWeight:600, fontFamily:'var(--font-mono)'}}>{g.items.length} <span style={{fontSize:11, color:'var(--text-tertiary)', fontWeight:400}}>項</span></div>
+                <div style={{fontSize:20, fontWeight:600, fontFamily:'var(--font-mono)'}}>{g.items.length} <span style={{fontSize:11, color:'var(--text-tertiary)', fontWeight:400}}>{t('項')}</span></div>
                 <div style={{fontSize:10, color:'var(--text-tertiary)', marginTop:4}}>{g.desc}</div>
               </div>
             ))}
@@ -300,10 +301,10 @@ export default function ReportsPage({ store }) {
         <div className="card" style={{padding:'16px 18px'}}>
           <div style={{display:'flex', alignItems:'center', gap:6, marginBottom:10}}>
             <Trophy size={14} style={{color:'var(--gold)'}}/>
-            <div style={rs.cardTitle}>30天 熱賣 Top 10</div>
+            <div style={rs.cardTitle}>{t('30天 熱賣 Top 10')}</div>
           </div>
           {perf30d.topSellers.length === 0 ? (
-            <div style={{color:'var(--text-tertiary)', fontSize:12, padding:'20px 0', textAlign:'center'}}>近 30 天無銷售</div>
+            <div style={{color:'var(--text-tertiary)', fontSize:12, padding:'20px 0', textAlign:'center'}}>{t('近 30 天無銷售')}</div>
           ) : perf30d.topSellers.map((p, i) => (
             <div key={p.id} style={{display:'flex', justifyContent:'space-between', alignItems:'center', padding:'6px 0', borderBottom:'1px solid var(--border-dim)', fontSize:12}}>
               <span style={{display:'flex', alignItems:'center', gap:8, minWidth:0, flex:1}}>
@@ -311,7 +312,7 @@ export default function ReportsPage({ store }) {
                 <span style={{overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>{p.name}</span>
               </span>
               <span style={{fontFamily:'var(--font-mono)', color:'var(--text-secondary)', whiteSpace:'nowrap'}}>
-                {Math.round(p.totalSold)} 件 · NT$ {Math.round(p.revenue).toLocaleString()}
+                {t('{n} 件', { n: Math.round(p.totalSold) })} · {fmtMoney(Math.round(p.revenue))}
               </span>
             </div>
           ))}
@@ -321,20 +322,20 @@ export default function ReportsPage({ store }) {
         <div className="card" style={{padding:'16px 18px', borderTop:'2px solid var(--red)'}}>
           <div style={{display:'flex', alignItems:'center', gap:6, marginBottom:10}}>
             <AlertTriangle size={14} style={{color:'var(--red)'}}/>
-            <div style={rs.cardTitle}>30天 滯銷預警</div>
+            <div style={rs.cardTitle}>{t('30天 滯銷預警')}</div>
           </div>
           {perf30d.slowMovers.length === 0 ? (
-            <div style={{color:'var(--green)', fontSize:12, padding:'20px 0', textAlign:'center'}}>🎉 沒有滯銷商品</div>
+            <div style={{color:'var(--green)', fontSize:12, padding:'20px 0', textAlign:'center'}}>{t('🎉 沒有滯銷商品')}</div>
           ) : (
             <>
               <div style={{fontSize:11, color:'var(--text-tertiary)', marginBottom:8}}>
-                共 {perf30d.slowMovers.length} 項，積壓成本 NT$ {Math.round(perf30d.slowMovers.reduce((s,p)=>s+(p.stock*(p.cost||0)),0)).toLocaleString()}
+                {t('共 {n} 項，積壓成本 {amt}', { n: perf30d.slowMovers.length, amt: fmtMoney(Math.round(perf30d.slowMovers.reduce((s,p)=>s+(p.stock*(p.cost||0)),0))) })}
               </div>
               {perf30d.slowMovers.slice(0, 10).map(p => (
                 <div key={p.id} style={{display:'flex', justifyContent:'space-between', alignItems:'center', padding:'6px 0', borderBottom:'1px solid var(--border-dim)', fontSize:12}}>
                   <span style={{overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>{p.name}</span>
                   <span style={{fontFamily:'var(--font-mono)', color:'var(--text-secondary)', whiteSpace:'nowrap'}}>
-                    積壓 {p.stock} 件 · NT$ {Math.round(p.stock*(p.cost||0)).toLocaleString()}
+                    {t('積壓 {n} 件', { n: p.stock })} · {fmtMoney(Math.round(p.stock*(p.cost||0)))}
                   </span>
                 </div>
               ))}
@@ -346,10 +347,10 @@ export default function ReportsPage({ store }) {
         <div className="card" style={{padding:'16px 18px', borderTop:'2px solid var(--green)'}}>
           <div style={{display:'flex', alignItems:'center', gap:6, marginBottom:10}}>
             <Zap size={14} style={{color:'var(--green)'}}/>
-            <div style={rs.cardTitle}>30天 高毛利商品</div>
+            <div style={rs.cardTitle}>{t('30天 高毛利商品')}</div>
           </div>
           {perf30d.highMargin.length === 0 ? (
-            <div style={{color:'var(--text-tertiary)', fontSize:12, padding:'20px 0', textAlign:'center'}}>需要成本資料才能計算</div>
+            <div style={{color:'var(--text-tertiary)', fontSize:12, padding:'20px 0', textAlign:'center'}}>{t('需要成本資料才能計算')}</div>
           ) : perf30d.highMargin.map((p, i) => (
             <div key={p.id} style={{display:'flex', justifyContent:'space-between', alignItems:'center', padding:'6px 0', borderBottom:'1px solid var(--border-dim)', fontSize:12}}>
               <span style={{display:'flex', alignItems:'center', gap:8, minWidth:0, flex:1}}>
@@ -357,8 +358,8 @@ export default function ReportsPage({ store }) {
                 <span style={{overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>{p.name}</span>
               </span>
               <span style={{fontFamily:'var(--font-mono)', whiteSpace:'nowrap'}}>
-                <span style={{color:'var(--green)'}}>毛利 {p.margin.toFixed(0)}%</span>
-                <span style={{color:'var(--text-tertiary)'}}> · NT$ {Math.round(p.profit).toLocaleString()}</span>
+                <span style={{color:'var(--green)'}}>{t('毛利 {pct}%', { pct: p.margin.toFixed(0) })}</span>
+                <span style={{color:'var(--text-tertiary)'}}> · {fmtMoney(Math.round(p.profit))}</span>
               </span>
             </div>
           ))}

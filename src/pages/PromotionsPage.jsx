@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react'
 import { Plus, X, Check, Tag, Clock, Percent, Gift } from 'lucide-react'
 import { writeAuditLog, sanitizeObject } from '../utils/security'
 import { isElectron, loadPromotions, savePromotions as dbSavePromotions } from '../utils/dataAccess'
+import { t, fmtMoney } from '../i18n'
 
 export const PROMO_TYPES = {
-  threshold:  { label:'滿額折扣',    icon:'💰', desc:'消費滿 X 元折 Y 元' },
-  percent:    { label:'全館折扣',    icon:'%',  desc:'所有商品打 X 折' },
-  buyget:     { label:'買X送Y',     icon:'🎁', desc:'買 X 件送 Y 件' },
-  fixed:      { label:'指定品折扣',  icon:'🏷', desc:'特定商品減 X 元' },
+  threshold:  { label:t('滿額折扣'),    icon:'💰', desc:t('消費滿 X 元折 Y 元') },
+  percent:    { label:t('全館折扣'),    icon:'%',  desc:t('所有商品打 X 折') },
+  buyget:     { label:t('買X送Y'),     icon:'🎁', desc:t('買 X 件送 Y 件') },
+  fixed:      { label:t('指定品折扣'),  icon:'🏷', desc:t('特定商品減 X 元') },
 }
 
 // Apply all active promotions to cart, return discount amount + descriptions
@@ -21,12 +22,12 @@ export function applyPromotions(cart, promotions, subtotal) {
     if (promo.type === 'threshold' && subtotal >= promo.condition.threshold) {
       const d = promo.condition.discount
       totalDiscount += d
-      applied.push({ id:promo.id, label:`${promo.name}：折 NT$${d}`, discount:d })
+      applied.push({ id:promo.id, label:t('{name}：折 {amt}', {name:promo.name, amt:fmtMoney(d)}), discount:d })
     }
     if (promo.type === 'percent') {
       const d = Math.round(subtotal * (1 - promo.condition.rate) * 100) / 100
       totalDiscount += d
-      applied.push({ id:promo.id, label:`${promo.name}：${Math.round(promo.condition.rate*10)}折 (-NT$${d})`, discount:d })
+      applied.push({ id:promo.id, label:t('{name}：{x}折 (-{amt})', {name:promo.name, x:Math.round(promo.condition.rate*10), amt:fmtMoney(d)}), discount:d })
     }
     if (promo.type === 'buyget') {
       const totalQty = cart.reduce((s,i)=>s+i.qty,0)
@@ -37,7 +38,7 @@ export function applyPromotions(cart, promotions, subtotal) {
         const freeQty = Math.min(sets * promo.condition.get, sorted.length)
         const d       = sorted.slice(0, freeQty).reduce((s,v)=>s+v, 0)
         totalDiscount += d
-        applied.push({ id:promo.id, label:`${promo.name}：送 ${freeQty} 件 (-NT$${d})`, discount:d })
+        applied.push({ id:promo.id, label:t('{name}：送 {n} 件 (-{amt})', {name:promo.name, n:freeQty, amt:fmtMoney(d)}), discount:d })
       }
     }
     if (promo.type === 'fixed') {
@@ -45,7 +46,7 @@ export function applyPromotions(cart, promotions, subtotal) {
       if (match.length > 0) {
         const d = match.reduce((s,i)=>s+Math.min(promo.condition.discount,i.price)*i.qty,0)
         totalDiscount += d
-        applied.push({ id:promo.id, label:`${promo.name}：指定品折 NT$${promo.condition.discount}`, discount:d })
+        applied.push({ id:promo.id, label:t('{name}：指定品折 {amt}', {name:promo.name, amt:fmtMoney(promo.condition.discount)}), discount:d })
       }
     }
   }
@@ -131,9 +132,9 @@ export default function PromotionsPage({ store, session }) {
     <div style={pm.root}>
       <div style={pm.header}>
         <div>
-          <h2 style={pm.title}>促銷活動</h2>
+          <h2 style={pm.title}>{t('促銷活動')}</h2>
           <div style={{fontSize:12, color:'var(--text-tertiary)', marginTop:2}}>
-            {active.length} 個活動進行中 · 共 {promotions.length} 個
+            {t('{a} 個活動進行中 · 共 {b} 個', {a: active.length, b: promotions.length})}
           </div>
         </div>
       </div>
@@ -150,7 +151,7 @@ export default function PromotionsPage({ store, session }) {
       {/* List */}
       <div style={{flex:1, overflowY:'auto', display:'flex', flexDirection:'column', gap:10}}>
         {promotions.length===0 && (
-          <div style={{textAlign:'center', padding:'48px', color:'var(--text-tertiary)', fontSize:13}}>尚未建立任何促銷活動</div>
+          <div style={{textAlign:'center', padding:'48px', color:'var(--text-tertiary)', fontSize:13}}>{t('尚未建立任何促銷活動')}</div>
         )}
         {promotions.map(p => {
           const isActive = p.enabled && p.startAt<=now && p.endAt>=now
@@ -164,7 +165,7 @@ export default function PromotionsPage({ store, session }) {
                   <div style={{display:'flex', alignItems:'center', gap:8, marginBottom:4}}>
                     <span style={{fontWeight:600, fontSize:14}}>{p.name}</span>
                     <span style={{fontSize:10, padding:'1px 8px', borderRadius:20, background:isActive?'var(--gold-dim)':isExpired?'var(--bg-active)':'var(--border-dim)', color:isActive?'var(--gold-bright)':'var(--text-tertiary)'}}>
-                      {isActive?'進行中':isExpired?'已結束':'未啟用'}
+                      {isActive?t('進行中'):isExpired?t('已結束'):t('未啟用')}
                     </span>
                     <span style={{fontSize:10, color:'var(--text-tertiary)'}}>{info.label}</span>
                   </div>
@@ -207,47 +208,47 @@ export default function PromotionsPage({ store, session }) {
         <div style={pm.overlay}>
           <div style={pm.modal} className="animate-scale">
             <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:18}}>
-              <span style={{fontWeight:700, fontSize:15}}>{editing==='new'?`新增${PROMO_TYPES[form.type].label}`:'編輯促銷'}</span>
+              <span style={{fontWeight:700, fontSize:15}}>{editing==='new'?t('新增{type}', {type: PROMO_TYPES[form.type].label}):t('編輯促銷')}</span>
               <button className="btn-icon" onClick={()=>{setEditing(null);setForm(null)}}><X size={16}/></button>
             </div>
 
-            <FL>活動名稱 *</FL>
-            <input className="field" value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} placeholder="例：週末特賣" style={{marginBottom:14}}/>
+            <FL>{t('活動名稱 *')}</FL>
+            <input className="field" value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} placeholder={t('例：週末特賣')} style={{marginBottom:14}}/>
 
             <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:14}}>
-              <div><FL>開始時間</FL><input type="datetime-local" className="field" value={form.startAt} onChange={e=>setForm(f=>({...f,startAt:e.target.value}))}/></div>
-              <div><FL>結束時間</FL><input type="datetime-local" className="field" value={form.endAt}   onChange={e=>setForm(f=>({...f,endAt:e.target.value}))}/></div>
+              <div><FL>{t('開始時間')}</FL><input type="datetime-local" className="field" value={form.startAt} onChange={e=>setForm(f=>({...f,startAt:e.target.value}))}/></div>
+              <div><FL>{t('結束時間')}</FL><input type="datetime-local" className="field" value={form.endAt}   onChange={e=>setForm(f=>({...f,endAt:e.target.value}))}/></div>
             </div>
 
             {/* Condition fields by type */}
             <div style={{background:'var(--bg-overlay)', borderRadius:10, padding:'14px', marginBottom:14}}>
-              <div style={{fontSize:11, color:'var(--text-tertiary)', marginBottom:10}}>折扣條件</div>
+              <div style={{fontSize:11, color:'var(--text-tertiary)', marginBottom:10}}>{t('折扣條件')}</div>
               {form.type === 'threshold' && (
                 <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:10}}>
-                  <div><FL>滿額（NT$）</FL><input type="number" className="field" value={form.condition.threshold} onChange={e=>setForm(f=>({...f,condition:{...f.condition,threshold:parseFloat(e.target.value)||0}}))} style={{fontFamily:'var(--font-mono)'}}/></div>
-                  <div><FL>折抵（NT$）</FL><input type="number" className="field" value={form.condition.discount} onChange={e=>setForm(f=>({...f,condition:{...f.condition,discount:parseFloat(e.target.value)||0}}))} style={{fontFamily:'var(--font-mono)'}}/></div>
+                  <div><FL>{t('滿額（NT$）')}</FL><input type="number" className="field" value={form.condition.threshold} onChange={e=>setForm(f=>({...f,condition:{...f.condition,threshold:parseFloat(e.target.value)||0}}))} style={{fontFamily:'var(--font-mono)'}}/></div>
+                  <div><FL>{t('折抵（NT$）')}</FL><input type="number" className="field" value={form.condition.discount} onChange={e=>setForm(f=>({...f,condition:{...f.condition,discount:parseFloat(e.target.value)||0}}))} style={{fontFamily:'var(--font-mono)'}}/></div>
                 </div>
               )}
               {form.type === 'percent' && (
-                <div><FL>折扣率（0.9 = 九折）</FL><input type="number" min={0.1} max={1} step={0.05} className="field" value={form.condition.rate} onChange={e=>setForm(f=>({...f,condition:{...f.condition,rate:parseFloat(e.target.value)||0.9}}))} style={{fontFamily:'var(--font-mono)'}}/></div>
+                <div><FL>{t('折扣率（0.9 = 九折）')}</FL><input type="number" min={0.1} max={1} step={0.05} className="field" value={form.condition.rate} onChange={e=>setForm(f=>({...f,condition:{...f.condition,rate:parseFloat(e.target.value)||0.9}}))} style={{fontFamily:'var(--font-mono)'}}/></div>
               )}
               {form.type === 'buyget' && (
                 <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:10}}>
-                  <div><FL>買幾件</FL><input type="number" className="field" value={form.condition.buy} onChange={e=>setForm(f=>({...f,condition:{...f.condition,buy:parseInt(e.target.value)||2}}))} style={{fontFamily:'var(--font-mono)'}}/></div>
-                  <div><FL>送幾件</FL><input type="number" className="field" value={form.condition.get} onChange={e=>setForm(f=>({...f,condition:{...f.condition,get:parseInt(e.target.value)||1}}))} style={{fontFamily:'var(--font-mono)'}}/></div>
+                  <div><FL>{t('買幾件')}</FL><input type="number" className="field" value={form.condition.buy} onChange={e=>setForm(f=>({...f,condition:{...f.condition,buy:parseInt(e.target.value)||2}}))} style={{fontFamily:'var(--font-mono)'}}/></div>
+                  <div><FL>{t('送幾件')}</FL><input type="number" className="field" value={form.condition.get} onChange={e=>setForm(f=>({...f,condition:{...f.condition,get:parseInt(e.target.value)||1}}))} style={{fontFamily:'var(--font-mono)'}}/></div>
                 </div>
               )}
               {form.type === 'fixed' && (
-                <div><FL>折抵金額（NT$）</FL><input type="number" className="field" value={form.condition.discount} onChange={e=>setForm(f=>({...f,condition:{...f.condition,discount:parseFloat(e.target.value)||0}}))} style={{fontFamily:'var(--font-mono)'}}/></div>
+                <div><FL>{t('折抵金額（NT$）')}</FL><input type="number" className="field" value={form.condition.discount} onChange={e=>setForm(f=>({...f,condition:{...f.condition,discount:parseFloat(e.target.value)||0}}))} style={{fontFamily:'var(--font-mono)'}}/></div>
               )}
             </div>
 
-            <FL>備註</FL>
-            <input className="field" value={form.note||''} onChange={e=>setForm(f=>({...f,note:e.target.value}))} placeholder="（選填）" style={{marginBottom:16}}/>
+            <FL>{t('備註')}</FL>
+            <input className="field" value={form.note||''} onChange={e=>setForm(f=>({...f,note:e.target.value}))} placeholder={t('（選填）')} style={{marginBottom:16}}/>
 
             <div style={{display:'flex', gap:10}}>
-              <button className="btn btn-primary" style={{flex:1}} onClick={saveForm}><Check size={15}/>儲存</button>
-              <button className="btn btn-ghost"   style={{flex:1}} onClick={()=>{setEditing(null);setForm(null)}}>取消</button>
+              <button className="btn btn-primary" style={{flex:1}} onClick={saveForm}><Check size={15}/>{t('儲存')}</button>
+              <button className="btn btn-ghost"   style={{flex:1}} onClick={()=>{setEditing(null);setForm(null)}}>{t('取消')}</button>
             </div>
           </div>
         </div>
@@ -257,10 +258,10 @@ export default function PromotionsPage({ store, session }) {
 }
 
 function describeCondition(p) {
-  if (p.type==='threshold') return `消費滿 NT$${p.condition.threshold} 折抵 NT$${p.condition.discount}`
-  if (p.type==='percent')   return `全館 ${Math.round(p.condition.rate*10)} 折（${Math.round((1-p.condition.rate)*100)}% off）`
-  if (p.type==='buyget')    return `買 ${p.condition.buy} 件送 ${p.condition.get} 件（最低價商品免費）`
-  if (p.type==='fixed')     return `指定商品每件折 NT$${p.condition.discount}`
+  if (p.type==='threshold') return t('消費滿 {threshold} 折抵 {discount}', {threshold: fmtMoney(p.condition.threshold), discount: fmtMoney(p.condition.discount)})
+  if (p.type==='percent')   return t('全館 {x} 折（{pct}% off）', {x: Math.round(p.condition.rate*10), pct: Math.round((1-p.condition.rate)*100)})
+  if (p.type==='buyget')    return t('買 {buy} 件送 {get} 件（最低價商品免費）', {buy: p.condition.buy, get: p.condition.get})
+  if (p.type==='fixed')     return t('指定商品每件折 {amt}', {amt: fmtMoney(p.condition.discount)})
   return ''
 }
 

@@ -63,6 +63,7 @@
 ### Phase 3：付款與硬體（4–5 天）
 - **QRIS**：設定頁上傳老闆自己的 QRIS 收款圖 → 結帳新增 QRIS 付款方式 → 全螢幕顯示圖給客人掃 → 人工按「已收款」。不串金流 API（需印尼法人，跳過）
 - **WhatsApp 收據**：結帳完成後「Kirim via WA」按鈕 → `wa.me/<客人號碼>?text=<收據文字>`。零串接
+- **外送通路快速入帳**（+半天）：結帳付款方式加 GoFood / GrabFood / ShopeeFood 三個選項（外送單到了店員在 POS 照樣入一單、庫存照扣），報表加通路別分析。**不串外送平台 API**（商家 API 不開放，需印尼法人＋簽約）— 店家用平台自己的商家 App 接單，POS 只負責統一記帳。業主已確認此做法（2026-07-07）
 - **藍牙熱感出單機 58mm**（Web Bluetooth + ESC/POS，僅 Android Chrome）：
   - 收銀收據＋**廚房單**（桌號、品項、備註、大字）— 廚房單是 rumah makan 的成敗關鍵
   - 參考 `electron/printer.js` 已有的 ESC/POS 邏輯可移植

@@ -11,17 +11,18 @@ import { getTheme, applyTheme } from '../utils/theme'
 import { getCloudConfig, saveCloudConfig, clearCloudConfig, testConnection, isCloudEnabled } from '../utils/supabaseClient'
 import { pushAll, pullAll, SYNC_TABLES } from '../utils/cloudSync'
 import { getWebhookConfig, saveWebhookConfig, fireWebhook, WEBHOOK_EVENTS } from '../utils/webhook'
+import { t, getLocale, LANGS, getLang, setLang, getCurrency, setCurrency } from '../i18n'
 
 const TABS = [
-  { key:'general',  label:'一般偏好', Icon:Cog      },
-  { key:'business', label:'營運設定', Icon:Gift     },
-  { key:'users',    label:'員工帳號', Icon:Users    },
-  { key:'hardware', label:'硬體設定', Icon:Printer  },
-  { key:'security', label:'資安設定', Icon:Shield   },
-  { key:'backup',   label:'備份還原', Icon:Database },
-  { key:'cloud',    label:'雲端同步', Icon:Cloud    },
-  { key:'webhook',  label:'通知 Webhook', Icon:Wifi },
-  { key:'audit',    label:'稽核日誌', Icon:FileText },
+  { key:'general',  label:t('一般偏好'), Icon:Cog      },
+  { key:'business', label:t('營運設定'), Icon:Gift     },
+  { key:'users',    label:t('員工帳號'), Icon:Users    },
+  { key:'hardware', label:t('硬體設定'), Icon:Printer  },
+  { key:'security', label:t('資安設定'), Icon:Shield   },
+  { key:'backup',   label:t('備份還原'), Icon:Database },
+  { key:'cloud',    label:t('雲端同步'), Icon:Cloud    },
+  { key:'webhook',  label:t('通知 Webhook'), Icon:Wifi },
+  { key:'audit',    label:t('稽核日誌'), Icon:FileText },
 ]
 
 const LEVEL_STYLE = {
@@ -37,13 +38,13 @@ export default function SettingsPage({ session, onLogout, store }) {
     <div style={ss.root}>
       <div style={ss.header}>
         <div>
-          <h2 style={ss.title}>系統設定</h2>
+          <h2 style={ss.title}>{t('系統設定')}</h2>
           <div style={{fontSize:12,color:'var(--text-tertiary)',marginTop:2}}>
-            登入身份：<span style={{color:ROLES[session.role]?.color}}>{session.username}</span>
-            <span style={{color:'var(--text-tertiary)'}}> · {ROLES[session.role]?.label}</span>
+            {t('登入身份：')}<span style={{color:ROLES[session.role]?.color}}>{session.username}</span>
+            <span style={{color:'var(--text-tertiary)'}}> · {ROLES[session.role]?.label && t(ROLES[session.role].label)}</span>
           </div>
         </div>
-        <button className="btn btn-ghost btn-sm" style={{color:'var(--red)'}} onClick={onLogout}>登出</button>
+        <button className="btn btn-ghost btn-sm" style={{color:'var(--red)'}} onClick={onLogout}>{t('登出')}</button>
       </div>
 
       <div style={ss.tabBar}>
@@ -92,13 +93,13 @@ function GeneralTab({ session }) {
 
   async function saveGoal() {
     await setSetting('dailySalesGoal', salesGoal || '0')
-    setSavedMsg('已儲存')
+    setSavedMsg(t('已儲存'))
     setTimeout(() => setSavedMsg(''), 2000)
   }
 
   return (
     <div style={{padding:'0 24px', overflowY:'auto', height:'100%'}}>
-      <Section title="外觀">
+      <Section title={t('外觀')}>
         <div style={{display:'flex', gap:12}}>
           <button onClick={()=>changeTheme('light')} style={{
             flex:1, padding:'14px 16px', borderRadius:10, display:'flex', alignItems:'center', gap:10,
@@ -108,8 +109,8 @@ function GeneralTab({ session }) {
           }}>
             <Sun size={18} color="var(--amber)"/>
             <div style={{textAlign:'left'}}>
-              <div style={{fontWeight:600, fontSize:14}}>淺色模式</div>
-              <div style={{fontSize:11, color:'var(--text-tertiary)'}}>米白底 + 棕色點綴</div>
+              <div style={{fontWeight:600, fontSize:14}}>{t('淺色模式')}</div>
+              <div style={{fontSize:11, color:'var(--text-tertiary)'}}>{t('米白底 + 棕色點綴')}</div>
             </div>
           </button>
           <button onClick={()=>changeTheme('dark')} style={{
@@ -120,32 +121,65 @@ function GeneralTab({ session }) {
           }}>
             <Moon size={18} color="var(--blue)"/>
             <div style={{textAlign:'left'}}>
-              <div style={{fontWeight:600, fontSize:14}}>深色模式</div>
-              <div style={{fontSize:11, color:'var(--text-tertiary)'}}>暗色背景 + 金色點綴</div>
+              <div style={{fontWeight:600, fontSize:14}}>{t('深色模式')}</div>
+              <div style={{fontSize:11, color:'var(--text-tertiary)'}}>{t('暗色背景 + 金色點綴')}</div>
             </div>
           </button>
         </div>
       </Section>
 
-      <Section title="每日銷售目標">
-        <div style={{display:'flex', gap:8, alignItems:'center'}}>
-          <span style={{fontSize:13, color:'var(--text-secondary)', minWidth:60}}>目標金額</span>
-          <input className="field" type="number" value={salesGoal} onChange={e=>setSalesGoal(e.target.value)} placeholder="例：30000" style={{flex:1, maxWidth:200}}/>
-          <span style={{fontSize:13, color:'var(--text-tertiary)'}}>NT$</span>
-          <button className="btn btn-primary btn-sm" onClick={saveGoal}>儲存</button>
-          {savedMsg && <span style={{fontSize:12, color:'var(--green)'}}>{savedMsg}</span>}
+      <Section title={t('語言 / Language')}>
+        <div style={{display:'flex', gap:12, flexWrap:'wrap'}}>
+          {LANGS.map(l => (
+            <button key={l.code} onClick={()=> l.code !== getLang() && setLang(l.code)} style={{
+              flex:1, minWidth:120, padding:'14px 16px', borderRadius:10,
+              border:`2px solid ${getLang()===l.code ? 'var(--gold)' : 'var(--border-subtle)'}`,
+              background: getLang()===l.code ? 'var(--gold-dim)' : 'var(--bg-raised)',
+              cursor:'pointer', fontWeight:600, fontSize:14,
+            }}>
+              {l.label}
+            </button>
+          ))}
         </div>
         <p style={{fontSize:12, color:'var(--text-tertiary)', marginTop:8}}>
-          設定後會在首頁儀表板顯示達成進度
+          {t('切換後將重新載入頁面')}
         </p>
       </Section>
 
-      <Section title="鍵盤快捷鍵">
+      <Section title={t('貨幣')}>
+        <div style={{display:'flex', gap:12}}>
+          {['Rp', 'NT$'].map(cur => (
+            <button key={cur} onClick={()=>{ if (cur !== getCurrency()) { setCurrency(cur); location.reload() } }} style={{
+              flex:1, maxWidth:160, padding:'14px 16px', borderRadius:10,
+              border:`2px solid ${getCurrency()===cur ? 'var(--gold)' : 'var(--border-subtle)'}`,
+              background: getCurrency()===cur ? 'var(--gold-dim)' : 'var(--bg-raised)',
+              cursor:'pointer', fontWeight:600, fontSize:14, fontFamily:'var(--font-mono)',
+            }}>
+              {cur}
+            </button>
+          ))}
+        </div>
+      </Section>
+
+      <Section title={t('每日銷售目標')}>
+        <div style={{display:'flex', gap:8, alignItems:'center'}}>
+          <span style={{fontSize:13, color:'var(--text-secondary)', minWidth:60}}>{t('目標金額')}</span>
+          <input className="field" type="number" value={salesGoal} onChange={e=>setSalesGoal(e.target.value)} placeholder={t('例：30000')} style={{flex:1, maxWidth:200}}/>
+          <span style={{fontSize:13, color:'var(--text-tertiary)'}}>{getCurrency()}</span>
+          <button className="btn btn-primary btn-sm" onClick={saveGoal}>{t('儲存')}</button>
+          {savedMsg && <span style={{fontSize:12, color:'var(--green)'}}>{savedMsg}</span>}
+        </div>
+        <p style={{fontSize:12, color:'var(--text-tertiary)', marginTop:8}}>
+          {t('設定後會在首頁儀表板顯示達成進度')}
+        </p>
+      </Section>
+
+      <Section title={t('鍵盤快捷鍵')}>
         <div style={{fontSize:13, color:'var(--text-secondary)', lineHeight:2}}>
-          <div><kbd style={kbdStyle}>F1</kbd> 快速查價</div>
-          <div><kbd style={kbdStyle}>F2</kbd> 掛單</div>
-          <div><kbd style={kbdStyle}>F3</kbd> 取單列表</div>
-          <div><kbd style={kbdStyle}>Esc</kbd> 關閉對話框</div>
+          <div><kbd style={kbdStyle}>F1</kbd> {t('快速查價')}</div>
+          <div><kbd style={kbdStyle}>F2</kbd> {t('掛單')}</div>
+          <div><kbd style={kbdStyle}>F3</kbd> {t('取單列表')}</div>
+          <div><kbd style={kbdStyle}>Esc</kbd> {t('關閉對話框')}</div>
         </div>
       </Section>
     </div>

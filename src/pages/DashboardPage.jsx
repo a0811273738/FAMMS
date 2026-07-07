@@ -5,6 +5,7 @@ import {
   Truck, BarChart2, Percent, Sparkles,
 } from 'lucide-react'
 import { getSetting, setSetting } from '../utils/dataAccess'
+import { t, fmtMoney, getLocale } from '../i18n'
 import { averageTicket, profitAnalysis, getExpiringProducts, getReorderList, customerSegmentation, computeAllRFM } from '../utils/analytics'
 
 export default function DashboardPage({ store, session }) {
@@ -45,7 +46,7 @@ export default function DashboardPage({ store, session }) {
       const d = new Date(); d.setDate(d.getDate() - (6-i))
       const ds = d.toDateString()
       const dayOrders = validOrders.filter(o => new Date(o.time).toDateString() === ds)
-      return { date: d, label: d.getDate() + '日', revenue: dayOrders.reduce((s,o)=>s+o.total,0), count: dayOrders.length }
+      return { date: d, label: t('{n}日', { n: d.getDate() }), revenue: dayOrders.reduce((s,o)=>s+o.total,0), count: dayOrders.length }
     })
     const max7 = Math.max(...last7.map(d => d.revenue), 1)
 
@@ -103,48 +104,48 @@ export default function DashboardPage({ store, session }) {
         <div style={{position:'relative', zIndex:1}}>
           <div style={{display:'flex', alignItems:'center', gap:10, marginBottom:8, fontSize:12.5, color:'var(--text-tertiary)', fontWeight:500}}>
             <Calendar size={13}/>
-            {new Date().toLocaleDateString('zh-TW', { year:'numeric', month:'long', day:'numeric', weekday:'long' })}
+            {new Date().toLocaleDateString(getLocale(), { year:'numeric', month:'long', day:'numeric', weekday:'long' })}
           </div>
           <h1 style={{fontSize:32, fontWeight:800, letterSpacing:'-.02em', color:'var(--text-primary)'}}>
-            {greet()}，<span style={{background:'var(--accent-grad)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent'}}>{session?.username || '使用者'}</span>
+            {greet()}，<span style={{background:'var(--accent-grad)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent'}}>{t(session?.username || '使用者')}</span>
           </h1>
           <div style={{fontSize:14, color:'var(--text-secondary)', marginTop:6}}>
-            今天有 <strong style={{color:'var(--accent-deep)'}}>{stats.ordersToday.length}</strong> 筆訂單，營收 <strong style={{color:'var(--accent-deep)', fontFamily:'var(--font-mono)'}}>${todayRevenue.toLocaleString()}</strong>
+            {t('今天有')} <strong style={{color:'var(--accent-deep)'}}>{stats.ordersToday.length}</strong> {t('筆訂單，營收')} <strong style={{color:'var(--accent-deep)', fontFamily:'var(--font-mono)'}}>{fmtMoney(todayRevenue)}</strong>
           </div>
         </div>
         {openShift && (
           <div style={ds.shiftBadge}>
             <span style={ds.liveDot}/>
-            營業中 · 開班 {new Date(openShift.openTime).toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'})}
+            {t('營業中 · 開班')} {new Date(openShift.openTime).toLocaleTimeString(getLocale(),{hour:'2-digit',minute:'2-digit'})}
           </div>
         )}
       </div>
 
       {/* KPI cards — 今日 */}
       <div style={ds.kpiGrid}>
-        <KpiCard icon={DollarSign} color="gold" label="今日營收" value={`$${todayRevenue.toLocaleString()}`}
-          delta={stats.revDelta} subtitle={`比昨日 ${stats.revDelta >= 0 ? '+' : ''}${stats.revDelta.toFixed(1)}%`} idx={0}/>
-        <KpiCard icon={ShoppingBag} color="blue" label="今日訂單"
-          value={stats.ordersToday.length} subtitle={`平均 $${stats.ordersToday.length ? Math.round(todayRevenue / stats.ordersToday.length) : 0}/單`} idx={1}/>
-        <KpiCard icon={TrendingUp} color="green" label="今日毛利"
-          value={`$${todayProfit.toLocaleString()}`} subtitle={`毛利率 ${todayRevenue > 0 ? (todayProfit/todayRevenue*100).toFixed(1) : 0}%`} idx={2}/>
-        <KpiCard icon={Users} color="teal" label="會員 / 商品" value={`${members.length} / ${products.length}`} subtitle="會員數 / 商品數" idx={3}/>
+        <KpiCard icon={DollarSign} color="gold" label={t('今日營收')} value={fmtMoney(todayRevenue)}
+          delta={stats.revDelta} subtitle={t('比昨日 {pct}%', { pct: `${stats.revDelta >= 0 ? '+' : ''}${stats.revDelta.toFixed(1)}` })} idx={0}/>
+        <KpiCard icon={ShoppingBag} color="blue" label={t('今日訂單')}
+          value={stats.ordersToday.length} subtitle={t('平均 {amt}/單', { amt: fmtMoney(stats.ordersToday.length ? Math.round(todayRevenue / stats.ordersToday.length) : 0) })} idx={1}/>
+        <KpiCard icon={TrendingUp} color="green" label={t('今日毛利')}
+          value={fmtMoney(todayProfit)} subtitle={t('毛利率 {pct}%', { pct: todayRevenue > 0 ? (todayProfit/todayRevenue*100).toFixed(1) : 0 })} idx={2}/>
+        <KpiCard icon={Users} color="teal" label={t('會員 / 商品')} value={`${members.length} / ${products.length}`} subtitle={t('會員數 / 商品數')} idx={3}/>
       </div>
 
       {/* 30 天指標 row */}
       <div style={ds.kpiGrid}>
-        <KpiCard icon={BarChart2} color="purple" label="30 天客單價"
-          value={`$${Math.round(analytics30d.avgTicket.avg).toLocaleString()}`}
-          subtitle={`${analytics30d.avgTicket.count} 筆訂單`} idx={0}/>
-        <KpiCard icon={Percent} color="green" label="30 天毛利率"
+        <KpiCard icon={BarChart2} color="purple" label={t('30 天客單價')}
+          value={fmtMoney(Math.round(analytics30d.avgTicket.avg))}
+          subtitle={t('{n} 筆訂單', { n: analytics30d.avgTicket.count })} idx={0}/>
+        <KpiCard icon={Percent} color="green" label={t('30 天毛利率')}
           value={`${analytics30d.profit.marginRate.toFixed(1)}%`}
-          subtitle={`毛利 $${Math.round(analytics30d.profit.profit).toLocaleString()}`} idx={1}/>
-        <KpiCard icon={Truck} color="amber" label="待補貨"
+          subtitle={t('毛利 {amt}', { amt: fmtMoney(Math.round(analytics30d.profit.profit)) })} idx={1}/>
+        <KpiCard icon={Truck} color="amber" label={t('待補貨')}
           value={analytics30d.reorderList.length}
-          subtitle={analytics30d.reorderList.length > 0 ? '點進貨管理 ➜' : '庫存充足'} idx={2}/>
-        <KpiCard icon={Clock} color="red" label="即將/已過期"
+          subtitle={analytics30d.reorderList.length > 0 ? t('點進貨管理 ➜') : t('庫存充足')} idx={2}/>
+        <KpiCard icon={Clock} color="red" label={t('即將/已過期')}
           value={`${analytics30d.soon.length} / ${analytics30d.expired.length}`}
-          subtitle="7天內 / 已過期" idx={3}/>
+          subtitle={t('7天內 / 已過期')} idx={3}/>
       </div>
 
       {/* 會員結構 */}
@@ -152,12 +153,12 @@ export default function DashboardPage({ store, session }) {
         <div style={ds.cardHead}>
           <div style={{display:'flex', alignItems:'center', gap:8}}>
             <Sparkles size={16} color="var(--purple)"/>
-            <span style={{fontWeight:600}}>會員結構（30 天）</span>
+            <span style={{fontWeight:600}}>{t('會員結構（30 天）')}</span>
           </div>
           <span style={{fontSize:11, color:'var(--text-tertiary)'}}>
-            會員占 {analytics30d.segmentation.memberRevenue + analytics30d.segmentation.anonRevenue > 0
+            {t('會員占 {pct}% 營收', { pct: analytics30d.segmentation.memberRevenue + analytics30d.segmentation.anonRevenue > 0
               ? ((analytics30d.segmentation.memberRevenue / (analytics30d.segmentation.memberRevenue + analytics30d.segmentation.anonRevenue)) * 100).toFixed(0)
-              : 0}% 營收
+              : 0 })}
           </span>
         </div>
         <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(120px, 1fr))', gap:8, marginTop:8}}>
@@ -169,7 +170,7 @@ export default function DashboardPage({ store, session }) {
             ['沉睡會員', analytics30d.tagCounts['沉睡會員'] || 0, 'var(--red)'],
           ].map(([tag, n, color]) => (
             <div key={tag} style={{padding:'10px 12px', background:'var(--bg-overlay)', borderRadius:8, borderTop:`2px solid ${color}`}}>
-              <div style={{fontSize:11, color:'var(--text-tertiary)', marginBottom:3}}>{tag}</div>
+              <div style={{fontSize:11, color:'var(--text-tertiary)', marginBottom:3}}>{t(tag)}</div>
               <div style={{fontSize:20, fontWeight:600, fontFamily:'var(--font-mono)', color}}>{n}</div>
             </div>
           ))}
@@ -181,16 +182,16 @@ export default function DashboardPage({ store, session }) {
         <div style={ds.cardHead}>
           <div style={{display:'flex', alignItems:'center', gap:8}}>
             <Target size={16} color="var(--gold)"/>
-            <span style={{fontWeight:600}}>今日銷售目標</span>
+            <span style={{fontWeight:600}}>{t('今日銷售目標')}</span>
           </div>
           {!editingGoal ? (
-            <button className="btn btn-ghost btn-sm" onClick={()=>setEditingGoal(true)}>設定目標</button>
+            <button className="btn btn-ghost btn-sm" onClick={()=>setEditingGoal(true)}>{t('設定目標')}</button>
           ) : (
             <div style={{display:'flex', gap:6}}>
               <input className="field" type="number" value={goalInput} onChange={e=>setGoalInput(e.target.value)}
                 style={{width:120, padding:'4px 8px', fontSize:13}}/>
-              <button className="btn btn-primary btn-sm" onClick={handleSaveGoal}>儲存</button>
-              <button className="btn btn-ghost btn-sm" onClick={()=>{setEditingGoal(false);setGoalInput(String(salesGoal))}}>取消</button>
+              <button className="btn btn-primary btn-sm" onClick={handleSaveGoal}>{t('儲存')}</button>
+              <button className="btn btn-ghost btn-sm" onClick={()=>{setEditingGoal(false);setGoalInput(String(salesGoal))}}>{t('取消')}</button>
             </div>
           )}
         </div>
@@ -198,7 +199,7 @@ export default function DashboardPage({ store, session }) {
           <>
             <div style={{display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:6}}>
               <span style={{fontFamily:'var(--font-mono)', fontSize:18, fontWeight:600}}>
-                NT$ {todayRevenue.toLocaleString()} <span style={{fontSize:12, color:'var(--text-tertiary)', fontWeight:400}}>/ {salesGoal.toLocaleString()}</span>
+                {fmtMoney(todayRevenue)} <span style={{fontSize:12, color:'var(--text-tertiary)', fontWeight:400}}>/ {salesGoal.toLocaleString(getLocale())}</span>
               </span>
               <span style={{fontSize:14, fontWeight:600, color: goalPct >= 100 ? 'var(--green)' : 'var(--gold)'}}>
                 {goalPct.toFixed(0)}%
@@ -208,11 +209,11 @@ export default function DashboardPage({ store, session }) {
               <div style={{...ds.progressFill, width: `${goalPct}%`, background: goalPct >= 100 ? 'var(--green)' : 'var(--gold)'}}/>
             </div>
             <div style={{fontSize:11, color:'var(--text-tertiary)', marginTop:6}}>
-              {goalPct >= 100 ? '🎉 已達標！' : `還差 NT$ ${Math.max(0, salesGoal - todayRevenue).toLocaleString()}`}
+              {goalPct >= 100 ? t('🎉 已達標！') : t('還差 {amt}', { amt: fmtMoney(Math.max(0, salesGoal - todayRevenue)) })}
             </div>
           </>
         ) : (
-          <div style={{color:'var(--text-tertiary)', fontSize:13, textAlign:'center', padding:'12px 0'}}>尚未設定目標</div>
+          <div style={{color:'var(--text-tertiary)', fontSize:13, textAlign:'center', padding:'12px 0'}}>{t('尚未設定目標')}</div>
         )}
       </div>
 
@@ -220,7 +221,7 @@ export default function DashboardPage({ store, session }) {
         {/* 7 天趨勢 */}
         <div style={ds.card}>
           <div style={ds.cardHead}>
-            <span style={{fontWeight:600}}>近 7 天營收</span>
+            <span style={{fontWeight:600}}>{t('近 7 天營收')}</span>
           </div>
           <div style={{display:'flex', alignItems:'flex-end', gap:8, height:140, padding:'8px 0'}}>
             {stats.last7.map((d,i) => {
@@ -252,19 +253,19 @@ export default function DashboardPage({ store, session }) {
           <div style={ds.cardHead}>
             <div style={{display:'flex', alignItems:'center', gap:8}}>
               <Award size={16} color="var(--gold)"/>
-              <span style={{fontWeight:600}}>今日熱銷</span>
+              <span style={{fontWeight:600}}>{t('今日熱銷')}</span>
             </div>
           </div>
           {stats.topItems.length === 0 ? (
-            <div style={ds.empty}>今日尚無銷售</div>
+            <div style={ds.empty}>{t('今日尚無銷售')}</div>
           ) : stats.topItems.map((item, i) => (
             <div key={i} style={ds.topRow}>
               <div style={{...ds.rank, background: i===0?'var(--gold)':i===1?'var(--accent-dim)':'var(--bg-overlay)', color: i===0?'#fff':'var(--text-secondary)'}}>{i+1}</div>
               <div style={{flex:1, minWidth:0}}>
                 <div style={{fontSize:13, fontWeight:500, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>{item.name}</div>
-                <div style={{fontSize:11, color:'var(--text-tertiary)'}}>賣出 {item.qty} 件</div>
+                <div style={{fontSize:11, color:'var(--text-tertiary)'}}>{t('賣出 {n} 件', { n: item.qty })}</div>
               </div>
-              <div style={{fontFamily:'var(--font-mono)', fontWeight:500, fontSize:13}}>NT$ {item.revenue.toLocaleString()}</div>
+              <div style={{fontFamily:'var(--font-mono)', fontWeight:500, fontSize:13}}>{fmtMoney(item.revenue)}</div>
             </div>
           ))}
         </div>
@@ -276,18 +277,18 @@ export default function DashboardPage({ store, session }) {
           <div style={ds.cardHead}>
             <div style={{display:'flex', alignItems:'center', gap:8}}>
               <Package size={16} color="var(--amber)"/>
-              <span style={{fontWeight:600}}>庫存警示</span>
+              <span style={{fontWeight:600}}>{t('庫存警示')}</span>
               {lowStockCount > 0 && <span className="badge badge-amber">{lowStockCount}</span>}
             </div>
           </div>
           {stats.lowStock.length === 0 && stats.outOfStock === 0 ? (
-            <div style={ds.empty}>庫存充足</div>
+            <div style={ds.empty}>{t('庫存充足')}</div>
           ) : (
             <>
               {stats.outOfStock > 0 && (
                 <div style={{padding:'8px 0', borderBottom:'1px solid var(--border-dim)', display:'flex', alignItems:'center', gap:8}}>
                   <AlertTriangle size={14} color="var(--red)"/>
-                  <span style={{fontSize:13, color:'var(--red)'}}>{stats.outOfStock} 項商品缺貨</span>
+                  <span style={{fontSize:13, color:'var(--red)'}}>{t('{n} 項商品缺貨', { n: stats.outOfStock })}</span>
                 </div>
               )}
               {stats.lowStock.map(p => (
@@ -308,21 +309,21 @@ export default function DashboardPage({ store, session }) {
           <div style={ds.cardHead}>
             <div style={{display:'flex', alignItems:'center', gap:8}}>
               <Clock size={16} color="var(--red)"/>
-              <span style={{fontWeight:600}}>近 7 天到期</span>
+              <span style={{fontWeight:600}}>{t('近 7 天到期')}</span>
             </div>
           </div>
           {stats.expiringSoon.length === 0 ? (
-            <div style={ds.empty}>無即期商品</div>
+            <div style={ds.empty}>{t('無即期商品')}</div>
           ) : stats.expiringSoon.map(p => {
             const days = Math.floor((new Date(p.expiryDate) - new Date()) / 86400000)
             return (
               <div key={p.id} style={ds.topRow}>
                 <div style={{flex:1, minWidth:0}}>
                   <div style={{fontSize:13, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>{p.name}</div>
-                  <div style={{fontSize:11, color:'var(--text-tertiary)'}}>到期 {p.expiryDate}</div>
+                  <div style={{fontSize:11, color:'var(--text-tertiary)'}}>{t('到期')} {p.expiryDate}</div>
                 </div>
                 <span style={{fontFamily:'var(--font-mono)', fontSize:13, color: days <= 1 ? 'var(--red)' : 'var(--amber)', fontWeight:600}}>
-                  {days <= 0 ? '今日' : `${days}天`}
+                  {days <= 0 ? t('今日') : t('{n}天', { n: days })}
                 </span>
               </div>
             )
@@ -357,10 +358,10 @@ function KpiCard({ icon: Icon, color, label, value, subtitle, delta, idx = 0 }) 
 
 function greet() {
   const h = new Date().getHours()
-  if (h < 5) return '深夜辛苦了'
-  if (h < 12) return '早安'
-  if (h < 18) return '午安'
-  return '晚安'
+  if (h < 5) return t('深夜辛苦了')
+  if (h < 12) return t('早安')
+  if (h < 18) return t('午安')
+  return t('晚安')
 }
 
 const ds = {

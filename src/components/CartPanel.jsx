@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Trash2, Plus, Minus, User, X, CreditCard, Banknote, Check, ChevronRight, Gift, Printer, Pause, Percent, Wallet, Receipt, ShoppingCart } from 'lucide-react'
+import { Trash2, Plus, Minus, User, X, CreditCard, Banknote, Check, ChevronRight, Gift, Printer, Pause, Percent, Wallet, Receipt, ShoppingCart, Bike } from 'lucide-react'
 import { t, fmtMoney } from '../i18n'
 
 export default function CartPanel({
@@ -221,8 +221,8 @@ export default function CartPanel({
         </div>
 
         {/* 付款方式切換 */}
-        <div style={{display:'flex', gap:8, marginBottom:12}}>
-          {[['cash','現金',Banknote],['card','電子支付',CreditCard]].map(([k,l,Icon])=>(
+        <div style={{display:'flex', gap:8, marginBottom:12, flexWrap:'wrap'}}>
+          {[['cash',t('現金'),Banknote],['card',t('電子支付'),CreditCard],['gofood','GoFood',Bike],['grabfood','GrabFood',Bike],['shopeefood','ShopeeFood',Bike]].map(([k,l,Icon])=>(
             <button key={k} onClick={()=>{setPayMethod(k); setSplitMode(false)}} style={{...cs.methodBtn,
               background: !splitMode && payMethod===k?'var(--gold)':'var(--bg-overlay)',
               color: !splitMode && payMethod===k?'#fff':'var(--text-secondary)',
@@ -313,14 +313,14 @@ export default function CartPanel({
   if (stage === 'member') return (
     <div style={cs.panel}>
       <div style={cs.panelHeader}>
-        <span style={{fontWeight:600}}>綁定會員</span>
+        <span style={{fontWeight:600}}>{t('綁定會員')}</span>
         <button className="btn-icon" onClick={()=>setStage('cart')}><X size={16}/></button>
       </div>
       <div style={cs.stageContent}>
-        <p style={{fontSize:13, color:'var(--text-secondary)', marginBottom:16}}>輸入手機號碼或姓名查詢</p>
+        <p style={{fontSize:13, color:'var(--text-secondary)', marginBottom:16}}>{t('輸入手機號碼或姓名查詢')}</p>
         <div style={{display:'flex', gap:8, marginBottom:8}}>
-          <input className="field" value={memberQuery} onChange={e=>{setMemberQuery(e.target.value);setMemberError('')}} placeholder="0912-345-678 或 姓名" style={{flex:1, minWidth:0}} onKeyDown={e=>e.key==='Enter'&&handleFindMember()}/>
-          <button className="btn btn-ghost btn-sm" onClick={handleFindMember} style={{flexShrink:0}}>查詢</button>
+          <input className="field" value={memberQuery} onChange={e=>{setMemberQuery(e.target.value);setMemberError('')}} placeholder={t('0912-345-678 或 姓名')} style={{flex:1, minWidth:0}} onKeyDown={e=>e.key==='Enter'&&handleFindMember()}/>
+          <button className="btn btn-ghost btn-sm" onClick={handleFindMember} style={{flexShrink:0}}>{t('查詢')}</button>
         </div>
         {memberError && <div style={{fontSize:12, color:'var(--red)', marginBottom:12}}>{memberError}</div>}
         {activeMember && (
@@ -330,18 +330,18 @@ export default function CartPanel({
               <div style={{fontWeight:600, fontSize:14, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>{activeMember.name}</div>
               <div style={{fontSize:12, color:'var(--text-secondary)'}}>{activeMember.phone}</div>
               <div style={{fontSize:12, color:'var(--gold)', marginTop:2}}>
-                {activeMember.points} 點 · {TIER_LABEL[activeMember.tier]}
-                {memberBalance > 0 && <span style={{color:'var(--teal)'}}> · 餘額 ${memberBalance.toLocaleString()}</span>}
+                {activeMember.points} {t('點')} · {t(TIER_LABEL[activeMember.tier])}
+                {memberBalance > 0 && <span style={{color:'var(--teal)'}}> · {t('餘額')} {fmtMoney(memberBalance)}</span>}
               </div>
             </div>
-            <span className={`badge badge-${TIER_COLOR[activeMember.tier]}`} style={{flexShrink:0}}>{TIER_LABEL[activeMember.tier]}</span>
+            <span className={`badge badge-${TIER_COLOR[activeMember.tier]}`} style={{flexShrink:0}}>{t(TIER_LABEL[activeMember.tier])}</span>
           </div>
         )}
       </div>
       <div style={{...cs.stageFooter, display:'flex', gap:8}}>
-        {activeMember && <button className="btn btn-ghost" style={{flex:1}} onClick={()=>{ onSelectMember(null); setStage('cart') }}>移除會員</button>}
+        {activeMember && <button className="btn btn-ghost" style={{flex:1}} onClick={()=>{ onSelectMember(null); setStage('cart') }}>{t('移除會員')}</button>}
         <button className="btn btn-primary" style={{flex:1}} onClick={()=>setStage('cart')}>
-          {activeMember ? '確認' : '略過'}
+          {activeMember ? t('確認') : t('略過')}
         </button>
       </div>
     </div>
@@ -352,15 +352,15 @@ export default function CartPanel({
     <div style={cs.panel}>
       <div style={cs.panelHeader}>
         <span style={{fontWeight:600, display:'flex', alignItems:'center', gap:8}}>
-          購物車
-          {cart.length > 0 && <span className="badge badge-blue">{cart.reduce((s,i)=>s+i.qty,0)} 件</span>}
+          {t('購物車')}
+          {cart.length > 0 && <span className="badge badge-blue">{cart.reduce((s,i)=>s+i.qty,0)} {t('件')}</span>}
         </span>
         <div style={{display:'flex', gap:6}}>
           {cart.length > 0 && onHold && (
-            <button className="btn-icon" onClick={()=>setShowHoldDlg(true)} title="掛單"><Pause size={15}/></button>
+            <button className="btn-icon" onClick={()=>setShowHoldDlg(true)} title={t('掛單')}><Pause size={15}/></button>
           )}
           {cart.length > 0 && (
-            <button className="btn-icon" onClick={onClear} title="清空購物車"><Trash2 size={15}/></button>
+            <button className="btn-icon" onClick={onClear} title={t('清空購物車')}><Trash2 size={15}/></button>
           )}
         </div>
       </div>
@@ -369,10 +369,10 @@ export default function CartPanel({
         <User size={14} style={{color: activeMember?'var(--gold)':'var(--text-tertiary)'}}/>
         {activeMember
           ? <span style={{color:'var(--gold)', fontWeight:500, fontSize:13}}>
-              {activeMember.name} · {activeMember.points} 點
+              {activeMember.name} · {activeMember.points} {t('點')}
               {memberBalance > 0 && <span style={{color:'var(--teal)'}}> · ${memberBalance}</span>}
             </span>
-          : <span style={{color:'var(--text-tertiary)', fontSize:13}}>綁定會員（選填）</span>
+          : <span style={{color:'var(--text-tertiary)', fontSize:13}}>{t('綁定會員（選填）')}</span>
         }
         <ChevronRight size={14} style={{marginLeft:'auto', color:'var(--text-tertiary)'}}/>
       </button>
@@ -388,8 +388,8 @@ export default function CartPanel({
             }}>
               <ShoppingCart size={28} color="var(--text-tertiary)"/>
             </div>
-            <div style={{color:'var(--text-secondary)', fontSize:14, fontWeight:600}}>購物車空空的</div>
-            <div style={{color:'var(--text-tertiary)', fontSize:12}}>掃描條碼或點選商品來加入</div>
+            <div style={{color:'var(--text-secondary)', fontSize:14, fontWeight:600}}>{t('購物車空空的')}</div>
+            <div style={{color:'var(--text-tertiary)', fontSize:12}}>{t('掃描條碼或點選商品來加入')}</div>
           </div>
         ) : cart.map((item, idx) => (
           <div key={item.id} className="animate-up" style={{...cs.cartItem, animationDelay:`${idx*30}ms`}}>
@@ -421,7 +421,7 @@ export default function CartPanel({
               <div style={{fontFamily:'var(--font-mono)', fontSize:13, color:'var(--text-primary)', fontWeight:500}}>
                 {(item.price * item.qty).toLocaleString()}
               </div>
-              <button style={{fontSize:10, color:'var(--text-tertiary)', marginTop:2, display:'block', marginLeft:'auto'}} onClick={()=>onRemove(item.id)}>移除</button>
+              <button style={{fontSize:10, color:'var(--text-tertiary)', marginTop:2, display:'block', marginLeft:'auto'}} onClick={()=>onRemove(item.id)}>{t('移除')}</button>
             </div>
           </div>
         ))}
@@ -432,19 +432,19 @@ export default function CartPanel({
           {/* 手動折讓 */}
           <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
             <span style={{color:'var(--text-secondary)', fontSize:13, display:'flex', alignItems:'center', gap:4}}>
-              <Percent size={12}/> 整單折讓
+              <Percent size={12}/> {t('整單折讓')}
             </span>
             <input type="number" value={manualDiscount || ''} onChange={e=>setManualDiscount(parseFloat(e.target.value) || 0)}
               placeholder="0" style={{width:80, textAlign:'right', fontFamily:'var(--font-mono)', fontSize:13, background:'var(--bg-overlay)', borderRadius:4, padding:'4px 8px', border:'1px solid var(--border-dim)'}}/>
           </div>
           <div style={cs.subtotalRow}>
-            <span style={{color:'var(--text-secondary)', fontSize:13}}>小計</span>
+            <span style={{color:'var(--text-secondary)', fontSize:13}}>{t('小計')}</span>
             <span style={{fontFamily:'var(--font-mono)', fontSize:22, fontWeight:500}}>
-              NT$ {Math.max(0, cartSubtotal - (manualDiscount || 0)).toLocaleString()}
+              {fmtMoney(Math.max(0, cartSubtotal - (manualDiscount || 0)))}
             </span>
           </div>
           <button className="btn btn-primary" style={{width:'100%', padding:'14px', fontSize:15, letterSpacing:'.04em'}} onClick={()=>setStage('pay')}>
-            前往結帳 →
+            {t('前往結帳')} →
           </button>
         </div>
       )}
@@ -453,12 +453,12 @@ export default function CartPanel({
         <>
           <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.5)',zIndex:998}} onClick={()=>setShowHoldDlg(false)}/>
           <div style={{position:'fixed', top:'40%', left:'50%', transform:'translate(-50%,-50%)', background:'var(--bg-raised)', borderRadius:12, width:340, maxWidth:'90vw', boxShadow:'var(--shadow-lg)', zIndex:999, padding:20}}>
-            <div style={{fontWeight:600, fontSize:15, marginBottom:12}}>掛單</div>
-            <input className="field" placeholder="標籤（選填，例：黃先生）" value={holdLabel} onChange={e=>setHoldLabel(e.target.value)} autoFocus
+            <div style={{fontWeight:600, fontSize:15, marginBottom:12}}>{t('掛單')}</div>
+            <input className="field" placeholder={t('標籤（選填，例：黃先生）')} value={holdLabel} onChange={e=>setHoldLabel(e.target.value)} autoFocus
               onKeyDown={e=>{ if(e.key==='Enter') handleHold() }}/>
             <div style={{display:'flex', gap:8, marginTop:12}}>
-              <button className="btn btn-ghost" style={{flex:1}} onClick={()=>setShowHoldDlg(false)}>取消</button>
-              <button className="btn btn-primary" style={{flex:1}} onClick={handleHold}>掛單</button>
+              <button className="btn btn-ghost" style={{flex:1}} onClick={()=>setShowHoldDlg(false)}>{t('取消')}</button>
+              <button className="btn btn-primary" style={{flex:1}} onClick={handleHold}>{t('掛單')}</button>
             </div>
           </div>
         </>
