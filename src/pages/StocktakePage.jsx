@@ -2,6 +2,7 @@ import { useState, useRef, lazy, Suspense } from 'react'
 import { Check, X, AlertTriangle, Search, ChevronDown, ChevronUp, Download, Camera } from 'lucide-react'
 import { writeAuditLog } from '../utils/security'
 import { stringifyCSV } from '../utils/csv'
+import { t, getLocale } from '../i18n'
 const BarcodeScannerModal = lazy(() => import('../components/BarcodeScannerModal'))
 
 export default function StocktakePage({ store, session }) {
@@ -19,7 +20,7 @@ export default function StocktakePage({ store, session }) {
   function handleScannedCode(code) {
     const p = products.find(x => x.barcode === code)
     if (!p) {
-      setScanFeedback(`✗ 條碼 ${code} 查無商品`)
+      setScanFeedback(t('✗ 條碼 {code} 查無商品', { code }))
       setTimeout(() => setScanFeedback(''), 2500)
       return 'keep'
     }
@@ -28,7 +29,7 @@ export default function StocktakePage({ store, session }) {
     const next = (typeof countsRef.current[p.id] === 'number' ? countsRef.current[p.id] : 0) + 1
     countsRef.current = { ...countsRef.current, [p.id]: next }
     setCounts(countsRef.current)
-    setScanFeedback(`✓ ${p.name} +1（累計 ${next}）`)
+    setScanFeedback(t('✓ {name} +1（累計 {next}）', { name: p.name, next }))
     setTimeout(() => setScanFeedback(''), 1500)
     // focus 對應的 input（方便手動修正）
     setTimeout(() => inputRefs.current[p.id]?.focus(), 50)
@@ -78,20 +79,20 @@ export default function StocktakePage({ store, session }) {
 
   function exportReport() {
     // 用共用 stringifyCSV 處理逗號/引號跳脫，避免各頁手刻 CSV 規則不一致
-    const header = ['商品名稱', '分類', '系統庫存', '實盤數量', '差異']
+    const header = [t('商品名稱'), t('分類'), t('系統庫存'), t('實盤數量'), t('差異')]
     const records = products.map(p => ({
-      '商品名稱': p.name,
-      '分類': p.category,
-      '系統庫存': p.stock,
-      '實盤數量': counts[p.id] ?? '未盤',
-      '差異': counts[p.id] !== undefined ? counts[p.id] - p.stock : '—',
+      [header[0]]: p.name,
+      [header[1]]: p.category,
+      [header[2]]: p.stock,
+      [header[3]]: counts[p.id] ?? t('未盤'),
+      [header[4]]: counts[p.id] !== undefined ? counts[p.id] - p.stock : '—',
     }))
-    const content = `盤點日期,${new Date().toLocaleDateString('zh-TW')}\n` + stringifyCSV(records, header)
+    const content = `${t('盤點日期')},${new Date().toLocaleDateString(getLocale())}\n` + stringifyCSV(records, header)
     const BOM  = '\uFEFF'
     const blob = new Blob([BOM+content],{type:'text/csv;charset=utf-8;'})
     const url  = URL.createObjectURL(blob)
     const a    = document.createElement('a')
-    a.href=url; a.download=`盤點報告_${new Date().toISOString().slice(0,10)}.csv`; a.click()
+    a.href=url; a.download=`${t('盤點報告')}_${new Date().toISOString().slice(0,10)}.csv`; a.click()
     URL.revokeObjectURL(url)
     writeAuditLog('DATA_EXPORT', session, { type: '盤點報告' })
   }
@@ -100,15 +101,15 @@ export default function StocktakePage({ store, session }) {
     <div style={st.root}>
       <div style={{flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:16}}>
         <div style={{fontSize:48}}>✅</div>
-        <div style={{fontFamily:'var(--font-serif)', fontSize:22, fontWeight:700}}>盤點完成</div>
+        <div style={{fontFamily:'var(--font-serif)', fontSize:22, fontWeight:700}}>{t('盤點完成')}</div>
         <div style={{display:'flex', gap:24, fontSize:13, color:'var(--text-secondary)'}}>
-          <span>共盤 <strong style={{color:'var(--text-primary)'}}>{counted}</strong> 項</span>
-          <span>差異 <strong style={{color: diffs.length?'var(--amber)':'var(--green)'}}>{diffs.length}</strong> 項</span>
-          <span>已更正 <strong style={{color:'var(--green)'}}>{diffs.length}</strong> 項庫存</span>
+          <span>{t('共盤')} <strong style={{color:'var(--text-primary)'}}>{counted}</strong> {t('項')}</span>
+          <span>{t('差異')} <strong style={{color: diffs.length?'var(--amber)':'var(--green)'}}>{diffs.length}</strong> {t('項')}</span>
+          <span>{t('已更正')} <strong style={{color:'var(--green)'}}>{diffs.length}</strong> {t('項庫存')}</span>
         </div>
         <div style={{display:'flex', gap:10}}>
-          <button className="btn btn-ghost" onClick={exportReport}><Download size={14}/>匯出報告</button>
-          <button className="btn btn-primary" onClick={()=>{setCounts({});setStage('count')}}>重新盤點</button>
+          <button className="btn btn-ghost" onClick={exportReport}><Download size={14}/>{t('匯出報告')}</button>
+          <button className="btn btn-primary" onClick={()=>{setCounts({});setStage('count')}}>{t('重新盤點')}</button>
         </div>
       </div>
     </div>
@@ -118,15 +119,15 @@ export default function StocktakePage({ store, session }) {
     <div style={st.root}>
       <div style={st.header}>
         <div>
-          <h2 style={st.title}>確認差異</h2>
+          <h2 style={st.title}>{t('確認差異')}</h2>
           <div style={{fontSize:12, color:'var(--text-tertiary)', marginTop:2}}>
-            {diffs.length} 項庫存有差異，確認後系統將自動更新
+            {t('{n} 項庫存有差異，確認後系統將自動更新', { n: diffs.length })}
           </div>
         </div>
         <div style={{display:'flex', gap:8}}>
-          <button className="btn btn-ghost btn-sm" onClick={()=>setStage('count')}>返回修改</button>
+          <button className="btn btn-ghost btn-sm" onClick={()=>setStage('count')}>{t('返回修改')}</button>
           <button className="btn btn-primary btn-sm" onClick={applyAdjustments}>
-            <Check size={14}/>確認更新 {diffs.length} 項
+            <Check size={14}/>{t('確認更新 {n} 項', { n: diffs.length })}
           </button>
         </div>
       </div>
@@ -134,21 +135,21 @@ export default function StocktakePage({ store, session }) {
       {diffs.length === 0 ? (
         <div style={{flex:1, display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:12}}>
           <div style={{fontSize:36}}>🎉</div>
-          <div style={{color:'var(--green)', fontSize:16, fontWeight:600}}>庫存完全吻合，無需調整</div>
-          <button className="btn btn-primary" onClick={applyAdjustments}>完成盤點</button>
+          <div style={{color:'var(--green)', fontSize:16, fontWeight:600}}>{t('庫存完全吻合，無需調整')}</div>
+          <button className="btn btn-primary" onClick={applyAdjustments}>{t('完成盤點')}</button>
         </div>
       ) : (
         <div style={{flex:1, overflowY:'auto', display:'flex', flexDirection:'column', gap:8}}>
           {shortages.length > 0 && (
-            <SummaryBanner color="var(--red)" bg="var(--red-dim)" icon="📉" label={`短少 ${shortages.length} 項`} detail={shortages.map(p=>`${p.name}（${p.stock}→${counts[p.id]}）`).join('、')}/>
+            <SummaryBanner color="var(--red)" bg="var(--red-dim)" icon="📉" label={t('短少 {n} 項', { n: shortages.length })} detail={shortages.map(p=>`${p.name}（${p.stock}→${counts[p.id]}）`).join('、')}/>
           )}
           {surpluses.length > 0 && (
-            <SummaryBanner color="var(--teal)" bg="var(--teal-dim)" icon="📈" label={`多出 ${surpluses.length} 項`} detail={surpluses.map(p=>`${p.name}（${p.stock}→${counts[p.id]}）`).join('、')}/>
+            <SummaryBanner color="var(--teal)" bg="var(--teal-dim)" icon="📈" label={t('多出 {n} 項', { n: surpluses.length })} detail={surpluses.map(p=>`${p.name}（${p.stock}→${counts[p.id]}）`).join('、')}/>
           )}
 
           <div className="card" style={{overflow:'hidden'}}>
             <div style={{display:'grid', gridTemplateColumns:'1fr 80px 80px 80px 100px', gap:8, padding:'9px 14px', background:'var(--bg-overlay)', fontSize:11, color:'var(--text-tertiary)', letterSpacing:'.05em'}}>
-              <span>商品</span><span style={{textAlign:'right'}}>系統</span><span style={{textAlign:'right'}}>實盤</span><span style={{textAlign:'right'}}>差異</span><span style={{textAlign:'right'}}>狀態</span>
+              <span>{t('商品')}</span><span style={{textAlign:'right'}}>{t('系統')}</span><span style={{textAlign:'right'}}>{t('實盤')}</span><span style={{textAlign:'right'}}>{t('差異')}</span><span style={{textAlign:'right'}}>{t('狀態')}</span>
             </div>
             {diffs.map(p => {
               const diff = (counts[p.id]??p.stock) - p.stock
@@ -162,7 +163,7 @@ export default function StocktakePage({ store, session }) {
                   </span>
                   <span style={{textAlign:'right', fontSize:11}}>
                     <span style={{padding:'2px 8px', borderRadius:20, background:diff<0?'var(--red-dim)':'var(--teal-dim)', color:diff<0?'var(--red)':'var(--teal)'}}>
-                      {diff<0?'短少':'盈餘'}
+                      {diff<0?t('短少'):t('盈餘')}
                     </span>
                   </span>
                 </div>
@@ -178,24 +179,24 @@ export default function StocktakePage({ store, session }) {
     <div style={st.root}>
       <div style={st.header}>
         <div>
-          <h2 style={st.title}>每日盤點</h2>
+          <h2 style={st.title}>{t('每日盤點')}</h2>
           <div style={{fontSize:12, color:'var(--text-tertiary)', marginTop:2}}>
-            {new Date().toLocaleDateString('zh-TW', {year:'numeric',month:'long',day:'numeric',weekday:'long'})}
+            {new Date().toLocaleDateString(getLocale(), {year:'numeric',month:'long',day:'numeric',weekday:'long'})}
           </div>
         </div>
         <div style={{display:'flex', gap:8, alignItems:'center'}}>
           <div style={{fontSize:12, color:'var(--text-secondary)'}}>
-            已盤 <span style={{fontFamily:'var(--font-mono)', fontWeight:600, color:'var(--text-primary)'}}>{counted}/{total}</span>
+            {t('已盤')} <span style={{fontFamily:'var(--font-mono)', fontWeight:600, color:'var(--text-primary)'}}>{counted}/{total}</span>
           </div>
           <div style={st.progressWrap}>
             <div style={{...st.progressBar, width:`${pct}%`}}/>
           </div>
           <button className="btn btn-ghost btn-sm" onClick={()=>setShowCamera(true)}>
-            <Camera size={14}/>掃條碼
+            <Camera size={14}/>{t('掃條碼')}
           </button>
-          <button className="btn btn-ghost btn-sm" onClick={()=>setCounts({})}>清除</button>
+          <button className="btn btn-ghost btn-sm" onClick={()=>setCounts({})}>{t('清除')}</button>
           <button className="btn btn-primary btn-sm" onClick={()=>setStage('review')}>
-            審核差異 →
+            {t('審核差異 →')}
           </button>
         </div>
       </div>
@@ -214,7 +215,7 @@ export default function StocktakePage({ store, session }) {
       {showCamera && (
         <Suspense fallback={null}>
           <BarcodeScannerModal
-            title="掃條碼快速盤點（每掃 +1）"
+            title={t('掃條碼快速盤點（每掃 +1）')}
             mode="continuous"
             onScan={handleScannedCode}
             onClose={()=>setShowCamera(false)}
@@ -225,19 +226,19 @@ export default function StocktakePage({ store, session }) {
       <div style={{display:'flex', gap:10, flexShrink:0, flexWrap:'wrap'}}>
         <div style={{flex:1, display:'flex', alignItems:'center', gap:8, background:'var(--bg-overlay)', border:'1px solid var(--border-subtle)', borderRadius:8, padding:'7px 12px', minWidth:160}}>
           <Search size={13} color="var(--text-tertiary)"/>
-          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="搜尋商品..." style={{background:'none', flex:1, fontSize:13, color:'var(--text-primary)'}}/>
+          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t('搜尋商品...')} style={{background:'none', flex:1, fontSize:13, color:'var(--text-primary)'}}/>
         </div>
         <div style={{display:'flex', gap:4, flexWrap:'wrap'}}>
           {categories.map(c=>(
             <button key={c} onClick={()=>setCategory(c)} style={{padding:'5px 12px', borderRadius:20, fontSize:11, cursor:'pointer', background:category===c?'var(--gold)':'var(--bg-overlay)', color:category===c?'#fff':'var(--text-secondary)', border:'none'}}>
-              {c}
+              {c === '全部' ? t('全部') : c}
             </button>
           ))}
         </div>
         <div style={{display:'flex', gap:4}}>
           {[['all','全部'],['diff','有差異'],['missing','未盤']].map(([k,l])=>(
             <button key={k} onClick={()=>setShowOnly(k)} style={{padding:'5px 12px', borderRadius:6, fontSize:11, cursor:'pointer', background:showOnly===k?'var(--bg-active)':'transparent', color:showOnly===k?'var(--text-primary)':'var(--text-tertiary)', border:`1px solid ${showOnly===k?'var(--border-mid)':'transparent'}`}}>
-              {l}
+              {t(l)}
             </button>
           ))}
         </div>

@@ -50,20 +50,20 @@ export default function AccountingPage({ store }) {
       {/* Header */}
       <div style={ac.header}>
         <div>
-          <h2 style={ac.title}>會計帳務</h2>
+          <h2 style={ac.title}>{t('會計帳務')}</h2>
           <div style={{fontSize:12,color:'var(--text-tertiary)',marginTop:2}}>
-            自動複式記帳 · {allJournal.length} 筆分錄
+            {t('自動複式記帳 · {n} 筆分錄', {n: allJournal.length})}
           </div>
         </div>
         <div style={{display:'flex',gap:10,alignItems:'center'}}>
           <div style={ac.dateRange}>
             <input type="date" value={from} onChange={e=>setFrom(e.target.value)} style={ac.dateInput}/>
-            <span style={{color:'var(--text-tertiary)',fontSize:12}}>至</span>
+            <span style={{color:'var(--text-tertiary)',fontSize:12}}>{t('至')}</span>
             <input type="date" value={to}   onChange={e=>setTo(e.target.value)}   style={ac.dateInput}/>
           </div>
           {canExport && (
             <button className="btn btn-ghost btn-sm" onClick={handleExport}>
-              <Download size={14}/>匯出 CSV
+              <Download size={14}/>{t('匯出 CSV')}
             </button>
           )}
         </div>
@@ -78,7 +78,7 @@ export default function AccountingPage({ store }) {
             color: tab===key ? 'var(--text-primary)' : 'var(--text-tertiary)',
             borderBottom: `2px solid ${tab===key?'var(--gold)':'transparent'}`,
           }}>
-            <Icon size={14}/>{label}
+            <Icon size={14}/>{t(label)}
           </button>
         ))}
       </div>
@@ -103,27 +103,27 @@ function PnLView({ pnl, from, to }) {
     <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:16, height:'100%', overflowY:'auto'}}>
       {/* Main P&L */}
       <div style={{display:'flex',flexDirection:'column',gap:12}}>
-        <div style={ac.cardTitle}>損益彙總 <span style={{fontSize:11,color:'var(--text-tertiary)',fontWeight:400}}>{from} ~ {to}</span></div>
+        <div style={ac.cardTitle}>{t('損益彙總')} <span style={{fontSize:11,color:'var(--text-tertiary)',fontWeight:400}}>{from} ~ {to}</span></div>
 
         <div style={ac.pnlSection}>
-          <PnLRow label="營業收入" amount={revenue} bold highlight="blue"/>
-          <PnLRow label="銷貨成本" amount={-cogs} sub/>
+          <PnLRow label={t('營業收入')} amount={revenue} bold highlight="blue"/>
+          <PnLRow label={t('銷貨成本')} amount={-cogs} sub/>
           <div style={ac.pnlDivider}/>
-          <PnLRow label="毛利" amount={grossProfit} bold highlight={grossProfit>=0?'green':'red'}/>
-          <div style={{fontSize:11,color:'var(--text-tertiary)',textAlign:'right',marginBottom:4}}>毛利率 {grossMargin}%</div>
-          <PnLRow label="營業費用" amount={-opExpenses} sub/>
+          <PnLRow label={t('毛利')} amount={grossProfit} bold highlight={grossProfit>=0?'green':'red'}/>
+          <div style={{fontSize:11,color:'var(--text-tertiary)',textAlign:'right',marginBottom:4}}>{t('毛利率 {n}%', {n: grossMargin})}</div>
+          <PnLRow label={t('營業費用')} amount={-opExpenses} sub/>
           <div style={ac.pnlDivider}/>
-          <PnLRow label="本期淨利" amount={netIncome} bold lg highlight={loss?'red':'gold'}/>
-          <div style={{fontSize:11,color:loss?'var(--red)':'var(--text-tertiary)',textAlign:'right',marginTop:4}}>淨利率 {netMargin}%</div>
+          <PnLRow label={t('本期淨利')} amount={netIncome} bold lg highlight={loss?'red':'gold'}/>
+          <div style={{fontSize:11,color:loss?'var(--red)':'var(--text-tertiary)',textAlign:'right',marginTop:4}}>{t('淨利率 {n}%', {n: netMargin})}</div>
         </div>
 
         {/* Expense breakdown */}
         {expenseLines.length > 0 && (
           <div className="card" style={{padding:'14px 16px'}}>
-            <div style={{fontSize:11,color:'var(--text-tertiary)',letterSpacing:'.06em',textTransform:'uppercase',marginBottom:12}}>費用明細</div>
+            <div style={{fontSize:11,color:'var(--text-tertiary)',letterSpacing:'.06em',textTransform:'uppercase',marginBottom:12}}>{t('費用明細')}</div>
             {expenseLines.map(l=>(
               <div key={l.code} style={{display:'flex',justifyContent:'space-between',padding:'6px 0',borderBottom:'1px solid var(--border-dim)',fontSize:13}}>
-                <span style={{color:'var(--text-secondary)'}}>{l.name}</span>
+                <span style={{color:'var(--text-secondary)'}}>{t(l.name)}</span>
                 <span style={{fontFamily:'var(--font-mono)',color:'var(--red)'}}>({l.amount.toLocaleString()})</span>
               </div>
             ))}
@@ -133,13 +133,13 @@ function PnLView({ pnl, from, to }) {
 
       {/* Visual cards */}
       <div style={{display:'flex',flexDirection:'column',gap:12}}>
-        <div style={ac.cardTitle}>關鍵指標</div>
+        <div style={ac.cardTitle}>{t('關鍵指標')}</div>
         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
           {[
-            {label:'營業收入', val:`NT$ ${revenue.toLocaleString()}`,    color:'var(--blue)'},
-            {label:'毛利',     val:`NT$ ${grossProfit.toLocaleString()}`, color:'var(--teal)'},
-            {label:'毛利率',   val:`${grossMargin}%`,                    color:'var(--gold)'},
-            {label:'本期淨利', val:`NT$ ${netIncome.toLocaleString()}`,   color: loss?'var(--red)':'var(--green)'},
+            {label:t('營業收入'), val:fmtMoney(revenue),    color:'var(--blue)'},
+            {label:t('毛利'),     val:fmtMoney(grossProfit), color:'var(--teal)'},
+            {label:t('毛利率'),   val:`${grossMargin}%`,                    color:'var(--gold)'},
+            {label:t('本期淨利'), val:fmtMoney(netIncome),   color: loss?'var(--red)':'var(--green)'},
           ].map(({label,val,color},i)=>(
             <div key={i} className="card" style={{padding:'14px 16px',borderTop:`2px solid ${color}`}}>
               <div style={{fontSize:10,color:'var(--text-tertiary)',letterSpacing:'.06em',textTransform:'uppercase',marginBottom:8}}>{label}</div>
@@ -150,18 +150,18 @@ function PnLView({ pnl, from, to }) {
 
         {/* Margin bar */}
         <div className="card" style={{padding:'14px 16px'}}>
-          <div style={{fontSize:11,color:'var(--text-tertiary)',marginBottom:12,letterSpacing:'.06em',textTransform:'uppercase'}}>收支結構</div>
+          <div style={{fontSize:11,color:'var(--text-tertiary)',marginBottom:12,letterSpacing:'.06em',textTransform:'uppercase'}}>{t('收支結構')}</div>
           {revenue > 0 && (
             <div>
               <div style={{display:'flex',height:24,borderRadius:4,overflow:'hidden',marginBottom:8}}>
-                <div style={{width:`${cogs/revenue*100}%`,background:'var(--red)',opacity:.7}} title={`銷貨成本 ${Math.round(cogs/revenue*100)}%`}/>
-                <div style={{width:`${opExpenses/revenue*100}%`,background:'var(--amber)',opacity:.7}} title={`費用 ${Math.round(opExpenses/revenue*100)}%`}/>
-                <div style={{flex:1,background:'var(--green)',opacity:.7}} title="毛利"/>
+                <div style={{width:`${cogs/revenue*100}%`,background:'var(--red)',opacity:.7}} title={t('銷貨成本 {n}%', {n: Math.round(cogs/revenue*100)})}/>
+                <div style={{width:`${opExpenses/revenue*100}%`,background:'var(--amber)',opacity:.7}} title={t('費用 {n}%', {n: Math.round(opExpenses/revenue*100)})}/>
+                <div style={{flex:1,background:'var(--green)',opacity:.7}} title={t('毛利')}/>
               </div>
               <div style={{display:'flex',gap:14,fontSize:11}}>
-                <span style={{display:'flex',alignItems:'center',gap:4}}><span style={{width:10,height:10,borderRadius:2,background:'var(--red)',opacity:.7,display:'inline-block'}}/><span style={{color:'var(--text-secondary)'}}>成本 {Math.round(cogs/revenue*100)}%</span></span>
-                <span style={{display:'flex',alignItems:'center',gap:4}}><span style={{width:10,height:10,borderRadius:2,background:'var(--amber)',opacity:.7,display:'inline-block'}}/><span style={{color:'var(--text-secondary)'}}>費用 {Math.round(opExpenses/revenue*100)}%</span></span>
-                <span style={{display:'flex',alignItems:'center',gap:4}}><span style={{width:10,height:10,borderRadius:2,background:'var(--green)',opacity:.7,display:'inline-block'}}/><span style={{color:'var(--text-secondary)'}}>淨利 {netMargin}%</span></span>
+                <span style={{display:'flex',alignItems:'center',gap:4}}><span style={{width:10,height:10,borderRadius:2,background:'var(--red)',opacity:.7,display:'inline-block'}}/><span style={{color:'var(--text-secondary)'}}>{t('成本 {n}%', {n: Math.round(cogs/revenue*100)})}</span></span>
+                <span style={{display:'flex',alignItems:'center',gap:4}}><span style={{width:10,height:10,borderRadius:2,background:'var(--amber)',opacity:.7,display:'inline-block'}}/><span style={{color:'var(--text-secondary)'}}>{t('費用 {n}%', {n: Math.round(opExpenses/revenue*100)})}</span></span>
+                <span style={{display:'flex',alignItems:'center',gap:4}}><span style={{width:10,height:10,borderRadius:2,background:'var(--green)',opacity:.7,display:'inline-block'}}/><span style={{color:'var(--text-secondary)'}}>{t('淨利 {n}%', {n: netMargin})}</span></span>
               </div>
             </div>
           )}
@@ -178,8 +178,8 @@ function PnLRow({ label, amount, bold, sub, lg, highlight }) {
     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:`${lg?10:6}px 0`,marginLeft:sub?16:0}}>
       <span style={{fontSize:sub?12:13,color:sub?'var(--text-secondary)':'var(--text-primary)',fontWeight:bold?600:400}}>{label}</span>
       <span style={{fontFamily:'var(--font-mono)',fontSize:lg?20:sub?12:14,fontWeight:bold?600:400,color}}>
-        NT$ {Math.abs(amount).toLocaleString()}
-        {amount < 0 && <span style={{fontSize:10,opacity:.7}}> (費)</span>}
+        {fmtMoney(Math.abs(amount))}
+        {amount < 0 && <span style={{fontSize:10,opacity:.7}}> {t('(費)')}</span>}
       </span>
     </div>
   )
@@ -193,7 +193,7 @@ function JournalView({ grouped, manualEntries, deleteManualEntry }) {
 
   if (grouped.length === 0) return (
     <div style={{textAlign:'center',padding:'60px',color:'var(--text-tertiary)',fontSize:13}}>
-      此期間無分錄
+      {t('此期間無分錄')}
     </div>
   )
 
@@ -210,8 +210,8 @@ function JournalView({ grouped, manualEntries, deleteManualEntry }) {
             }}>
               {open ? <ChevronDown size={14} style={{color:'var(--text-tertiary)',flexShrink:0}}/> : <ChevronRight size={14} style={{color:'var(--text-tertiary)',flexShrink:0}}/>}
               <span style={{fontFamily:'var(--font-mono)',fontSize:13,color:'var(--text-secondary)',minWidth:90}}>{date}</span>
-              <span style={{fontSize:12,color:'var(--text-tertiary)'}}>{entries.length} 筆分錄</span>
-              {dayTotal > 0 && <span style={{marginLeft:'auto',fontFamily:'var(--font-mono)',fontSize:13,color:'var(--gold-bright)',fontWeight:500}}>NT$ {dayTotal.toLocaleString()}</span>}
+              <span style={{fontSize:12,color:'var(--text-tertiary)'}}>{t('{n} 筆分錄', {n: entries.length})}</span>
+              {dayTotal > 0 && <span style={{marginLeft:'auto',fontFamily:'var(--font-mono)',fontSize:13,color:'var(--gold-bright)',fontWeight:500}}>{fmtMoney(dayTotal)}</span>}
             </button>
 
             {open && (
@@ -219,7 +219,7 @@ function JournalView({ grouped, manualEntries, deleteManualEntry }) {
                 {entries.map(j=>(
                   <div key={j.id} style={{borderBottom:'1px solid var(--border-dim)',padding:'10px 16px'}}>
                     <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
-                      <span style={{...ac.typeBadge,...TYPE_STYLE[j.type]||TYPE_STYLE.manual}}>{TYPE_LABEL[j.type]||'手動'}</span>
+                      <span style={{...ac.typeBadge,...TYPE_STYLE[j.type]||TYPE_STYLE.manual}}>{t(TYPE_LABEL[j.type]||'手動')}</span>
                       <span style={{fontSize:13,fontWeight:500}}>{j.description}</span>
                       {manualIds.has(j.id) && (
                         <button className="btn-icon btn-sm" style={{marginLeft:'auto',color:'var(--red)'}} onClick={()=>deleteManualEntry(j.id)}>
@@ -228,13 +228,13 @@ function JournalView({ grouped, manualEntries, deleteManualEntry }) {
                       )}
                     </div>
                     <div style={{display:'grid',gridTemplateColumns:'1fr 90px 90px',gap:4,fontSize:11}}>
-                      <span style={{color:'var(--text-tertiary)',letterSpacing:'.04em'}}>科目</span>
-                      <span style={{color:'var(--text-tertiary)',textAlign:'right'}}>借方</span>
-                      <span style={{color:'var(--text-tertiary)',textAlign:'right'}}>貸方</span>
+                      <span style={{color:'var(--text-tertiary)',letterSpacing:'.04em'}}>{t('科目')}</span>
+                      <span style={{color:'var(--text-tertiary)',textAlign:'right'}}>{t('借方')}</span>
+                      <span style={{color:'var(--text-tertiary)',textAlign:'right'}}>{t('貸方')}</span>
                       {j.lines.map((l,i)=>(
                         <>
                           <span key={i+'a'} style={{color:'var(--text-secondary)',paddingLeft:l.debit===0?16:0}}>
-                            {ACCOUNTS[l.account]?.name||l.account}
+                            {t(ACCOUNTS[l.account]?.name||l.account)}
                             {l.note && <span style={{color:'var(--text-tertiary)',marginLeft:6}}>— {l.note}</span>}
                           </span>
                           <span key={i+'d'} style={{fontFamily:'var(--font-mono)',textAlign:'right',color:l.debit?'var(--blue)':'var(--text-disabled)'}}>
@@ -275,20 +275,20 @@ function BalanceView({ balance, asOf }) {
   return (
     <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16,height:'100%',overflowY:'auto'}}>
       <div style={{display:'flex',flexDirection:'column',gap:12}}>
-        <div style={ac.cardTitle}>資產 <span style={{fontFamily:'var(--font-mono)',color:'var(--blue)',fontSize:14,fontWeight:500}}>NT$ {totalAssets.toLocaleString()}</span></div>
+        <div style={ac.cardTitle}>{t('資產')} <span style={{fontFamily:'var(--font-mono)',color:'var(--blue)',fontSize:14,fontWeight:500}}>{fmtMoney(totalAssets)}</span></div>
         <BSSection items={sections.asset.items} color="var(--blue)"/>
       </div>
       <div style={{display:'flex',flexDirection:'column',gap:12}}>
-        <div style={ac.cardTitle}>負債 + 業主權益</div>
-        <div style={{...ac.cardTitle,fontSize:12,color:'var(--text-tertiary)'}}>負債 <span style={{fontFamily:'var(--font-mono)',color:'var(--red)',fontSize:14}}> NT$ {totalLiabilities.toLocaleString()}</span></div>
+        <div style={ac.cardTitle}>{t('負債 + 業主權益')}</div>
+        <div style={{...ac.cardTitle,fontSize:12,color:'var(--text-tertiary)'}}>{t('負債')} <span style={{fontFamily:'var(--font-mono)',color:'var(--red)',fontSize:14}}> {fmtMoney(totalLiabilities)}</span></div>
         <BSSection items={sections.liability.items} color="var(--red)"/>
-        <div style={{fontSize:12,color:'var(--text-tertiary)'}}>業主權益 <span style={{fontFamily:'var(--font-mono)',color:'var(--green)',fontSize:14}}> NT$ {totalEquity.toLocaleString()}</span></div>
+        <div style={{fontSize:12,color:'var(--text-tertiary)'}}>{t('業主權益')} <span style={{fontFamily:'var(--font-mono)',color:'var(--green)',fontSize:14}}> {fmtMoney(totalEquity)}</span></div>
         <BSSection items={sections.equity.items} color="var(--green)"/>
         <div className="card" style={{padding:'12px 14px',display:'flex',justifyContent:'space-between',alignItems:'center',borderLeft:`3px solid ${balanced?'var(--green)':'var(--red)'}`}}>
           <span style={{fontSize:12,color:balanced?'var(--green)':'var(--red)'}}>
-            {balanced ? '✓ 借貸平衡' : '⚠ 借貸不平衡'}
+            {balanced ? t('✓ 借貸平衡') : t('⚠ 借貸不平衡')}
           </span>
-          <span style={{fontSize:11,color:'var(--text-tertiary)'}}>截至 {asOf}</span>
+          <span style={{fontSize:11,color:'var(--text-tertiary)'}}>{t('截至 {asOf}', {asOf})}</span>
         </div>
       </div>
     </div>
@@ -296,13 +296,13 @@ function BalanceView({ balance, asOf }) {
 }
 
 function BSSection({ items, color }) {
-  if (!items.length) return <div style={{fontSize:12,color:'var(--text-tertiary)',padding:'8px 0'}}>無資料</div>
+  if (!items.length) return <div style={{fontSize:12,color:'var(--text-tertiary)',padding:'8px 0'}}>{t('無資料')}</div>
   return (
     <div className="card" style={{overflow:'hidden'}}>
       {items.map((item,i)=>(
         <div key={item.code} style={{display:'flex',justifyContent:'space-between',padding:'9px 14px',borderBottom:i<items.length-1?'1px solid var(--border-dim)':'none',fontSize:13,alignItems:'center'}}>
           <div>
-            <span style={{color:'var(--text-primary)'}}>{item.name}</span>
+            <span style={{color:'var(--text-primary)'}}>{t(item.name)}</span>
             <span style={{fontSize:10,color:'var(--text-tertiary)',marginLeft:6,fontFamily:'var(--font-mono)'}}>{item.code}</span>
           </div>
           <span style={{fontFamily:'var(--font-mono)',fontWeight:500,color}}>{item.amount.toLocaleString()}</span>
