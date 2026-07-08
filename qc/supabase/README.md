@@ -13,13 +13,20 @@ Execute in the Supabase SQL editor (or `psql`) in this exact order:
 | 1 | `schema.sql` | All tables, indexes, triggers, auto-numbering functions |
 | 2 | `rls.sql` | Enables RLS on every table + role policies |
 | 3 | `seed_test_items.sql` | Demo factory, 7 inspection stages, ~55 test items |
+| 4 | `migration_gudang_link.sql` | Additive: `batches.gudang_meta`, `ncr_records.machine_code` (Gudang One lookup/status-sync link — see below) |
 
 ```bash
 # psql example
 psql "$DATABASE_URL" -f schema.sql
 psql "$DATABASE_URL" -f rls.sql
 psql "$DATABASE_URL" -f seed_test_items.sql
+psql "$DATABASE_URL" -f migration_gudang_link.sql
 ```
+
+Migration files after `schema.sql` follow the naming pattern `migration_*.sql` and
+are always additive (`ADD COLUMN IF NOT EXISTS`) so they're safe to re-run and
+never require dropping the database — verified idempotent on a throwaway
+PostgreSQL 16 instance.
 
 `schema.sql` and `seed_test_items.sql` are idempotent-friendly (seed uses
 `ON CONFLICT DO NOTHING`; re-running `schema.sql` will error on existing objects
@@ -97,6 +104,18 @@ and an `on_auth_user_created` trigger to auto-insert a `profiles` row on signup
 - `inspection_results.entry_source` (`manual` / `excel_import` / `instrument` /
   `lab_import` / `api`) + `source_ref` (JSONB) are the universal result-intake
   socket. Phase 1 writes only `manual`; later sources need no schema change.
+
+### Gudang One (warehouse app) link — `migration_gudang_link.sql`
+- `batches.gudang_ref` (in `schema.sql`) already held a free-text warehouse
+  reference. The migration adds `batches.gudang_meta` (JSONB) for the
+  structured `{gudang_batch_id, lot_no, warehouse}` set when a batch is pulled
+  via the "Ambil dari Gudang" lookup — the app checks this field to know
+  whether a `qc-status` push-back applies to a given batch.
+- `ncr_records.machine_code` (text, optional) records a suspected-equipment
+  code on a quality issue, collected now for a future one-click FAMMS
+  work-order link (Phase 2) — not otherwise used in Phase 1.
+- Neither column is read/written by RLS policies or triggers; they're inert
+  until the app's Gudang integration code (see project handoff doc) uses them.
 
 ### RLS summary
 - **inspector**: reads master data + records; inserts/updates **own**

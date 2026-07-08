@@ -324,6 +324,8 @@ export interface Batch {
   status_changed_at: string | null
   parent_batch_ids: string[]
   gudang_ref: string | null
+  /** Structured Gudang One link, set when pulled via "Ambil dari Gudang" lookup. */
+  gudang_meta: { gudang_batch_id: string; lot_no: string; warehouse: string } | null
   created_at: string
   updated_at: string
 }
@@ -387,6 +389,8 @@ export interface NcrRecord {
   decided_by: string | null
   decided_at: string | null
   status: NcrStatus
+  /** Optional suspected-equipment code; collected for a future FAMMS work-order link (Phase 2). */
+  machine_code: string | null
   created_by: string | null
   created_at: string
   updated_at: string
